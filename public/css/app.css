@@ -1,0 +1,308 @@
+@import url(https://fonts.googleapis.com/css?family=Nunito);
+html, body {
+  font-size: 13px;
+}
+
+.Completed, .COMPLETED, .Closed, .CLOSED, .closed, .active {
+  color: green;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.onProcess, .ONPROCESS, .onprocess {
+  color: #cba92c;
+  text-transform: uppercase;
+}
+
+.pending {
+  text-transform: uppercase;
+}
+
+.Cancelled, .CANCELLED, .cancelled {
+  color: red;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.onhold, .onHold {
+  color: #f0820d;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.nav-item.active {
+  background-color: #e7e7e7;
+}
+
+.show-form.show {
+  display: flex !important;
+}
+
+.show-form.hide {
+  display: none !important;
+}
+
+.text-uppercase {
+  text-transform: uppercase;
+}
+
+.mt-0 {
+  margin-top: 0;
+}
+
+.mb-0 {
+  margin-bottom: 0;
+}
+
+.dense-table td {
+  padding: 10px 15px;
+  font-size: 12px;
+}
+
+table thead th {
+  text-transform: uppercase;
+  font-size: 12px !important;
+}
+
+table tbody tr {
+  cursor: pointer;
+}
+
+.appbar-title {
+  text-transform: capitalize;
+}
+
+form .MuiGrid-item {
+  padding-top: 10px !important;
+  margin: auto 0;
+}
+
+.lpo-form .MuiGrid-item {
+  padding-top: 0px !important;
+}
+
+.full-width {
+  width: 100% !important;
+}
+
+.text-warning {
+  color: red;
+}
+
+table tr button.remove {
+  display: none;
+  color: red;
+}
+
+table tr:hover button.remove {
+  display: inline-flex;
+}
+
+table.normal-table td, table.normal-table th {
+  border: 0.1px solid #aeadad;
+  text-align: left;
+  font-size: 12px;
+  padding: 2px 5px;
+}
+
+table.normal-table {
+  width: 100%;
+}
+
+.logo {
+  min-width: 300px;
+  max-width: 350px;
+}
+
+.paf-logo {
+  min-width: 120px;
+  max-width: 150px;
+}
+
+.text-red {
+  color: red;
+}
+
+.text-center {
+  text-align: center !important;
+}
+
+.text-right {
+  text-align: right !important;
+}
+
+.ma-0 {
+  margin: 0;
+}
+
+.lpo-title {
+  color: #cba92c;
+}
+
+.paf-title {
+  margin: auto 0;
+}
+
+.paf-table th {
+  font-size: 11px !important;
+}
+
+.paf-table td {
+  font-size: 10px !important;
+}
+
+.row-date-picker input {
+  padding: 8.5px 14px !important;
+}
+
+.paf-description {
+  width: 20%;
+}
+
+.row-data .action-btn {
+  display: none;
+}
+
+.row-data:hover .action-btn {
+  display: block;
+  text-align: right;
+}
+
+.dropzone {
+  background: #efefef;
+  padding: 10px;
+  text-align: center;
+}
+
+.underlined {
+  text-decoration: underline;
+}
+
+.font-weight-bold {
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.justify-content-left {
+  justify-content: left !important;
+}
+
+@media print {
+  * {
+    overflow: auto !important;
+    float: none !important;
+    overflow: visible !important;
+  }
+
+  .main-container {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .main-container .MuiPaper-root {
+    box-shadow: none;
+  }
+
+  .approval-main {
+    page-break-inside: avoid;
+    padding-top: 0 !important;
+  }
+
+  .approval-box {
+    display: inline-block !important;
+    page-break-inside: avoid;
+  }
+
+  html, body {
+    height: initial !important;
+    overflow: initial !important;
+    -webkit-print-color-adjust: exact;
+    font-size: 8px !important;
+  }
+
+  .MuiGrid-container {
+    padding-bottom: 5px !important;
+    padding-top: 0 !important;
+  }
+
+  table {
+    width: 100% !important;
+  }
+
+  .delivery-term {
+    min-height: 135px !important;
+    max-height: 167px !important;
+  }
+
+  body {
+    min-width: 992px !important;
+  }
+
+  pre {
+    border: 1px solid #adb5bd;
+    page-break-inside: avoid;
+  }
+
+  thead {
+    display: table-header-group;
+  }
+
+  img,
+tr {
+    page-break-inside: avoid;
+  }
+
+  .logo {
+    max-width: 220px;
+    min-width: 180px;
+  }
+
+  .MuiDrawer-root, .top-bar, .appbar-title, .btn-cancel, .app-toolbar, .no-print {
+    display: none !important;
+    height: 0;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  th, td {
+    font-size: 9px !important;
+    font-weight: normal !important;
+  }
+
+  .table-small th, .table-small td {
+    font-size: 7px !important;
+  }
+
+  div {
+    padding: 0;
+  }
+
+  .MuiGrid-grid-md-6 {
+    width: 50% !important;
+  }
+
+  ::-webkit-scrollbar {
+    display: none;
+  }
+
+  h1, h2, h3 {
+    font-size: 16px !important;
+  }
+
+  h4, h5, h6 {
+    font-size: 10px !important;
+  }
+
+  .budget-area {
+    margin-bottom: 0 !important;
+  }
+
+  .table-paf-no {
+    margin-bottom: 5px !important;
+    margin-top: auto !important;
+  }
+
+  .paf-description {
+    width: 30%;
+  }
+}
