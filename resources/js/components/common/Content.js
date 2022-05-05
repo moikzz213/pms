@@ -96,7 +96,7 @@ function renderElement(logged){
   }else if(procSlug1 == 'payment-approval-forms' && procSlug2 == 'id' && allow){
     return  <ViewPaf id={slug}/>;
   }else if(procSlug2 == 'payment-approval-forms' && slug == 'create' && allow){
-    return  <PafForm/>;
+    return  <PafForm logged={logged}/>;
   }else if(procSlug2 == 'suppliers' && slug == 'create' && allow){
     return  <SupplierForm/>;
   }else if(procSlug1 == 'suppliers' && procSlug2 == 'id' && allow) {

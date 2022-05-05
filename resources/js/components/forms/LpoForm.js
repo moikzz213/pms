@@ -390,8 +390,7 @@ const LpoForm = ({logged}) => {
                 o.approval_type = selected;
             }
             return o;
-        });
-        console.log(tempRows);
+        }); 
         setApprovalRows(tempRows);
     };
 
@@ -403,8 +402,7 @@ const LpoForm = ({logged}) => {
                 o.user_id = selected;
             }
             return o;
-        });
-        console.log(tempRows);
+        }); 
         setApprovalRows(tempRows);
     };
 

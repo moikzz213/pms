@@ -19,11 +19,13 @@ class CreatePaymentApprovalFormsTable extends Migration
             $table->unsignedBigInteger('request_id')->nullable();
             $table->unsignedBigInteger('local_purchase_order_id')->nullable();
             $table->string('paf_no', 50)->nullable();
+            $table->unsignedBigInteger('company_id')->nullable();
             $table->unsignedBigInteger('user_id')->nullable();
-            $table->unsignedBigInteger('department_head_id')->nullable();
+            $table->string('department_head',150)->nullable();
             $table->string('department_name', 80)->nullable();
             $table->string('mode_of_payment', 50)->nullable();
             $table->float('purchase_limit', 10)->nullable();
+            $table->float('total_vat', 10)->nullable(); 
             $table->float('cash_card_limit', 10)->nullable();
             $table->string('document_no_1', 80)->nullable();
             $table->string('document_no_2', 80)->nullable();
@@ -35,7 +37,7 @@ class CreatePaymentApprovalFormsTable extends Migration
             $table->text('remarks_finance')->nullable();
             $table->unsignedInteger('budgeted')->nullable();
             $table->float('discount', 10)->nullable();
-            $table->float('currency_convert', 5)->default(1);
+            $table->float('currency_rate', 5)->default(1);
             $table->float('total_amount', 10)->nullable();
             $table->float('net_amount', 10)->nullable();
             $table->string('status', 80);

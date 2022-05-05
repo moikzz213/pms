@@ -224,9 +224,9 @@ const Lpo = () => {
 
     const handleSearch = (e) => {
         if (e.target.value.length > 3) {
-            axiosFunction("/v/local-purchase-order/filter/search/" + e.target.value);
+            axiosFunction("/v/local-purchase-order/search/" + e.target.value);
         } else if (e.target.value.length == 0) {
-            axiosFunction("/v/local-purchase-order/filter/search/-");
+            axiosFunction("/v/local-purchase-order/search/-");
         }
     };
 

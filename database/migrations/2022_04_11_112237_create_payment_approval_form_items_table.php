@@ -24,6 +24,7 @@ class CreatePaymentApprovalFormItemsTable extends Migration
             $table->unsignedInteger('qty')->default(1);
             $table->float('unit_price', 10)->nullable();
             $table->float('total_amount', 10)->nullable();
+            $table->float('amount', 10)->nullable();
             $table->float('vat', 10)->nullable(); 
             $table->timestamps();
         });

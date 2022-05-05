@@ -39,7 +39,7 @@ const ViewLpo = ({ id }) => {
         } 
         setOpen(false);
     };
-    const [status, setStatus] = useState("");
+    
     const [approvals, setApprovals] = useState([]);
     const [items, setItems] = useState({});  
     useEffect(() => {
@@ -100,8 +100,7 @@ const ViewLpo = ({ id }) => {
             title: "info",
             message: "Please wait...",
         };
-        setSeverity(newMessage); 
-        setStatus(type);
+        setSeverity(newMessage);  
         let data = {id : id, type: type};
         API.post('/v/local-purchase-order/update-status', data)
         .then((response) => {

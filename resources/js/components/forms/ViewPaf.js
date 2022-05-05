@@ -9,14 +9,91 @@ import MobileDatePicker from "@mui/lab/MobileDatePicker";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Checkbox from "@mui/material/Checkbox";
 import TextField from "@mui/material/TextField";
-const ViewPaf = () => {
-    const defaultVat = 0.05; // 5% VAT
-    const vatLabel = 5;
+import API from "../../services/api.js"; 
+function approvalLabelled(label){
+    if(label == 'prepared_by'){
+        return "Prepared By";
+    }else if(label == 'reviewed_by'){
+       return "Reviewed By";
+    }else if(label == 'verified_by'){
+        return "Verified By";
+    }else if(label == 'approved_by'){ 
+        return "Approved By";
+    } 
+}
+const ViewPaf = ({ id }) => { 
+
+    const [logo, setLogo] = useState("");
+    const [open, setOpen] = useState(false);
+    const [severity, setSeverity] = useState({
+        title: "",
+        message: "",
+    });
+    const [loading, setLoading] = useState(false);
+    const handleClose = (event, reason) => {
+        if (reason === "clickaway") {
+            return;
+        } 
+        setOpen(false);
+    };
+    
+    const [approvals, setApprovals] = useState([]);
+    const [items, setItems] = useState({});
+
+    useEffect(() => {
+        let fetchApprovals = [];
+        setApprovals(fetchApprovals);
+
+        API.get("/v/payment-approval-form/fetch/" + id).then((response) => {
+            let fetchItems = response.data.item;
+            console.log(fetchItems);
+            setItems(fetchItems);
+            let img = "";
+            if( fetchItems.company && (fetchItems.company).toLowerCase().includes("aboud group")){
+                img = "/logo/gag.png";
+            }else if( fetchItems.company && (fetchItems.company).toLowerCase().includes("gallega")){
+                img = "/logo/gallega.png";
+            }else if( fetchItems.company && (fetchItems.company).toLowerCase().includes("buygro")){
+                img = "/logo/buygro.png";
+            }else if( fetchItems.company && (fetchItems.company).toLowerCase().includes("catering")){
+                img = "/logo/catering.png";
+            }else if( fetchItems.company && (fetchItems.company).toLowerCase().includes("crystal")){
+                img = "/logo/crystalbrook.png";
+            }else if( fetchItems.company && (fetchItems.company).toLowerCase().includes("news")){
+                img = "/logo/orient.png";
+            }else if( fetchItems.company && (fetchItems.company).toLowerCase().includes("cars")){
+                img = "/logo/gac.png";
+            }else if( fetchItems.company && (fetchItems.company).toLowerCase().includes("gaelan")){
+                img = "/logo/gaelan.png";
+            }else if( fetchItems.company && (fetchItems.company).toLowerCase().includes("point")){
+                img = "/logo/livepoint.png";
+            }else if( fetchItems.company && (fetchItems.company).toLowerCase().includes("training")){
+                img = "/logo/otc.png";
+            }else if( fetchItems.company && (fetchItems.company).toLowerCase().includes("supermarket")){
+                img = "/logo/supermarket.png";
+            }else if( fetchItems.company && (fetchItems.company).toLowerCase().includes("olive")){
+                img = "/logo/olive.png";
+            }
+            
+            setLogo(img);
+
+            let approvals = [];
+            fetchItems.paf_approvals.map((o,i) =>{
+                approvals[i] ={
+                    id: o.user_id,
+                    name: o.users.profile.name,
+                    designation: o.users.profile.designation,
+                    type: approvalLabelled(o.approval_type),
+                }
+            });
+            setApprovals(approvals);
+        });
+    }, []);
 
     const [invoice_date, setInvoiceDate] = useState(
         new Date().toLocaleDateString()
     );
-    const [approvals, setApprovals] = useState([]);
+    
     const handleDateRow = (e) => {
         setInvoiceDate(e);
     };
@@ -264,55 +341,43 @@ const ViewPaf = () => {
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    <tr>
-                                        <td className="text-center">1</td>
-                                        <td
-                                            className="text-center"
-                                            rowSpan="11"
-                                        >
-                                            Think Tribe Technologies LLC
-                                        </td>
-                                        <td className="text-center"></td>
-                                        <td className="text-center">2</td>
-                                        <td className="">PCS</td>
-                                        <td className="text-center">
-                                            06-APR-2022
-                                        </td>
-                                        <td className="text-center">2000</td>
-                                        <td className="text-center"></td>
-                                        <td className="text-center"></td>
-                                        <td className="text-center"></td>
-                                        <td className="text-center"></td>
-                                    </tr>
-                                    <tr>
-                                        <td className="text-center">2</td>
-                                        <td className="text-center"></td>
-                                        <td className="text-center">2</td>
-                                        <td className="">PCS</td>
-                                        <td className="text-center">
-                                            06-APR-2022
-                                        </td>
-                                        <td className="text-right">2000</td>
-                                        <td className="text-center"></td>
-                                        <td className="text-center"></td>
-                                        <td className="text-center"></td>
-                                        <td className="text-center"></td>
-                                    </tr>
-                                    <tr>
-                                        <td className="text-center">3</td>
-                                        <td className="text-center"></td>
-                                        <td className="text-center">2</td>
-                                        <td className="">PCS</td>
-                                        <td className="text-center">
-                                            06-APR-2022
-                                        </td>
-                                        <td className="text-right">2000</td>
-                                        <td className="text-center"></td>
-                                        <td className="text-center"></td>
-                                        <td className="text-center"></td>
-                                        <td className="text-center"></td>
-                                    </tr>
+                                <tbody> 
+                                    {items.paf_items &&
+                                        items.paf_items.map((row, index) => {
+                                            return (
+                                                <tr key={row.id} rowSpan={index < items.paf_items.length-1  ? items.paf_items.length : ""}>
+                                                    <td className="text-center">
+                                                        {index + 1}
+                                                    </td>
+                                                    <td className="text-center">
+                                                      Test
+                                                    </td>
+                                                    <td className="text-center">
+                                                        {row.specification}
+                                                    </td>
+                                                    <td className="text-center">
+                                                        {row.qty}
+                                                    </td>
+                                                    <td className="text-center">
+                                                        {row.uom}
+                                                    </td>
+                                                    <td className="text-right">
+                                                        {row.unit_price}
+                                                    </td>
+                                                    <td className="text-right">
+                                                        {row.unit_price ? (
+                                                            row.qty *
+                                                            row.unit_price
+                                                        ).toFixed(2) : ''}
+                                                    </td>
+                                                    <td className="text-center"></td>
+                                                    <td className="text-center"></td>
+                                                    <td className="text-center"></td>
+                                                    <td className="text-center"></td>
+                                                </tr>
+                                            );
+                                        })}
+                                   
                                 </tbody>
                             </table>
                         </Grid>

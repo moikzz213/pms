@@ -10,6 +10,7 @@ use App\Http\Controllers\LocationController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\LocalPurchaseOrderController;
+use App\Http\Controllers\PaymentApprovalFormController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -123,5 +124,15 @@ Route::post('/v/request/procurement/filter/search', [RequestController::class, '
 Route::post('/v/local-purchase-order/update-status', [LocalPurchaseOrderController::class, 'updateStatus'])->name('lpo.update.status');
 Route::post('/v/local-purchase-order/new', [LocalPurchaseOrderController::class, 'store'])->name('lpo.new');
 Route::post('/v/local-purchase-order/filter/search', [LocalPurchaseOrderController::class, 'filterSearch'])->name('lpo.filter.search');
+Route::get('/v/local-purchase-order/search/{search}', [LocalPurchaseOrderController::class, 'search'])->name('lpo.search');
 Route::get('/v/local-purchase-order/fetch', [LocalPurchaseOrderController::class, 'fetch'])->name('lpo.fetch.items');
 Route::get('/v/local-purchase-order/fetch/{id}', [LocalPurchaseOrderController::class, 'show'])->name('lpo.show');
+Route::get('/v/local-purchase-order/onprocess-status/fetch', [LocalPurchaseOrderController::class, 'fetchProcessStatus'])->name('lpo.fetch.onprocess');
+
+// Payment Approval Form - PAF
+Route::post('/v/payment-approval-form/update-status', [PaymentApprovalFormController::class, 'updateStatus'])->name('paf.update.status');
+Route::post('/v/payment-approval-form/new', [PaymentApprovalFormController::class, 'store'])->name('paf.new');
+Route::post('/v/payment-approval-form/filter/search', [PaymentApprovalFormController::class, 'filterSearch'])->name('paf.filter.search');
+Route::get('/v/payment-approval-form/search/{search}', [PaymentApprovalFormController::class, 'search'])->name('paf.search');
+Route::get('/v/payment-approval-form/fetch', [PaymentApprovalFormController::class, 'fetch'])->name('paf.fetch.items');
+Route::get('/v/payment-approval-form/fetch/{id}', [PaymentApprovalFormController::class, 'show'])->name('paf.show');

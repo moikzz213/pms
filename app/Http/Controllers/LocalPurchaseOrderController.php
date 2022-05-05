@@ -33,6 +33,28 @@ class LocalPurchaseOrderController extends Controller
         ], 200); 
     }
 
+    public function fetchProcessStatus()
+    {
+        $data = Local_purchase_order::where('status', '=', 'onprocess')->orderBy("lpo_no", "desc")->get(); 
+        
+        return response()->json([
+            'item' => $data 
+        ], 200); 
+    }
+
+    public function search($search){
+        if($search !== '-'){
+            $data = Local_purchase_order::where("lpo_no", "LIKE", "%".$search."%")->orWhereHas('requests', function ($q) use ($search){
+                $q->where("prf_no", "=", $search);  
+            })->with("supplier","requests","process_by")->paginate(10);
+        }else{
+            $data = Local_purchase_order::with("supplier","requests","process_by")->paginate(10); 
+        }
+        return response()->json([
+            'item' => $data 
+        ], 200); 
+    }
+
     public function filterSearch(Request $request){ 
         if($request['data']){
             $data = Local_purchase_order::where($request['data'])->with("supplier","requests","process_by")->paginate(10);
