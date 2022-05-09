@@ -25,6 +25,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 const columns = [ 
     { id: "title", label: "Company", minWidth: 30 },
+    { id: "code", label: "Code", minWidth: 30 },
     { id: "address", label: "Address", minWidth: 50 },
     { id: "tax_no", label: "Tax No.", minWidth: 20 },
     { id: "contact_person", label: "Contact Person", minWidth: 50 },
@@ -41,10 +42,11 @@ const Suppliers = () => {
     const [toPage, settoPage] = useState(0);
     const [fromPage, setfromPage] = useState(0);
 
-    const [rows, setRows] = useState([
+    const [supplierList, setSupplierList] = useState([
         {
             id: null,
             title: "",
+            code: "",
             address: "",
             tax_no: "",
             contact_person: "",
@@ -57,7 +59,7 @@ const Suppliers = () => {
             .get("/v/suppliers/fetch-all/?page=" + page)
             .then((response) => {
                 let fetchItems = response.data.item;
-                setRows(fetchItems.data);
+                setSupplierList(fetchItems.data);
                 console.log(fetchItems);
                 setPage(fetchItems.current_page);
                 setlastPage(fetchItems.last_page);
@@ -75,7 +77,7 @@ const Suppliers = () => {
             .get(controller)
             .then((response) => {
                 let fetchItems = response.data.item;
-                setRows(fetchItems.data);
+                setSupplierList(fetchItems.data);
 
                 setPage(fetchItems.current_page);
                 setlastPage(fetchItems.last_page);
@@ -90,9 +92,7 @@ const Suppliers = () => {
 
     useEffect(() => {
         fetchSuppliers();
-        return () => {
-            setRows({}); // This worked for me
-            };
+        
     }, [page]);
 
     const handleChangePage = (selectedPage, n) => {
@@ -189,7 +189,7 @@ const Suppliers = () => {
                         </TableHead>
                         <TableBody>
                            
-                            { rows.map((row, index) => {
+                            { supplierList.map((row, index) => {
                                 return (
                                     <TableRow
                                         hover

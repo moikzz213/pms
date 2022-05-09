@@ -97,7 +97,7 @@ Route::get('/v/users/search/{search}', [UserController::class, 'search'])->name(
 Route::post('/v/users/new', [UserController::class, 'store'])->name('user.new');
 Route::post('/v/users/update', [UserController::class, 'update'])->name('user.update');
 Route::post('/v/users/delete', [UserController::class, 'destroy'])->name('user.destroy');
-Route::post('/v/users/logout', [UserController::class, 'logout'])->name('user.logout');
+Route::post('/v/users/logout/{token}', [UserController::class, 'logout'])->name('user.logout');
 
 // Profile
 Route::get('/v/profile/fetch/{id}', [ProfileController::class, 'show'])->name('profile.show');
@@ -132,7 +132,15 @@ Route::get('/v/local-purchase-order/onprocess-status/fetch', [LocalPurchaseOrder
 // Payment Approval Form - PAF
 Route::post('/v/payment-approval-form/update-status', [PaymentApprovalFormController::class, 'updateStatus'])->name('paf.update.status');
 Route::post('/v/payment-approval-form/new', [PaymentApprovalFormController::class, 'store'])->name('paf.new');
+Route::post('/v/payment-approval-form/invoice-update', [PaymentApprovalFormController::class, 'pafClosed'])->name('paf.closed');
 Route::post('/v/payment-approval-form/filter/search', [PaymentApprovalFormController::class, 'filterSearch'])->name('paf.filter.search');
 Route::get('/v/payment-approval-form/search/{search}', [PaymentApprovalFormController::class, 'search'])->name('paf.search');
 Route::get('/v/payment-approval-form/fetch', [PaymentApprovalFormController::class, 'fetch'])->name('paf.fetch.items');
 Route::get('/v/payment-approval-form/fetch/{id}', [PaymentApprovalFormController::class, 'show'])->name('paf.show');
+
+// Import Data
+Route::post('/v/suppliers/import', [SupplierController::class, 'import'])->name('import.supplier');
+Route::post('/v/companies/import', [CompanyController::class, 'import'])->name('import.company');
+Route::post('/v/locations/import', [LocationController::class, 'import'])->name('import.location');
+Route::post('/v/users/import', [UserController::class, 'import'])->name('import.users');
+Route::post('/v/departments/import', [DepartmentController::class, 'import'])->name('import.department');

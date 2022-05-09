@@ -36,7 +36,7 @@ const Categories = () => {
     const [toPage, settoPage] = useState(0);
     const [fromPage, setfromPage] = useState(0);
 
-    const [rows, setRows] = useState([
+    const [categoryList, setCategoryList] = useState([
         { 
             id: null,
             title: ""            
@@ -47,7 +47,7 @@ const Categories = () => {
             .get("/v/categories/fetch-all/?page=" + page)
             .then((response) => {
                 let fetchItems = response.data.item;
-                setRows(fetchItems.data);
+                setCategoryList(fetchItems.data);
 
                 setPage(fetchItems.current_page);
                 setlastPage(fetchItems.last_page);
@@ -65,7 +65,7 @@ const Categories = () => {
         .get(controller)
         .then((response) => {
             let fetchItems = response.data.item;
-            setRows(fetchItems.data);
+            setCategoryList(fetchItems.data);
 
             setPage(fetchItems.current_page);
             setlastPage(fetchItems.last_page);
@@ -80,9 +80,9 @@ const Categories = () => {
 
     useEffect(() => {
         fetchCategories();
-        return () => {
-            setRows({}); // This worked for me
-            };
+        // return () => {
+        //     setCategoryList({}); // This worked for me
+        //     };
     }, [page]);
 
     const handleChangePage = (selectedPage, n) => {
@@ -184,7 +184,7 @@ const Categories = () => {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {rows.map((row, index) => {
+                            {categoryList.map((row, index) => {
                                 return (
                                     <TableRow
                                         hover

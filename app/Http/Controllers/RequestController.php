@@ -57,13 +57,13 @@ class RequestController extends Controller
        
         if($user->role == 'normal'){
             $id = $user->id;
-            $data = Requests::where('user_id',"=",$id)->with("company","location","process_by", "profile")->orderBy("updated_at", "desc")->get(10); 
+            $data = Requests::where('user_id',"=",$id)->with("company","location","process_by", "profile")->orderBy("updated_at", "desc")->take(10)->get();
             $pending = Requests::where(['user_id' => $id, "status" => "pending"])->get(); 
             $processed = Requests::where(['user_id' => $id, "status" => "onprocess"])->get(); 
             $newRequest = Requests::where(['user_id' => $id])->whereDate( "created_at" , Carbon::today())->get(); 
             $totalRequest = Requests::where(['user_id' => $id])->where("status", "!=", "cancelled")->get(); 
         }else{
-            $data = Requests::with("company","location","process_by", "profile")->orderBy("updated_at", "desc")->paginate(10); 
+            $data = Requests::with("company","location","process_by", "profile")->orderBy("updated_at", "desc")->take(10)->get();
             $pending = Requests::where([ "status" => "pending"])->get(); 
             $processed = Requests::where([ "status" => "onprocess"])->get(); 
             $newRequest = Requests::whereDate( "created_at" , Carbon::today())->get(); 

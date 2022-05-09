@@ -16,7 +16,7 @@ class CreateLocalPurchaseOrdersTable extends Migration
         Schema::create('local_purchase_orders', function (Blueprint $table) {
             $table->id(); 
             $table->unsignedBigInteger('supplier_id')->nullable();
-            $table->unsignedBigInteger('contact_person')->nullable(); // user id
+            $table->unsignedBigInteger('contact_person')->nullable(); // user id 
             $table->string('lpo_no', 50)->nullable();
             $table->string('prf_extension', 20)->nullable();
             $table->unsignedBigInteger('request_id')->nullable();

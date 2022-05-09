@@ -21,17 +21,7 @@ const columns = [
 ]; 
 
 const Dashboard = ({logged}) => {
-    const [rows, setRows] = useState([
-        {
-            id: null,
-            status: "",
-            prf_no: "",
-            company: "",
-            process_by: "",
-            urgency: "",
-            created_at: "",
-        },
-    ]);
+    const [rows, setRows] = useState([]);
     const [countPending, setCountPending] = useState(0);
     const [countProcess, setCountProcess] = useState(0);
     const [countNew, setCountNew] = useState(0);
@@ -51,11 +41,11 @@ const Dashboard = ({logged}) => {
         .get("/v/request/dashboard/"+token)
         .then((response) => {
             let fetchItems = response.data;  
-            dataWithRelations(fetchItems.item.data); 
+            
+            dataWithRelations(fetchItems.item); 
             setCountPending(fetchItems.pending);
             setCountProcess(fetchItems.process);
-            setCountNew(fetchItems.new);
-           
+            setCountNew(fetchItems.new);  
             setCountTotal(fetchItems.totalcount);
         })
         .catch((error) => {
@@ -65,7 +55,8 @@ const Dashboard = ({logged}) => {
 
     function dataWithRelations(data){
         let newData = [];
-         
+       
+        data = Object.assign([], data);
         data.map((o,i) => {
             newData[i] = {
                 id: o.id,
@@ -78,7 +69,7 @@ const Dashboard = ({logged}) => {
                 created_at: new Date(o.created_at).toLocaleDateString()
             }
         });
-       
+    
         setRows(newData);
     } 
     return (
@@ -157,12 +148,8 @@ const Dashboard = ({logged}) => {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {rows
-                                .slice(
-                                    0 * 10,
-                                    0 * 10 + 10
-                                )
-                                .map((row) => {
+                           
+                            {rows.map((row) => {
                                     return (
                                         <TableRow
                                             hover

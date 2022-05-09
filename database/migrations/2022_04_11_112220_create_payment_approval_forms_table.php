@@ -17,7 +17,8 @@ class CreatePaymentApprovalFormsTable extends Migration
             $table->id();
             $table->string('relation', 15)->nullable();
             $table->unsignedBigInteger('request_id')->nullable();
-            $table->unsignedBigInteger('local_purchase_order_id')->nullable();
+            $table->string('invoices',250)->nullable();
+            $table->date('invoice_date')->nullable();
             $table->string('paf_no', 50)->nullable();
             $table->unsignedBigInteger('company_id')->nullable();
             $table->unsignedBigInteger('user_id')->nullable();

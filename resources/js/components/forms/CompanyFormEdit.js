@@ -22,6 +22,7 @@ export default function CompanyFormEdit({ id }) {
     const [objData, setObjData] = useState([
         {
             title: "",
+            code: "",
             contact_person: "",
             address: "",
             contact_no: "",
@@ -36,6 +37,7 @@ export default function CompanyFormEdit({ id }) {
             let newData = [
                 {
                     title: itemData.title,
+                    code: itemData.code,
                     contact_person: itemData.contact_person,
                     address: itemData.address,
                     contact_no: itemData.contact_no,
@@ -71,9 +73,12 @@ export default function CompanyFormEdit({ id }) {
                 o.tax_no = value;
             } else if (type == "email") {
                 o.email = value;
+            } else if (type == "code") {
+                o.code = value;
             }
             if (
                 o.title &&
+                o.code &&
                 o.contact_person &&
                 o.address &&
                 o.contact_no &&
@@ -169,6 +174,19 @@ export default function CompanyFormEdit({ id }) {
                                     variant="outlined"
                                 />
                             </Grid>
+                            <Grid item xs={12} md={2}>
+                                Code *
+                            </Grid>
+                            <Grid item xs={12} md={4}>
+                              
+                              <TextField
+                                  
+                                  label=""
+                                  onChange={(e) => handleData(e, "code")}
+                                  size="small"
+                                  variant="outlined"
+                              />
+                          </Grid>
                             <Grid item xs={12} md={2}>
                                 Contact person *
                             </Grid>

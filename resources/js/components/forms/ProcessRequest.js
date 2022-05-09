@@ -258,6 +258,16 @@ export default function ProcessRequest({id}) {
                             <Grid item xs={12} md={6}>
                                 STATUS: 
                                 <LoadingButton
+                                    className="btn-cancel"
+                                    color="red"
+                                    size="small"
+                                    variant="contained"
+                                    onClick={(e) => changeStatus(e, "cancelled")}
+                                    loading={loading}
+                                >
+                                    CANCEL
+                                </LoadingButton>
+                                <LoadingButton
                                     className="btn-info"
                                     color="primary"
                                     size="small"

@@ -105,8 +105,13 @@ const Pafs = () => {
         console.log(data);
         data.map((o, i) => {
             let lpo = "";
-            if( o.lpo_num ){
-                lpo = o.lpo_num.lpo_no;
+            if( o.lpos ){
+                o.lpos.map((oo,ii) => {
+                    lpo += oo.lpo_no;
+                    if(ii < o.lpos.length -1){
+                    lpo += ", ";
+                    }
+                });
             }else if(o.request_id){
                 lpo = o.requests.prf_no
             }

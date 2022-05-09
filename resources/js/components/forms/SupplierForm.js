@@ -28,6 +28,7 @@ export default function SupplierForm() {
     const [objData, setObjData] = useState([
         {
             title: "",
+            code: "",
             contact_person: "",
             address: "",
             contact_no: "",
@@ -60,9 +61,12 @@ export default function SupplierForm() {
                 o.tax_no = value;
             } else if (type == "email") {
                 o.email = value;
+            }else if (type == "code") {
+                o.code = value;
             }
             if (
                 o.title &&
+                o.code &&
                 o.contact_person &&
                 o.address &&
                 o.contact_no &&
@@ -150,6 +154,19 @@ export default function SupplierForm() {
                                     
                                     label=""
                                     onChange={(e) => handleData(e, "company")}
+                                    size="small"
+                                    variant="outlined"
+                                />
+                            </Grid>
+                            <Grid item xs={12} md={2}>
+                                Code *
+                            </Grid>
+                            <Grid item xs={12} md={4}>
+                              
+                                <TextField
+                                    
+                                    label=""
+                                    onChange={(e) => handleData(e, "code")}
                                     size="small"
                                     variant="outlined"
                                 />

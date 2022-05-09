@@ -93,7 +93,7 @@ class LocalPurchaseOrderController extends Controller
 
             $curYear = Carbon::now()->format('Y');
             $lpo_no = $this->pad( $id, 6 );
-            $lpo_no = "LPO-".$curYear.$lpo_no;
+            $lpo_no = @$request[0]['comp_code'].'-'.@$request[0]['supplier_code'].'-'.$curYear.$lpo_no;
 
             $result->update(array("lpo_no" => $lpo_no)); 
              
@@ -103,7 +103,7 @@ class LocalPurchaseOrderController extends Controller
             
         } catch (\Exception $e) {
             DB::rollback();
-            
+            dd($e);
             $success = false;
             $msg = "Error: Failed to add the data!";
             $responseCode = 500;

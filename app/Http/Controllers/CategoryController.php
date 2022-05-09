@@ -16,7 +16,7 @@ class CategoryController extends Controller
 
     public function fetchAll()
     {
-        $data = Category::get(); 
+        $data = Category::orderBy('title', 'ASC')->get(); 
         
         return response()->json([
             'item' => $data 

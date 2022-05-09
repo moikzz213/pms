@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-
+use Laravel\Sanctum\PersonalAccessToken;
 class UserController extends Controller
 {
     public function __construct()
@@ -67,17 +67,17 @@ class UserController extends Controller
         $id = '';
         $newData = array(
             
-                "name" =>  $request['data'][0]['name'],
-                "contact_no" => $request['data'][0]['contact_no'],
-                "designation" => $request['data'][0]['designation'],
-                "company_id" => $request['data'][0]['company_id'],
-                "department_id" => $request['data'][0]['department_id'] 
+                "name" =>  $v['name'],
+                "contact_no" => $v['contact_no'],
+                "designation" => $v['designation'],
+                "company_id" => $v['company_id'],
+                "department_id" => $v['department_id'] 
            
         ); 
         $userData = array(
-            "email" => $request['data'][0]['email'],
+            "email" => $v['email'],
             "role"  => "normal",
-            "password"  => Hash::make($request['data'][0]['email']),
+            "password"  => Hash::make($v['email']),
             "status"    => "active",
             "created_at"    => Carbon::now()
         );  
@@ -134,16 +134,16 @@ class UserController extends Controller
         $id = ''; 
         $newData = array(
             
-            "name" =>  $request['data'][0]['name'],
-            "contact_no" => $request['data'][0]['contact_no'],
-            "designation" => $request['data'][0]['designation'],
-            "company_id" => $request['data'][0]['company_id'],
-            "department_id" => $request['data'][0]['department_id'] 
+            "name" =>  $v['name'],
+            "contact_no" => $v['contact_no'],
+            "designation" => $v['designation'],
+            "company_id" => $v['company_id'],
+            "department_id" => $v['department_id'] 
        
         ); 
         $userData = array(
-            "email" => $request['data'][0]['email'],
-            "status"    => $request['data'][0]['status']
+            "email" => $v['email'],
+            "status"    => $v['status']
         ); 
       
         DB::beginTransaction();
@@ -191,7 +191,65 @@ class UserController extends Controller
         ], 200);
     }
 
-    public function logout(Request $request){
+    public function logout($token){
+        $token = PersonalAccessToken::findToken($token);
+        $user = $token->tokenable;
         
+        
+        $data = User::where('id', '=', $user->id)->first(); 
+        $data->tokens()->delete();
+        return response()->json([
+            'success' => true
+        ], 200);
+        
+    }
+
+    public function import(Request $request){
+        $success = true;
+        $responseCode = 200;
+        DB::beginTransaction();
+        // do all your updates here
+        try {
+             
+            foreach($request['data'] AS $v){ 
+                
+                $data = User::create(
+                                    [
+                                    "email" => $v['email'],
+                                    "role"  => "normal",
+                                    "password"  => Hash::make($v['email']),
+                                    "status"    => "active",
+                                    "created_at"    => Carbon::now()
+                                    ]
+                            );
+
+                $data->profile()->create(
+                    [
+                        "name" =>  $v['name'], 
+                        "designation" =>  $v['designation'] ? $v['designation'] : null, 
+                        "company_id" => $v['company_id'],
+                        "department_id" => $v['department_id']  
+                    ]
+                );
+                
+            } 
+          
+            $msg = "Data has been imported"; 
+          
+            DB::commit();
+            
+        } catch (\Exception $e) {
+            DB::rollback();
+            dd($e);
+            $success = false;
+            $msg = "Error: Failed to add the data!";
+            $responseCode = 500;
+        }
+
+        return response()->json([
+            'success' => $success,
+            'msg' => $msg, 
+           
+        ], $responseCode);
     }
 }

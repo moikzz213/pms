@@ -22,6 +22,13 @@ import RadioGroup from '@mui/material/RadioGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import FormControl from '@mui/material/FormControl';
 
+import { useTheme } from '@mui/material/styles';
+import OutlinedInput from '@mui/material/OutlinedInput';
+import InputLabel from '@mui/material/InputLabel';
+import MenuItem from '@mui/material/MenuItem'; 
+import Select from '@mui/material/Select';
+
+
 import API from "../../services/api.js";  
 import Snackbar from "@mui/material/Snackbar";
 import MuiAlert from "@mui/material/Alert";
@@ -29,7 +36,24 @@ import MuiAlert from "@mui/material/Alert";
 const Alert = React.forwardRef(function Alert(props, ref) {
     return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 }); 
-
+function getStyles(name, lpo, theme) {
+    return {
+      fontWeight:
+        lpo.indexOf(name) === -1
+          ? theme.typography.fontWeightRegular
+          : theme.typography.fontWeightMedium,
+    };
+  }
+const ITEM_HEIGHT = 48;
+const ITEM_PADDING_TOP = 8;
+const MenuProps = {
+  PaperProps: {
+    style: {
+      maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
+      width: 250,
+    },
+  },
+};
 function mapFilterData(array, selected) {
     let supp = array.map((sup) => {
         if (sup.id == selected) {
@@ -46,7 +70,7 @@ function mapFilterData(array, selected) {
 
 const PafForm = ({logged}) => {
     const navigate = useNavigate();
-
+    const theme = useTheme();
     const [open, setOpen] = useState(false);
     const [fieldState, setFieldState] = useState(true);
     const [severity, setSeverity] = useState({
@@ -122,7 +146,7 @@ const PafForm = ({logged}) => {
     const [supplier, setSupplier] = useState("");
 
     const [prfs, setPrfs] = useState("");
-    const [lpo, setLpo] = useState("");
+    const [lpo, setLpo] = useState([]);
     // Data to be submit
     const [objData, setObjData] = useState([
         {
@@ -177,22 +201,32 @@ const PafForm = ({logged}) => {
         let selected = event.target.value;
         let supplier = "";
         let company = "";
-        if (!selected) {
+       
+        if (selected.length <= 0) {
             setSupplier("-"); 
         } else {
-            let supp = mapFilterData(lpoList, selected);
-            console.log(supp);
-            supplier = supp.supplier_id;
-            company = supp.billing_details_id;
-            setSupplier(supplier); 
+            if(selected.length == 1){
+                let supp = mapFilterData(lpoList, selected); 
+                supplier = supp.supplier_id;
+                company = supp.billing_details_id;
+                setSupplier(supplier); 
+
+                let dataAssign = Object.assign([], objData);
+                dataAssign[0].supplier_id = supplier; 
+                dataAssign[0].company_id = company;  
+                dataAssign[0].request_id = ""; 
+
+                setObjData(dataAssign); 
+            }
         }
-        let dataAssign = Object.assign([], objData);
-        dataAssign[0].supplier_id = supplier; 
-        dataAssign[0].company_id = company; 
-        dataAssign[0].local_purchase_order_id = selected; 
-        dataAssign[0].request_id = "";
-        setLpo(selected);
-        setObjData(dataAssign); 
+       
+      
+        setLpo(
+        // On autofill we get a stringified value.
+        typeof selected === 'string' ? selected.split(',') : selected,
+        ); 
+         
+        
     };
 
     const handleApproveType = (event, index) => {
@@ -257,11 +291,10 @@ const PafForm = ({logged}) => {
         
         newNetAmount = amount * value;
         Math.round(newNetAmount * 100) / 100;
-       
         
         let dataAssign = Object.assign([], objData);
         dataAssign[0].currency_rate = newRate;
-        
+        dataAssign[0].net_amount = newNetAmount;
         setObjData(dataAssign);
         setNetAmount(newNetAmount.toFixed(2));
         
@@ -435,13 +468,14 @@ const PafForm = ({logged}) => {
 
         setNetAmount(netAmountz.toFixed(2));
         setTableRows(tempRows);
-        if(currency == "usd"){
-             handleCurrencyRate(null, objData.rate, totalAmnt, curDiscount);
-        } 
-
         let dataAssign = Object.assign([], objData);
-        dataAssign[0].discount = curDiscount;
-        dataAssign[0].net_amount = netAmountz;
+        if(currency == "usd"){
+             handleCurrencyRate(null, objData[0].currency_rate, totalAmnt, curDiscount);
+        }else{
+            dataAssign[0].net_amount = netAmountz;
+        } 
+        dataAssign[0].discount = curDiscount; 
+       
         dataAssign[0].total_amount = totalAmnt;
         dataAssign[0].total_vat = totalVat; 
         setObjData(dataAssign);
@@ -471,7 +505,7 @@ const PafForm = ({logged}) => {
         } 
 
         let dataAssign = Object.assign([], objData);
-        dataAssign[0].currency = value;
+        dataAssign[0].currency = value; 
             
         setObjData(dataAssign);
     };
@@ -512,6 +546,7 @@ const PafForm = ({logged}) => {
 
         let dataSubmit = [
             {
+                lpo: lpo,
                 details: newData,
                 items: newItems,
                 approvals: newApproval,
@@ -558,8 +593,9 @@ const PafForm = ({logged}) => {
             setLpo("");
         } else {
             setPrfs("");
+            setLpo([]);
         }
-
+       
         let dataAssign = Object.assign([], objData);
         dataAssign[0].relation = e.target.value;
             
@@ -706,27 +742,29 @@ const PafForm = ({logged}) => {
                                 <Grid item xs={12} md={2}>
                                     LPO NO.
                                 </Grid>
-                                <Grid item xs={12} md={4}>
-                                    <TextField
-                                        select
+                                <Grid item xs={12} md={4}> 
+
+                                    <FormControl fullWidth>
+                                        <InputLabel id="demo-multiple-name-label">LPO No.</InputLabel>
+                                        <Select 
+                                        multiple
                                         size="small"
-                                        label="LPO No."
                                         value={lpo}
                                         onChange={(e) => handleLpo(e)}
-                                        SelectProps={{
-                                            native: true,
-                                        }}
-                                    >
-                                        <option value=""> - </option>
+                                        input={<OutlinedInput label="LPO No." />}
+                                        MenuProps={MenuProps}
+                                        >
                                         {lpoList.map((option) => (
-                                            <option
-                                                key={option.id}
-                                                value={option.id}
+                                            <MenuItem
+                                            key={option.id}
+                                            value={option.id}
+                                            style={getStyles(option, lpo, theme)}
                                             >
-                                                {option.lpo_no}
-                                            </option>
+                                             {option.lpo_no}
+                                            </MenuItem>
                                         ))}
-                                    </TextField>
+                                        </Select>
+                                    </FormControl>
                                 </Grid>
                             </>
                         )}
@@ -1259,6 +1297,7 @@ const PafForm = ({logged}) => {
                         <TextField
                                 className="full-width" 
                                 size="small"
+                                value="Up to AED 50,000 by Finance Manager, above AED 50,000 to AED 200,000 by Finance Director &amp; all above by CEO &amp; CFO Jointly."
                                 variant="outlined"
                                 onChange={(e) => handleObjData(e, 'approval_limit')}
                             />

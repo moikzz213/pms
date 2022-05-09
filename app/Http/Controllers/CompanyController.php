@@ -16,7 +16,7 @@ class CompanyController extends Controller
 
     public function fetchAll()
     {
-        $data = Company::get(); 
+        $data = Company::orderBy('title', 'asc')->get(); 
         
         return response()->json([
             'item' => $data 
@@ -144,5 +144,32 @@ class CompanyController extends Controller
             'success' => true,
             'msg' =>  "Data has been deleted!"
         ], 200);
+    }
+
+    public function import(Request $request){
+        $success = true;
+        $responseCode = 200;
+        DB::beginTransaction();
+        // do all your updates here
+        try {
+            $data = Company::insert($request['data']);
+         
+            $msg = "Data has been imported"; 
+          
+            DB::commit();
+            
+        } catch (\Exception $e) {
+            DB::rollback();
+            dd($e);
+            $success = false;
+            $msg = "Error: Failed to add the data!";
+            $responseCode = 500;
+        }
+
+        return response()->json([
+            'success' => $success,
+            'msg' => $msg, 
+           
+        ], $responseCode);
     }
 }

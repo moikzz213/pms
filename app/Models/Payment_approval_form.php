@@ -18,9 +18,9 @@ class Payment_approval_form extends Model
     use HasFactory;
     protected $guarded = []; 
 
-    public function lpo_num()
+    public function lpos()
     {
-        return $this->belongsTo(Local_purchase_order::class, 'local_purchase_order_id');
+        return $this->belongsToMany(Local_purchase_order::class);
     }
 
     public function paf_items()
@@ -51,6 +51,20 @@ class Payment_approval_form extends Model
     public function company()
     {
         return $this->belongsTo(Company::class);
+    }
+
+    public function images()
+    { 
+        return $this->morphToMany(
+            Image::class,
+            'imageable',
+            'imageables',
+            'imageable_id',
+            'image_id',
+            '',
+            'id'
+        );
+
     }
 
 }

@@ -212,7 +212,10 @@ const LpoForm = ({logged}) => {
                     id: o.id,
                     prf_no: o.prf_no,
                     company: o.company ? o.company.title : "",
+                    company_id: o.company ? o.company.id : "",
+                    code: o.company ? o.company.code : "",
                     location: o.location ? o.location.title : "",
+                    location_id: o.location_id,
                     details: o.details,
                 };
             });
@@ -262,7 +265,7 @@ const LpoForm = ({logged}) => {
         if (!selected) {
             setSupplierDetails(funcSetSupplier());
         } else {
-            let supp = mapFilterData(supplierList, selected);
+            let supp = mapFilterData(supplierList, selected); 
             checkedData = true;
             setSupplierDetails(supp); 
         } 
@@ -280,8 +283,14 @@ const LpoForm = ({logged}) => {
         setValidate(validatedData);
     };
 
-    const handleCompany = (event) => {
-        let selected = event.target.value;
+    const handleCompany = (event, direct) => {
+        let selected = '';
+        if(direct){
+            selected = event;
+        }else{
+            selected = event.target.value;
+        }
+
         let checkedData = false;
         if (!selected) {
             setCompanyDefault(funcSetCompany());
@@ -304,13 +313,20 @@ const LpoForm = ({logged}) => {
         setValidate(validatedData);
     };
 
-    const handleShippingCompany = (event) => {
-        let selected = event.target.value;
+    const handleShippingCompany = (event, direct) => {
+        let selected = '';
+        if(direct){
+            selected = event;
+        }else{
+            selected = event.target.value;
+        }
+
         if (!selected) {
             setShippingCompany(funcSetCompany());
-        } else {
-            let supp = mapFilterData(shippingCompanies, selected);
-
+        } else {  
+            
+             let  supp = mapFilterData(shippingCompanies, selected);
+            
             setShippingCompany(supp);
         }
         setShipping(selected);
@@ -348,7 +364,10 @@ const LpoForm = ({logged}) => {
         } else {
             let supp = mapFilterData(prfList, selected);
             checkedData = true;
+            console.log(supp);
             setPrfDetails(supp);
+            handleShippingCompany(supp.company_id, 'direct');
+            handleCompany(supp.company_id, 'direct');
         }
         setPrfs(selected);
         let validatedData = validate.map((o,i) => {
@@ -594,7 +613,12 @@ const LpoForm = ({logged}) => {
         }
 
         totalAmount = netAmount - curDiscount;
-        let totalVat = totalAmount * defaultVat;
+        let totalVat = 0;
+        if (type == "vat") {
+            totalVat = value;
+        }else{
+            totalVat = totalAmount * defaultVat;
+        }
 
         totalVat = Math.round(totalVat * 100) / 100;
         setVat(totalVat.toFixed(2));
@@ -683,7 +707,7 @@ const LpoForm = ({logged}) => {
         let newData = dataAssign.map((o, i) => {
             o.supplier_id = supplier ? supplier : "";
             o.request_id = prfs ? prfs : "";
-            o.location = prfDetails ? prfDetails.location : "";
+            o.location_id = prfDetails ? prfDetails.location_id : "";
             o.company = prfDetails ? prfDetails.company : "";
             o.status = "onprocess";
             o.payment_mode = paymode;
@@ -719,9 +743,12 @@ const LpoForm = ({logged}) => {
                 details: newData,
                 items: newItems,
                 approvals: newApproval,
+                comp_code: prfDetails.code,
+                supplier_code: supplierDetails.code,
             },
         ]; 
-
+        console.log(dataSubmit);
+        
         API
         .post("/v/local-purchase-order/new", dataSubmit)
         .then((response) => {
@@ -803,7 +830,7 @@ const LpoForm = ({logged}) => {
                                 select
                                 size="small"
                                 label="Supplier"
-                                value={supplier}
+                                value={supplier ? supplier : ""}
                                 onChange={(e) => handleSupplier(e)}
                                 SelectProps={{
                                     native: true,
@@ -837,7 +864,7 @@ const LpoForm = ({logged}) => {
                                 label="Address"
                                 size="small"
                                 variant="outlined"
-                                value={supplierDetails.address}
+                                value={supplierDetails.address ? supplierDetails.address : ""}
                             />
                         </Grid>
                         <Grid item xs={12} md={2}>
@@ -859,7 +886,7 @@ const LpoForm = ({logged}) => {
                                 label="Tax No."
                                 size="small"
                                 variant="outlined"
-                                value={supplierDetails.tax_no}
+                                value={supplierDetails.tax_no ? supplierDetails.tax_no : ""}
                             />
                         </Grid>
                         <Grid item xs={12} md={2}>
@@ -883,7 +910,7 @@ const LpoForm = ({logged}) => {
                                 label="Contact No."
                                 size="small"
                                 variant="outlined"
-                                value={supplierDetails.contact_no}
+                                value={supplierDetails.contact_no ? supplierDetails.contact_no : ""}
                             />
                         </Grid>
                         <Grid item xs={12} md={2}>
@@ -952,7 +979,7 @@ const LpoForm = ({logged}) => {
                                 label="Email"
                                 size="small"
                                 variant="outlined"
-                                value={supplierDetails.email}
+                                value={supplierDetails.email ? supplierDetails.email : ""}
                             />
                         </Grid>
                         <Grid item xs={12} md={2}>
@@ -1318,9 +1345,16 @@ const LpoForm = ({logged}) => {
                                         </Grid>
                                         <Grid item xs={12} md={6}>
                                             <TextField
-                                                value={vat}
+                                                value={vat ? vat : 0}
                                                 size="small"
-                                                disabled
+                                                onChange={(e) =>
+                                                    calculateAmount(
+                                                        e,
+                                                        null,
+                                                        "vat"
+                                                    )
+                                                }
+                                               
                                                 variant="outlined"
                                             />
                                         </Grid>
@@ -1483,7 +1517,7 @@ const LpoForm = ({logged}) => {
                                                 select
                                                 size="small"
                                                 label="Business Unit"
-                                                value={company}
+                                                value={company ? company : ''}
                                                 onChange={(e) =>
                                                     handleCompany(e)
                                                 }
@@ -1509,7 +1543,7 @@ const LpoForm = ({logged}) => {
                                             <TextField
                                                 disabled
                                                 size="small"
-                                                value={companyDefault.tax_no}
+                                                value={companyDefault.tax_no ? companyDefault.tax_no : ''}
                                                 label=""
                                             ></TextField>
                                         </Grid>
@@ -1520,7 +1554,7 @@ const LpoForm = ({logged}) => {
                                             <TextField
                                                 disabled
                                                 value={
-                                                    companyDefault.contact_person
+                                                    companyDefault.contact_person ? companyDefault.contact_person : ''
                                                 }
                                                 size="small"
                                                 label=""
@@ -1532,7 +1566,7 @@ const LpoForm = ({logged}) => {
                                         <Grid item xs={12} md={8}>
                                             <TextField
                                                 disabled
-                                                value={companyDefault.address}
+                                                value={companyDefault.address ? companyDefault.address : ''}
                                                 size="small"
                                                 label=""
                                             ></TextField>
@@ -1544,7 +1578,7 @@ const LpoForm = ({logged}) => {
                                             <TextField
                                                 disabled
                                                 value={
-                                                    companyDefault.contact_no
+                                                    companyDefault.contact_no ? companyDefault.contact_no : ''
                                                 }
                                                 size="small"
                                                 label=""
@@ -1556,7 +1590,7 @@ const LpoForm = ({logged}) => {
                                         <Grid item xs={12} md={8}>
                                             <TextField
                                                 disabled
-                                                value={companyDefault.email}
+                                                value={companyDefault.email ? companyDefault.email : ''}
                                                 size="small"
                                                 label=""
                                             ></TextField>
@@ -1596,7 +1630,7 @@ const LpoForm = ({logged}) => {
                                                 select
                                                 size="small"
                                                 label="Business Unit"
-                                                value={shipping}
+                                                value={shipping ? shipping : ''}
                                                 onChange={(e) =>
                                                     handleShippingCompany(e)
                                                 }
@@ -1624,7 +1658,7 @@ const LpoForm = ({logged}) => {
                                             <TextField
                                                 disabled
                                                 size="small"
-                                                value={shippingCompany.tax_no}
+                                                value={shippingCompany.tax_no ? shippingCompany.tax_no : ''}
                                                 label=""
                                             ></TextField>
                                         </Grid>
@@ -1666,7 +1700,7 @@ const LpoForm = ({logged}) => {
                                         <Grid item xs={12} md={8}>
                                             <TextField
                                                 disabled
-                                                value={shippingCompany.address}
+                                                value={shippingCompany.address ? shippingCompany.address : ''}
                                                 size="small"
                                                 label=""
                                             ></TextField>
@@ -1678,7 +1712,7 @@ const LpoForm = ({logged}) => {
                                             <TextField
                                                 disabled
                                                 value={
-                                                    shippingCompany.contact_no
+                                                    shippingCompany.contact_no ? shippingCompany.contact_no : ''
                                                 }
                                                 size="small"
                                                 label=""
@@ -1899,9 +1933,9 @@ const LpoForm = ({logged}) => {
                         <Grid item md={12}>
                              
                             <LoadingButton
-                                    disabled={fieldState}
-                                    variant="contained"
                                    
+                                    variant="contained"
+                                    disabled={fieldState}
                                     color="info"
                                     onClick={(e) => handleSubmitForm(e)}
                                     loading={loading}

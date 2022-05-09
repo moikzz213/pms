@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import { Link } from "react-router-dom";
 import Paper from "@mui/material/Paper";
 import Box from "@mui/material/Box";
 import Grid from "@mui/material/Grid";
-import Button from "@mui/material/Button";
+
+import LoadingButton from "@mui/lab/LoadingButton";
 import AdapterDateFns from "@mui/lab/AdapterDateFns";
 import LocalizationProvider from "@mui/lab/LocalizationProvider";
 import MobileDatePicker from "@mui/lab/MobileDatePicker";
@@ -10,6 +12,13 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import Checkbox from "@mui/material/Checkbox";
 import TextField from "@mui/material/TextField";
 import API from "../../services/api.js"; 
+import { useDropzone } from "react-dropzone";
+import Snackbar from "@mui/material/Snackbar";
+import MuiAlert from "@mui/material/Alert";
+
+const Alert = React.forwardRef(function Alert(props, ref) {
+    return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+});
 function approvalLabelled(label){
     if(label == 'prepared_by'){
         return "Prepared By";
@@ -22,7 +31,7 @@ function approvalLabelled(label){
     } 
 }
 const ViewPaf = ({ id }) => { 
-
+    const [files, setFiles] = useState("");
     const [logo, setLogo] = useState("");
     const [open, setOpen] = useState(false);
     const [severity, setSeverity] = useState({
@@ -37,9 +46,10 @@ const ViewPaf = ({ id }) => {
         setOpen(false);
     };
     
+    const [invoiceSubmit, setInvoiceSubmit] = useState([{invoices: '', invoice_date: new Date().toLocaleDateString()}]);
     const [approvals, setApprovals] = useState([]);
     const [items, setItems] = useState({});
-
+    const [image, setImage] = useState([]);
     useEffect(() => {
         let fetchApprovals = [];
         setApprovals(fetchApprovals);
@@ -49,29 +59,29 @@ const ViewPaf = ({ id }) => {
             console.log(fetchItems);
             setItems(fetchItems);
             let img = "";
-            if( fetchItems.company && (fetchItems.company).toLowerCase().includes("aboud group")){
+            if( fetchItems.company && (fetchItems.company.title).toLowerCase().includes("aboud group")){
                 img = "/logo/gag.png";
-            }else if( fetchItems.company && (fetchItems.company).toLowerCase().includes("gallega")){
+            }else if( fetchItems.company && (fetchItems.company.title).toLowerCase().includes("gallega")){
                 img = "/logo/gallega.png";
-            }else if( fetchItems.company && (fetchItems.company).toLowerCase().includes("buygro")){
+            }else if( fetchItems.company && (fetchItems.company.title).toLowerCase().includes("buygro")){
                 img = "/logo/buygro.png";
-            }else if( fetchItems.company && (fetchItems.company).toLowerCase().includes("catering")){
+            }else if( fetchItems.company && (fetchItems.company.title).toLowerCase().includes("catering")){
                 img = "/logo/catering.png";
-            }else if( fetchItems.company && (fetchItems.company).toLowerCase().includes("crystal")){
+            }else if( fetchItems.company && (fetchItems.company.title).toLowerCase().includes("crystal")){
                 img = "/logo/crystalbrook.png";
-            }else if( fetchItems.company && (fetchItems.company).toLowerCase().includes("news")){
+            }else if( fetchItems.company && (fetchItems.company.title).toLowerCase().includes("news")){
                 img = "/logo/orient.png";
-            }else if( fetchItems.company && (fetchItems.company).toLowerCase().includes("cars")){
+            }else if( fetchItems.company && (fetchItems.company.title).toLowerCase().includes("cars")){
                 img = "/logo/gac.png";
-            }else if( fetchItems.company && (fetchItems.company).toLowerCase().includes("gaelan")){
+            }else if( fetchItems.company && (fetchItems.company.title).toLowerCase().includes("gaelan")){
                 img = "/logo/gaelan.png";
-            }else if( fetchItems.company && (fetchItems.company).toLowerCase().includes("point")){
+            }else if( fetchItems.company && (fetchItems.company.title).toLowerCase().includes("point")){
                 img = "/logo/livepoint.png";
-            }else if( fetchItems.company && (fetchItems.company).toLowerCase().includes("training")){
+            }else if( fetchItems.company && (fetchItems.company.title).toLowerCase().includes("training")){
                 img = "/logo/otc.png";
-            }else if( fetchItems.company && (fetchItems.company).toLowerCase().includes("supermarket")){
+            }else if( fetchItems.company && (fetchItems.company.title).toLowerCase().includes("supermarket")){
                 img = "/logo/supermarket.png";
-            }else if( fetchItems.company && (fetchItems.company).toLowerCase().includes("olive")){
+            }else if( fetchItems.company && (fetchItems.company.title).toLowerCase().includes("olive")){
                 img = "/logo/olive.png";
             }
             
@@ -87,6 +97,8 @@ const ViewPaf = ({ id }) => {
                 }
             });
             setApprovals(approvals);
+
+            setImage(fetchItems.images);
         });
     }, []);
 
@@ -94,65 +106,124 @@ const ViewPaf = ({ id }) => {
         new Date().toLocaleDateString()
     );
     
-    const handleDateRow = (e) => {
-        setInvoiceDate(e);
-    };
-    useEffect(() => {
-        let fetchApprovals = [
-            {
-                id: 1,
-                name: "Marie Campos",
-                designation: "Procurement Coordinator",
-                type: "Prepared By",
-            },
-            {
-                id: 2,
-                name: "Leslie Columna",
-                designation: "IT Supervisor",
-                type: "Verified By",
-            },
-            {
-                id: 3,
-                name: "Saleh Al Chalabi",
-                designation: "Procurement Supervisor",
-                type: "Approved By",
-            },
-            {
-                id: 4,
-                name: "Evangelos Kalamatianos",
-                designation: "GM - Facilities & Projects",
-                type: "Approved By",
-            },
-            {
-                id: 5,
-                name: "Mahmoud Nahlawi",
-                designation: "Group GM - IT",
-                type: "Approved By",
-            },
-            {
-                id: 6,
-                name: "Santosh Shetty",
-                designation: "Chief Information Officer",
-                type: "Approved By",
-            },
-            {
-                id: 7,
-                name: "Santosh Shetty",
-                designation: "Chief Information Officer",
-                type: "Approved By",
-            },
-            {
-                id: 8,
-                name: "Santosh Shetty",
-                designation: "Chief Information Officer",
-                type: "Approved By",
-            },
-        ];
-        setApprovals(fetchApprovals);
-    }, []);
+    const handleDateRow = (e, type) => {
+        let dataAssign = Object.assign([], invoiceSubmit);
+        if(type == 'date'){
+            setInvoiceDate(e);
+            dataAssign[0].invoice_date =  new Date(e).toLocaleDateString();
+        }else{
+            dataAssign[0].invoices =  e.target.value;
+             
+        }
+        console.log(dataAssign);
+        setInvoiceSubmit(dataAssign);
+    }; 
+
+    //Dropzone 
+      
+    const onDrop = useCallback((acceptedFiles) => {  
+        setFiles(acceptedFiles);
+    }, [setFiles]); 
+
+    const {
+        acceptedFiles, 
+        getRootProps,
+        getInputProps
+      } = useDropzone({
+        onDrop
+      });
+      
+    const acceptedFileItems = acceptedFiles.map(file => ( 
+        <li key={file.path}>
+          {file.path} - {parseInt(file.size/ 1000) < 1000 ? (parseInt(file.size/ 1000)).toFixed(2) + " KB" : (parseInt(file.size/ 1000)/1000).toFixed(2) + "MB" }   
+        </li>
+      ));
+    //   End Drop Zone
+
+    const saveInvoice = (e) => {
+        e.preventDefault();
+        setLoading(true);
+        let newMessage = {
+            title: "info",
+            message: "Please wait...",
+        };
+        setSeverity(newMessage);
+        const data = new FormData(); 
+        
+        console.log(invoiceSubmit);
+        data.append('user_id', items.user_id); 
+        data.append('id', items.id); 
+        data.append('invoice_date', invoiceSubmit[0].invoice_date); 
+        data.append('invoices', invoiceSubmit[0].invoices); 
+        if(files){
+            files.forEach(file => {
+                data.append('images[]', file, file.name);
+            }); 
+        }
+     
+        API
+            .post("/v/payment-approval-form/invoice-update", data)
+            .then((response) => {
+                setOpen(true);
+                setTimeout(() => {
+                    newMessage = {
+                        title: "success",
+                        message: "This PAF Number is now closed!",
+                    };
+                    setLoading(false);
+                    setSeverity(newMessage);
+                }, 500); 
+              
+            })
+            .catch((error) => {
+                newMessage = {
+                    title: "error",
+                    message: "Kindly refresh the page.",
+                };
+                setSeverity(newMessage);
+                setLoading(false);
+            });
+    }
+
+    const changeStatus = (e, type) => {
+        e.preventDefault();
+        setOpen(true);
+        setLoading(true);
+        let newMessage = {
+            title: "info",
+            message: "Please wait...",
+        };
+        setSeverity(newMessage);  
+        let data = {id : id, type: type};
+        API.post('/v/payment-approval-form/update-status', data)
+        .then((response) => {
+            console.log(response);
+            setTimeout(() => {
+                newMessage = {
+                    title: "success",
+                    message:  response.data.message,
+                };
+                setLoading(false);
+                setSeverity(newMessage);
+            }, 1500);
+        });
+    }
     return (
         <Paper sx={{ px: 3, py: 3 }}>
             <Box sx={{ flexGrow: 1 }} className="paf-table">
+            <Snackbar
+                    open={open}
+                    autoHideDuration={4000}
+                    onClose={handleClose}
+                >
+                    <Alert
+                        onClose={handleClose}
+                        severity={severity.title}
+                        sx={{ width: "100%" }}
+                    >
+                        {severity.message}
+                    </Alert>
+                </Snackbar>
                 <Box
                     sx={{
                         "& .MuiTextField-root": { m: 1, width: "90%" },
@@ -167,15 +238,15 @@ const ViewPaf = ({ id }) => {
                             sx={{ display: "flex" }}
                         >
                             <img
-                                src="/logo/GAG.png"
-                                srcSet="/logo/GAG.png"
+                                src={logo}
+                                srcSet={logo}
                                 alt="Logo"
                                 loading="lazy"
-                                className="paf-logo"
+                                className="logo"
                             />
 
                             <h5 className="ma-0 paf-title">
-                                GHASSAN ABOUD GROUP FZE
+                                {items.company ? items.company.title : ''}
                             </h5>
                         </Grid>
 
@@ -187,33 +258,44 @@ const ViewPaf = ({ id }) => {
                             sx={{ textAlign: "right" }}
                             className="table-paf-no"
                         >
-                            <Button
+                            {items.status !== 'cancelled' && items.status !== 'closed' && (
+                            <LoadingButton
                                 className="btn-cancel"
+                                onClick={(e) => changeStatus(e, "cancelled")}
+                                loading={loading}
                                 variant="contained"
                                 color="red"
                                 size="small"
                                 sx={{ mr: 1 }}
                             >
                                 CANCEL PAF
-                            </Button>
-                            <Button
+                            </LoadingButton>
+                            )}
+                             {items.status !== 'onprocess'  && items.status !== 'closed' && (
+                            <LoadingButton
                                 className="btn-cancel"
+                                onClick={(e) => changeStatus(e, "onprocess")}
+                                loading={loading}
                                 variant="contained"
                                 color="orange"
                                 size="small"
                                 sx={{ mr: 1 }}
                             >
                                 ON PROCESSED
-                            </Button>
-                            <Button
+                            </LoadingButton>
+                            )}
+                            {items.status !== 'onhold'  && items.status !== 'closed' && (
+                            <LoadingButton
                                 className="btn-cancel"
+                                onClick={(e) => changeStatus(e, "onhold")}
+                                loading={loading}
                                 variant="contained" 
                                 size="small"
                                 sx={{ mr: 1 }}
                             >
                                 ON HOLD
-                            </Button>
-
+                            </LoadingButton>
+                            )}
                             <div>PAYMENT APPROVAL FORM (PAF)</div>
                             <table
                                 className="normal-table table-small "
@@ -222,11 +304,14 @@ const ViewPaf = ({ id }) => {
                                 <tbody>
                                     <tr>
                                         <th>PAF NO.</th>
-                                        <th>32386</th>
+                                        <th> {items.paf_no }</th>
                                     </tr>
                                     <tr>
                                         <th>VOUCHER DATE</th>
-                                        <th>06-APR-2022</th>
+                                        <th> {new Date(
+                                                items.created_at
+                                            ).toLocaleDateString()} 
+                                            </th>
                                     </tr>
                                 </tbody>
                             </table>
@@ -239,7 +324,7 @@ const ViewPaf = ({ id }) => {
                                 <tbody>
                                     <tr>
                                         <th width="250">REQUESTED BY</th>
-                                        <th>STEVE AYALA</th>
+                                        <th>{items.process_by ? items.process_by.name : "" }</th>
                                     </tr>
                                     <tr>
                                         <th>DEPARTMENT NAME</th>
@@ -247,11 +332,11 @@ const ViewPaf = ({ id }) => {
                                     </tr>
                                     <tr>
                                         <th>PURCHASE LIMIT</th>
-                                        <th>100000</th>
+                                        <th>{items.purchase_limit}</th>
                                     </tr>
                                     <tr>
                                         <th>DOCUMENT NO. (FOR ACCOUNTS)</th>
-                                        <th></th>
+                                        <th>{items.document_no_1}</th>
                                     </tr>
                                 </tbody>
                             </table>
@@ -266,19 +351,19 @@ const ViewPaf = ({ id }) => {
                                         <th width="250">
                                             DEPARTMENT HEAD NAME
                                         </th>
-                                        <th>SALEH AL CHALABI</th>
+                                        <th>{items.department_head}</th>
                                     </tr>
                                     <tr>
                                         <th>MODE OF PAYMENT</th>
-                                        <th></th>
+                                        <th>{items.mode_of_payment}</th>
                                     </tr>
                                     <tr>
                                         <th>CASH/CARD LIMIT</th>
-                                        <th></th>
+                                        <th>{items.cash_card_limit}</th>
                                     </tr>
                                     <tr>
                                         <th>DOCUMENT NO (FOR ACCOUNTS)</th>
-                                        <th></th>
+                                        <th>{items.document_no_2}</th>
                                     </tr>
                                 </tbody>
                             </table>
@@ -337,7 +422,7 @@ const ViewPaf = ({ id }) => {
                                             className="text-center"
                                             style={{ width: 150 }}
                                         >
-                                            TOTAL AMOUNT IN USD
+                                            TOTAL AMOUNT IN {items.currency}
                                         </th>
                                     </tr>
                                 </thead>
@@ -345,35 +430,41 @@ const ViewPaf = ({ id }) => {
                                     {items.paf_items &&
                                         items.paf_items.map((row, index) => {
                                             return (
-                                                <tr key={row.id} rowSpan={index < items.paf_items.length-1  ? items.paf_items.length : ""}>
+                                                <tr key={row.id+index} id={row.id}>
                                                     <td className="text-center">
                                                         {index + 1}
                                                     </td>
+                                                    {index < items.paf_items.length-1 && ( 
+                                                    <td className="text-center" rowSpan={index < items.paf_items.length-1  ? items.paf_items.length : ""}>
+                                                      {items.supplier.title}
+                                                    </td>
+                                                    )}
+                                                     {index == items.paf_items.length-1 && items.paf_items.length == 1 &&( 
+                                                    <td className="text-center" >
+                                                      {items.supplier.title}
+                                                    </td>
+                                                    )}
                                                     <td className="text-center">
-                                                      Test
+                                                        {row.location}
                                                     </td>
                                                     <td className="text-center">
-                                                        {row.specification}
+                                                        {row.supplier_invoice_num}
                                                     </td>
                                                     <td className="text-center">
-                                                        {row.qty}
-                                                    </td>
-                                                    <td className="text-center">
-                                                        {row.uom}
+                                                        {row.description}
                                                     </td>
                                                     <td className="text-right">
-                                                        {row.unit_price}
+                                                    {new Date(
+                                                            row.invoice_date
+                                                        ).toLocaleDateString()}
                                                     </td>
+                                                    <td className="text-center">{row.qty}</td>
+                                                    <td className="text-center">{row.unit_price}</td>
                                                     <td className="text-right">
-                                                        {row.unit_price ? (
-                                                            row.qty *
-                                                            row.unit_price
-                                                        ).toFixed(2) : ''}
+                                                        {(row.amount).toFixed(2)}
                                                     </td>
-                                                    <td className="text-center"></td>
-                                                    <td className="text-center"></td>
-                                                    <td className="text-center"></td>
-                                                    <td className="text-center"></td>
+                                                    <td className="text-center">{row.vat}</td>
+                                                    <td className="text-center">{row.total_amount ? (row.total_amount).toFixed(2) : '0.00'}</td>
                                                 </tr>
                                             );
                                         })}
@@ -392,7 +483,7 @@ const ViewPaf = ({ id }) => {
                             >
                                 <tbody>
                                     <tr>
-                                        <td width="70%"></td>
+                                        <td width="70%" style={{verticalAlign:"top"}}>{items.remarks_general}</td>
                                         <td style={{ padding: 0, margin: 0 }}>
                                             <table width="100%" cellSpacing="0">
                                                 <tbody>
@@ -407,7 +498,7 @@ const ViewPaf = ({ id }) => {
                                                             className="text-right"
                                                             width="40%"
                                                         >
-                                                            106.43
+                                                           { items.total_amount  ? (items.total_amount).toFixed(2) : '0.00'}
                                                         </td>
                                                     </tr>
                                                     <tr>
@@ -421,7 +512,7 @@ const ViewPaf = ({ id }) => {
                                                             className="text-right"
                                                             width="40%"
                                                         >
-                                                            106.43
+                                                             {items.discount ? (items.discount).toFixed(2) : '0.00'}
                                                         </td>
                                                     </tr>
                                                     <tr>
@@ -435,9 +526,10 @@ const ViewPaf = ({ id }) => {
                                                             className="text-right"
                                                             width="40%"
                                                         >
-                                                            106.43
+                                                             {items.total_vat ? (items.total_vat).toFixed(2) : '0.00'}
                                                         </td>
                                                     </tr>
+                                                    {items.currency == 'usd' && (
                                                     <tr>
                                                         <td
                                                             className="text-right"
@@ -449,21 +541,22 @@ const ViewPaf = ({ id }) => {
                                                             className="text-right"
                                                             width="40%"
                                                         >
-                                                            106.43
+                                                           {items.currency_rate}
                                                         </td>
                                                     </tr>
+                                                    )}
                                                     <tr>
                                                         <td
                                                             className="text-right"
                                                             width="60%"
                                                         >
-                                                            NET AMOUNT
+                                                            NET AMOUNT (AED)
                                                         </td>
                                                         <td
                                                             className="text-right"
                                                             width="40%"
                                                         >
-                                                            106.43
+                                                           {items.net_amount ? (items.net_amount).toFixed(2) : '0.00'}
                                                         </td>
                                                     </tr>
                                                 </tbody>
@@ -485,17 +578,17 @@ const ViewPaf = ({ id }) => {
                                 <tbody>
                                     <tr>
                                         <td width="20%">AMOUNT IN WORDS </td>
-                                        <td width="80%">Test Only</td>
+                                        <td width="80%">{items.amount_in_words}</td>
                                     </tr>
                                     <tr>
                                         <td width="20%">
-                                            APPROVALS LIMIT FOR PAYMENT{" "}
+                                            APPROVALS LIMIT FOR PAYMENT
                                         </td>
-                                        <td width="80%"></td>
+                                        <td width="80%">{items.approval_limit_payment}</td>
                                     </tr>
                                     <tr>
-                                        <td width="20%">FINANCE COMMENTS</td>
-                                        <td width="80%">Test Only</td>
+                                        <td width="20%">COMMENTS</td>
+                                        <td width="80%">{items.remarks_finance}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -511,12 +604,14 @@ const ViewPaf = ({ id }) => {
                         }}
                     >
                         <FormControlLabel
-                            control={<Checkbox defaultChecked />}
+                            control={<Checkbox checked={items.budgeted == 1 ? true : false} />}
                             label="Budgeted according to policy"
+                            disabled={items.budgeted == 1 ? false : true}
                         ></FormControlLabel>
                         <FormControlLabel
-                            control={<Checkbox />}
+                            control={<Checkbox checked={items.budgeted == 2 ? true : false} />}
                             label="Not Budgeted"
+                            disabled={items.budgeted == 2 ? false : true}
                         ></FormControlLabel>
                     </Box>
 
@@ -570,6 +665,8 @@ const ViewPaf = ({ id }) => {
                 </Box>
 
                 <Grid  className="no-print" container spacing={2} sx={{ mt: 1 }}>
+                    { items.status !== 'closed' && (
+                    <>
                     <Grid item xs={12} md={2}>
                         INVOICE NO.
                     </Grid>
@@ -577,19 +674,11 @@ const ViewPaf = ({ id }) => {
                         <TextField
                             size="small"
                             required
+                            onChange={(e) => handleDateRow(e, 'inv_num')}
                             variant="outlined"
                         ></TextField>
-                    </Grid>
-                    <Grid item xs={12} md={3}>
-                        <TextField
-                            type="file"
-                            size="small"
-                            variant="outlined"
-                        ></TextField>
-                    </Grid>
-                    <Grid item xs={12} md={3}>
-                        PNG, JPG &amp; JPEG ONLY
-                    </Grid>
+                    </Grid> 
+                    
                     <Grid item xs={12} md={2}>
                         INVOICE DATE
                     </Grid>
@@ -601,7 +690,7 @@ const ViewPaf = ({ id }) => {
                                 variant="outlined"
                                 inputFormat="MM/dd/yyyy"
                                 value={invoice_date}
-                                onChange={(e) => handleDateRow(e)}
+                                onChange={(e) => handleDateRow(e, 'date')}
                                 sx={{
                                     padding: "8.5px 14px!important",
                                 }}
@@ -611,31 +700,54 @@ const ViewPaf = ({ id }) => {
                             />
                         </LocalizationProvider>
                     </Grid>
+                    <Grid item xs={12} md={12} className="container">
+                    <div {...getRootProps()} className="dropzone">
+                                    <input {...getInputProps()} />
+                                    <p>Drag 'n' drop some files here, or click to select files</p>
+                                    <em>(Only *.jpeg, *.jpg and *.png images will be accepted)</em>
+                                </div>
+                                <aside>
+                                    <h4>Files</h4>
+                                    <ul>{acceptedFileItems}</ul>
+                                </aside>
+                    </Grid>
+                  
+                   
                     <Grid item md={6}></Grid>
-                    <Grid item xs={12} md={2}>
-                        INVOICE AMOUNT
-                    </Grid>
-                    <Grid item xs={12} md={4} className="row-date-picker">
-                        <TextField
-                            size="small"
-                            type="number"
-                            variant="outlined"
-                        ></TextField>
-                    </Grid>
-                    <Grid item md={6}></Grid>
-                    <Grid item md={2}>
-                    <Button
-                                className="btn-save-invoice"
-                                variant="contained"
-                                color="primary"
-                                size="small"
-                            >
-                                SAVE INVOICE
-                            </Button>
-                    </Grid>
                     <Grid item md={12}>
-                                    <small>Note: You cannot edit once you save the invoice!</small>
+                        <small>Note: SAVE INVOICE button will automatically change the status to Closed! <br/>
+                        You cannot edit/upload this PAF number onced submitted! </small>
                     </Grid>
+                    <Grid item md={2}> 
+                            <LoadingButton
+                            className="btn-save-invoice"
+                            color="primary"
+                                    variant="contained"
+                                   onClick={(e) => saveInvoice(e)}
+                                    size="small"
+                                    loading={loading}
+                                >
+                                    SAVE INVOICE
+                                </LoadingButton>
+                    </Grid>
+                    </>
+                    )}
+                    { items.status == 'closed' && (
+                        <>
+                        <Grid item xs={12} md={12}>
+                         <strong>Attachment(s): </strong>
+                         {image.map((row, index) => {
+                                  return(
+                                      <li key={row.id} >
+                                           <Link to={'/file/'+row.path} target="_blank" className="underlined" download>  {row.original_name}   </Link>
+                                      </li>
+                                      
+                                  )
+                              })
+                             }
+                             </Grid>
+                             </>
+                    )}
                 </Grid>
             </Box>
         </Paper>

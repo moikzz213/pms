@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
 import * as CryptoJS from "crypto-js";
 import List from "@mui/material/List";
 import ListItemButton from "@mui/material/ListItemButton";
@@ -30,9 +31,13 @@ const listItems = ({ slug, page, page2 }) => {
     };
 
     function logout() {
-        axios.post("/v/users/logout").then((response) => {});
-
-        navigate("/login");
+        let token = localStorage.getItem('auth_token');
+        axios.post("/v/users/logout/"+token).then((response) => { 
+            if(response.data.success){
+                navigate("/login");
+            }
+        }); 
+        
     }
 
     useEffect(() => {

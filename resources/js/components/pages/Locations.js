@@ -37,7 +37,7 @@ const Locations = () => {
     const [toPage, settoPage] = useState(0);
     const [fromPage, setfromPage] = useState(0);
 
-    const [rows, setRows] = useState([
+    const [location_rows, setLocationData] = useState([
         {
             id: null,
             title: ""            
@@ -48,7 +48,7 @@ const Locations = () => {
             .get("/v/locations/fetch-all/?page=" + page)
             .then((response) => {
                 let fetchItems = response.data.item;
-                setRows(fetchItems.data);
+                setLocationData(fetchItems.data);
 
                 setPage(fetchItems.current_page);
                 setlastPage(fetchItems.last_page);
@@ -66,7 +66,7 @@ const Locations = () => {
         .get(controller)
         .then((response) => {
             let fetchItems = response.data.item;
-            setRows(fetchItems.data);
+            setLocationData(fetchItems.data);
 
             setPage(fetchItems.current_page);
             setlastPage(fetchItems.last_page);
@@ -80,10 +80,7 @@ const Locations = () => {
     }
 
     useEffect(() => {
-        fetchLocations();
-        return () => {
-            setRows({}); // This worked for me
-            };
+        fetchLocations(); 
     }, [page]);
 
     const handleChangePage = (selectedPage, n) => {
@@ -184,7 +181,7 @@ const Locations = () => {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {rows.map((row, index) => {
+                            {location_rows.map((row, index) => {
                                 return (
                                     <TableRow
                                         hover

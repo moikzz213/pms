@@ -16,6 +16,7 @@ import Departments from "../pages/Departments";
 import Categories from "../pages/Categories";
 import Users from "../pages/Users";
 import Locations from "../pages/Locations";
+import Imports from "../pages/Imports";
 
 import ViewRequest from "../forms/ViewRequest";
 import ProcessRequest from "../forms/ProcessRequest";
@@ -52,11 +53,15 @@ function renderElement(logged){
   procSlug2 =   pathName[pathName.length - 2];  
 
   let allow = false;
+  let adminOnly = false;
 
   if(logged.role == 'admin' || logged.role == 'procurement'){
     allow = true;
   } 
-
+  if(logged.role == 'admin'){
+    adminOnly = true;
+  }
+  
   if(slug == 'dashboard' ){
      return <Dashboard logged={logged}/>;
   }else if(slug == 'requests'){
@@ -119,8 +124,10 @@ function renderElement(logged){
     return  <UserFormEdit id={slug} />;
   }else if(procSlug2 == 'locations' && slug == 'create' && allow){
     return  <LocationForm/>;
-  }else if(procSlug1 == 'locations' && procSlug2 == 'id' && allowl) {
+  }else if(procSlug1 == 'locations' && procSlug2 == 'id' && allow) {
     return  <LocationFormEdit id={slug} />;
+  }else if(slug == 'imports' && adminOnly) {
+    return  <Imports />;
   }
   return  <Error/>;
    

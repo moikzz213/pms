@@ -55,7 +55,7 @@ const ViewLpo = ({ id }) => {
                 img = "/logo/gag.png";
             }else if( fetchItems.company && (fetchItems.company).toLowerCase().includes("gallega")){
                 img = "/logo/gallega.png";
-            }else if( fetchItems.company && (fetchItems.company).toLowerCase().includes("buygro")){
+            }else if( fetchItems.company && (fetchItems.company).toLowerCase().includes("platforms")){
                 img = "/logo/buygro.png";
             }else if( fetchItems.company && (fetchItems.company).toLowerCase().includes("catering")){
                 img = "/logo/catering.png";
@@ -75,6 +75,8 @@ const ViewLpo = ({ id }) => {
                 img = "/logo/supermarket.png";
             }else if( fetchItems.company && (fetchItems.company).toLowerCase().includes("olive")){
                 img = "/logo/olive.png";
+            }else{
+                img = "/logo/gag.png";
             }
             
             setLogo(img);
@@ -264,9 +266,7 @@ const ViewLpo = ({ id }) => {
                                     </tr>
                                     <tr>
                                         <th>LPO DATE:</th>
-                                        <th>
-                                            {" "}
-                                            {new Date(
+                                        <th>{new Date(
                                                 items.created_at
                                             ).toLocaleDateString()}
                                         </th>
@@ -292,7 +292,7 @@ const ViewLpo = ({ id }) => {
                                     </tr>
                                     <tr>
                                         <th>TOTAL AMOUNT</th>
-                                        <th>{  items.net_amount ? (items.net_amount).toFixed(2) : ""}</th>
+                                        <th style={{textAlign:"right"}}>{  items.net_amount ? (items.net_amount).toFixed(2) : ""}</th>
                                     </tr>
                                 </tbody>
                             </table>
@@ -383,7 +383,7 @@ const ViewLpo = ({ id }) => {
                             <table className="normal-table" cellSpacing="0">
                                 <tbody>
                                     <tr>
-                                        <td width="70%" style={{verticalAlign:"top"}}>
+                                        <td width="68.2%" style={{verticalAlign:"top"}}>
                                             {items.remarks_general}
                                         </td>
                                         <td style={{ padding: 0, margin: 0 }}>
@@ -392,13 +392,13 @@ const ViewLpo = ({ id }) => {
                                                     <tr>
                                                         <td
                                                             className="text-right"
-                                                            width="60%"
+                                                            width="150"
                                                         >
                                                             TOTAL
                                                         </td>
                                                         <td
                                                             className="text-right"
-                                                            width="40%"
+                                                            width="150"
                                                         >
                                                             { items.total_amount ? (items.total_amount).toFixed(2) : ''}
                                                         </td>
@@ -408,7 +408,7 @@ const ViewLpo = ({ id }) => {
                                                             <tr>
                                                                 <td
                                                                     className="text-right"
-                                                                    width="60%"
+                                                                    width="150"
                                                                 >
                                                                     {
                                                                         items.license_title_label_1
@@ -416,7 +416,7 @@ const ViewLpo = ({ id }) => {
                                                                 </td>
                                                                 <td
                                                                     className="text-right"
-                                                                    width="40%"
+                                                                    width="150"
                                                                 >
                                                                     {
                                                                         items.license_title_value_1
@@ -426,7 +426,7 @@ const ViewLpo = ({ id }) => {
                                                             <tr>
                                                                 <td
                                                                     className="text-right"
-                                                                    width="60%"
+                                                                    width="150"
                                                                 >
                                                                     {
                                                                         items.license_title_label_2
@@ -434,7 +434,7 @@ const ViewLpo = ({ id }) => {
                                                                 </td>
                                                                 <td
                                                                     className="text-right"
-                                                                    width="40%"
+                                                                    width="150"
                                                                 >
                                                                     {
                                                                         items.license_title_value_2
@@ -448,13 +448,13 @@ const ViewLpo = ({ id }) => {
                                                     <tr>
                                                         <td
                                                             className="text-right"
-                                                            width="60%"
+                                                            width="150"
                                                         >
                                                             DISCOUNT
                                                         </td>
                                                         <td
                                                             className="text-right"
-                                                            width="40%"
+                                                            width="150"
                                                         >
                                                             {items.discount}
                                                         </td>
@@ -462,13 +462,13 @@ const ViewLpo = ({ id }) => {
                                                     <tr>
                                                         <td
                                                             className="text-right"
-                                                            width="60%"
+                                                            width="150"
                                                         >
                                                             5% VAT
                                                         </td>
                                                         <td
                                                             className="text-right"
-                                                            width="40%"
+                                                            width="150"
                                                         >
                                                             {items.vat}
                                                         </td>
@@ -476,13 +476,13 @@ const ViewLpo = ({ id }) => {
                                                     <tr>
                                                         <td
                                                             className="text-right"
-                                                            width="60%"
+                                                            width="150"
                                                         >
                                                             NET AMOUNT
                                                         </td>
                                                         <td
                                                             className="text-right"
-                                                            width="40%"
+                                                            width="150"
                                                         >
                                                             {items.net_amount}
                                                         </td>

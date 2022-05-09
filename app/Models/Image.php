@@ -12,16 +12,28 @@ class Image extends Model
     protected $guarded = [];
 
     public function requests()
-    {
-        // return $this->morphedByMany(Category::class, 'section_id');
+    { 
         return $this->morphedByMany(
-            Request::class,
+            Requests::class,
             'imageable',
             'imageables',
             'image_id',
             'imageable_id',
             'id',
             'request_id',
+        );
+    }
+
+    public function pafs()
+    { 
+        return $this->morphedByMany(
+            Payment_approval_form::class,
+            'imageable',
+            'imageables',
+            'image_id',
+            'imageable_id',
+            'id',
+            'payment_approval_form_id',
         );
     }
 }
