@@ -80,9 +80,10 @@ const Categories = () => {
 
     useEffect(() => {
         fetchCategories();
-        // return () => {
-        //     setCategoryList({}); // This worked for me
-        //     };
+
+        return () => {
+            setCategoryList([]); // This worked for me
+            };
     }, [page]);
 
     const handleChangePage = (selectedPage, n) => {

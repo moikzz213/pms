@@ -81,6 +81,9 @@ const Locations = () => {
 
     useEffect(() => {
         fetchLocations(); 
+        return () => {
+            setLocationData([]);
+          };
     }, [page]);
 
     const handleChangePage = (selectedPage, n) => {

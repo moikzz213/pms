@@ -9,4 +9,9 @@ class Supplier extends Model
 {
     use HasFactory;
     protected $guarded = [];
+
+    public function logs()
+    {
+        return $this->morphToMany(Log::class, 'loggable');
+    }
 }

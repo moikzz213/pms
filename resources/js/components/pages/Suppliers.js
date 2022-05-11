@@ -33,7 +33,7 @@ const columns = [
     { id: "email", label: "Email", minWidth: 50 },
 ];
 
-const Suppliers = () => {
+const Suppliers = ({logged}) => {
     const navigate = useNavigate();
 
     const [page, setPage] = useState(1);
@@ -92,7 +92,9 @@ const Suppliers = () => {
 
     useEffect(() => {
         fetchSuppliers();
-        
+        return () => {
+            setSupplierList([]);
+          };
     }, [page]);
 
     const handleChangePage = (selectedPage, n) => {
@@ -121,7 +123,8 @@ const Suppliers = () => {
     };
 
     const deleteData = (e) => {
-        axios.post("/v/suppliers/delete", e).then((response) => {
+        let data = { id: e.id, user_id: logged.id}
+        axios.post("/v/suppliers/delete", data).then((response) => {
             setTimeout(() => {
                 fetchSuppliers();
             }, 200);
@@ -218,7 +221,7 @@ const Suppliers = () => {
                                                 </TableCell>
                                             );
                                         })}
-                                        <TableCell>
+                                        <TableCell className="td-action-btn">
                                             <Box className="action-btn">
                                                 <EditIcon
                                                     sx={{ mr: 1 }}

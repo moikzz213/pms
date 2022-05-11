@@ -83,6 +83,9 @@ const Departments = () => {
 
     useEffect(() => {
         fetchDepartments(); 
+        return () => {
+            setDepartmentsData([]);
+          };
     }, [page]); 
 
     const handleChangePage = (selectedPage, n) => {

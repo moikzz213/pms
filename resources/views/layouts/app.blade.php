@@ -21,6 +21,10 @@
                 font-family: 'Nunito', sans-serif;/
             }
         </style>
+        <link rel="icon" href="{{ asset('images/fav.png') }}" sizes="32x32">
+        <link rel="icon" href="{{ asset('images/fav.png') }}" sizes="192x192">
+        <link rel="apple-touch-icon" href="{{ asset('images/fav.png') }}">
+        <meta name="msapplication-TileImage" content="asset('images/fav.png')">
         <link href="{{ mix('css/app.css') }}" rel="stylesheet">
     </head>
     <body class="antialiased"> 

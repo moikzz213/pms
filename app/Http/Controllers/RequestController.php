@@ -2,16 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Requests;
 use App\Models\Image;
+use App\Models\Requests;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use App\Jobs\RequestToProcurement;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Intervention\Image\Facades\Image as Img;
+use App\Jobs\RequestAssignToProcurement;
 use Laravel\Sanctum\PersonalAccessToken;
+use Intervention\Image\Facades\Image as Img;
+
 class RequestController extends Controller
 {
     /**
@@ -137,8 +140,7 @@ class RequestController extends Controller
                 "details" => $request['details'],
                 "user_id"  => $request['user_id'],
                 "created_at"    => Carbon::now()
-        ); 
-      
+        );
         
         DB::beginTransaction();
         // do all your updates here
@@ -186,6 +188,28 @@ class RequestController extends Controller
                 $result->images()->sync($img_id);
                 
             }
+            $arrDetail = array( 
+                "urgency" =>  $request['urgency'],
+                "company_id" => $request['company_id'],
+                "location_id" => $request['location_id'],
+                "status" => "pending",
+                "details" => $request['details'],
+                "user_id"  => $request['user_id'],
+                "prf_no" => $prfNo,
+                "created_at"    => Carbon::now()
+            );
+            $data->logs()->create([
+                'user_id' => $request['user_id'],
+                'log_type' => 'new',
+                'details' => json_encode($arrDetail)
+            ]);
+
+            //procurementgroup@gagroup.net
+            $emails = 'procurementgroup@gagroup.net';
+            $details = array("prf_no" => $prfNo, 'data' => $request['details'], 'user_id' => $request['user_id']);
+            $rabbitArray = array("details" => $details, "email" => $emails, "subject" => "New Request");  
+            
+            //RequestToProcurement::dispatch($rabbitArray); 
              
             $msg = "New request has been created!"; 
           
@@ -241,7 +265,21 @@ class RequestController extends Controller
         $data = Requests::where('id', '=', $request['id'])->first(); 
 
         $item = array("process_by" => $request['process_by']);
-        $data->update($item); 
+        $data->update($item);  
+       
+        $arrDetail = array( "process_by" => $request['process_by'],
+            "created_at"    => Carbon::now()
+        );
+        $data->logs()->create([
+            'user_id' => $request['user_id'],
+            'log_type' => 'assign',
+            'details' => json_encode($arrDetail)
+        ]);
+        
+        $details = array("prf_no" => $data['prf_no'], 'user_id' => $request['process_by']); 
+        
+        $rabbitArray = array("details" => $details, "subject" => "Request Assigned");  
+       // RequestAssignToProcurement::dispatch($rabbitArray);
          
         $msg = 'Request has been assigned!';
 

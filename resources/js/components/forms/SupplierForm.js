@@ -13,7 +13,7 @@ import { set } from "date-fns";
 const Alert = React.forwardRef(function Alert(props, ref) {
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
-export default function SupplierForm() {
+export default function SupplierForm({logged}) {
     let controller;
     const [open, setOpen] = useState(false);
     const [severity, setSeverity] = useState({
@@ -98,7 +98,7 @@ export default function SupplierForm() {
             message : "Please wait..."
         }
         setSeverity(newMessage)
-        let data = { data: objData }; 
+        let data = { data: objData, user_id : logged.id }; 
         
         axios.post(controller, data).then((response) => {
             setOpen(true);

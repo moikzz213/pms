@@ -106,20 +106,18 @@ const LpoForm = ({logged}) => {
         funcSetContactPerson()
     );
 
+    const [department, setDepartment] = useState([{
+        id: null,
+        title: ""       
+    }]); 
     const [contactPersons, setContactPersons] = useState([]);
-    const [companies, setCompanies] = useState([]);
-
+    const [companies, setCompanies] = useState([]); 
     const [shippingCompanies, setShippingCompanies] = useState([]);
-    const [supplierList, setSuppliers] = useState([]);
-
-    const [employees, setEmployees] = useState([]);
-
-    const [prfList, setPrfList] = useState([]);
-
-    const [categoryList, setCategories] = useState([]);
-
-    const [approvalLabelled, setApprovalLabelled] = useState([
-       
+    const [supplierList, setSuppliers] = useState([]); 
+    const [employees, setEmployees] = useState([]); 
+    const [prfList, setPrfList] = useState([]); 
+    const [categoryList, setCategories] = useState([]); 
+    const [approvalLabelled, setApprovalLabelled] = useState([ 
         {
             id: "reviewed_by",
             title: "Reviewed By",
@@ -146,6 +144,21 @@ const LpoForm = ({logged}) => {
             amount: 0,
         },
     ]);
+
+    function fetchDepartments(){
+        API
+        .get("/v/departments/fetch-non-paginate")
+        .then((response) => {
+            let fetchItems = response.data.item;
+            fetchItems = Object.assign([], fetchItems); 
+            
+            setDepartment(fetchItems);  
+
+        })
+        .catch((error) => {
+            console.log(error);
+        });
+    }
 
     const [approvalRows, setApprovalRows] = useState([{
         row: 0,
@@ -197,6 +210,8 @@ const LpoForm = ({logged}) => {
 
             setCategories(fetchItems); 
         });
+
+        fetchDepartments();
         
     }, []);
 
@@ -448,6 +463,8 @@ const LpoForm = ({logged}) => {
                 o.license_title_label_1 = value;
             } else if (type == "prf_extension") {
                 o.prf_extension = value;
+            }else if (type == "department") {
+                o.department_id = value;
             }
             
             return o;
@@ -996,15 +1013,40 @@ const LpoForm = ({logged}) => {
                     </Grid>
                     {/* Table - Items */}
                     <Grid container spacing={2} sx={{ py: 3 }}>
-                        <Grid item md={12}>
+                        <Grid item md={1}>
                             <Button
                                 id="addBtn"
                                 variant="contained"
                                 onClick={() => handleAddRow()}
+                                size="small"
                             >
                                 ADD
-                            </Button>
+                            </Button>  
                         </Grid>
+                        <Grid item md="2">
+                        <TextField
+                                select
+                                size="small"
+                                sx={{width:100}}
+                                label="Department"
+                                value={department.id}
+                                onChange={(e) => handleFreeText(
+                                    e,
+                                    "department"
+                                )}
+                                SelectProps={{
+                                    native: true,
+                                }}
+                            >
+                                <option value=""> - </option>
+                                {department.map((option) => (
+                                    <option key={option.id} value={option.id}>
+                                        {option.title}
+                                    </option>
+                                ))}
+                            </TextField>
+                        </Grid>
+                        <Grid item md="8"></Grid>
                         <TableContainer sx={{ maxHeight: 600 }}>
                             <Table
                                 stickyHeader

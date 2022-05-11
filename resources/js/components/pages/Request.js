@@ -108,7 +108,9 @@ const Companies = () => {
 
     useEffect(() => {
         fetchRequests();
-       
+        return () => {
+            setListRequests([]);
+          };
     }, [page]);
 
     const handleChangePage = (selectedPage, n) => {

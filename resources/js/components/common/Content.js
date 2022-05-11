@@ -17,6 +17,7 @@ import Categories from "../pages/Categories";
 import Users from "../pages/Users";
 import Locations from "../pages/Locations";
 import Imports from "../pages/Imports";
+import Profile from "../pages/Profile"; 
 
 import ViewRequest from "../forms/ViewRequest";
 import ProcessRequest from "../forms/ProcessRequest";
@@ -60,18 +61,18 @@ function renderElement(logged){
   } 
   if(logged.role == 'admin'){
     adminOnly = true;
-  }
-  
+  } 
+   
   if(slug == 'dashboard' ){
      return <Dashboard logged={logged}/>;
   }else if(slug == 'requests'){
     return  <Request logged={logged}/>;
   }else if(slug == 'users' && allow){
-    return  <Users/>;
+    return  <Users logged={logged}/>;
   }else if(slug == 'locations' && allow){
     return  <Locations/>;
   }else if(slug == 'procurement-team' && allow){
-    return  <Procurement/>;
+    return  <Procurement logged={logged}/>;
   }else if(slug == 'settings' && allow){
     return  <Settings/>;
   }else if(slug == 'reports' && allow){
@@ -79,11 +80,11 @@ function renderElement(logged){
   }else if(slug == 'new-request'){
     return  <RequestForm logged={logged}/>;
   }else if(slug == 'suppliers' && allow){
-    return  <Suppliers/>;
+    return  <Suppliers logged={logged}/>;
   }else if(slug == 'companies' && allow){
-    return  <Companies/>;
+    return  <Companies logged={logged}/>;
   }else if(slug == 'departments' && allow){
-    return  <Departments/>;
+    return  <Departments logged={logged}/>;
   }else if(slug == 'categories' && allow){
     return  <Categories/>;
   }else if(slug == 'local-purchase-orders' && allow){
@@ -103,31 +104,33 @@ function renderElement(logged){
   }else if(procSlug2 == 'payment-approval-forms' && slug == 'create' && allow){
     return  <PafForm logged={logged}/>;
   }else if(procSlug2 == 'suppliers' && slug == 'create' && allow){
-    return  <SupplierForm/>;
+    return  <SupplierForm logged={logged}/>;
   }else if(procSlug1 == 'suppliers' && procSlug2 == 'id' && allow) {
-    return  <SupplierFormEdit id={slug} />;
+    return  <SupplierFormEdit logged={logged} id={slug} />;
   }else if(procSlug2 == 'companies' && slug == 'create' && allow) {
-    return  <CompanyForm/>;
+    return  <CompanyForm logged={logged}/>;
   }else if(procSlug1 == 'companies' && procSlug2 == 'id' && allow) {
-    return  <CompanyFormEdit id={slug} />;
+    return  <CompanyFormEdit logged={logged} id={slug} />;
   }else if(procSlug2 == 'departments' && slug == 'create' && allow){
-    return  <DepartmentForm/>;
+    return  <DepartmentForm logged={logged}/>;
   }else if(procSlug1 == 'departments' && procSlug2 == 'id' && allow) {
-    return  <DepartmentFormEdit id={slug} />;
+    return  <DepartmentFormEdit logged={logged} id={slug} />;
   }else if(procSlug2 == 'categories' && slug == 'create' && allow){
     return  <CategoryForm/>;
   }else if(procSlug1 == 'categories' && procSlug2 == 'id' && allow) {
     return  <CategoryFormEdit id={slug} />;
   }else if(procSlug2 == 'users' && slug == 'create' && allow){
-    return  <UserForm/>;
+    return  <UserForm logged={logged}/>;
   }else if(procSlug1 == 'users' && procSlug2 == 'id' && allow) {
-    return  <UserFormEdit id={slug} />;
+    return  <UserFormEdit logged={logged} id={slug} />;
   }else if(procSlug2 == 'locations' && slug == 'create' && allow){
     return  <LocationForm/>;
   }else if(procSlug1 == 'locations' && procSlug2 == 'id' && allow) {
     return  <LocationFormEdit id={slug} />;
   }else if(slug == 'imports' && adminOnly) {
     return  <Imports />;
+  }else if(slug == 'profile') {
+    return  <Profile logged={logged}/>;
   }
   return  <Error/>;
    

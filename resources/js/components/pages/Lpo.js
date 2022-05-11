@@ -192,6 +192,9 @@ const Lpo = () => {
 
     useEffect(() => {
         fetchRequests();
+        return () => {
+            setLpoData([]);
+          };
     }, [page]);
 
     useEffect(() => {

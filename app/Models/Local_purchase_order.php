@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Log;
 use App\Models\User;
 use App\Models\Profile;
 use App\Models\Requests;
@@ -16,6 +17,11 @@ class Local_purchase_order extends Model
 {
     use HasFactory;
     protected $guarded = [];
+
+    public function logs()
+    {
+        return $this->morphToMany(Log::class, 'loggable');
+    }
 
     public function users()
     {

@@ -31,7 +31,7 @@ Auth::routes([
 
 Route::get('/', function () {
     return redirect('/d/dashboard');
-}); 
+});
 
 /**
  * Dashboard Routes
@@ -95,9 +95,12 @@ Route::get('/v/users/fetch-all', [UserController::class, 'fetch'])->name('user.f
 Route::get('/v/users/fetch/{id}', [UserController::class, 'show'])->name('user.show');
 Route::get('/v/users/search/{search}', [UserController::class, 'search'])->name('user.search');
 Route::post('/v/users/new', [UserController::class, 'store'])->name('user.new');
+Route::post('/v/users/profile-fetch', [UserController::class, 'profile'])->name('user.profile.show');
 Route::post('/v/users/update', [UserController::class, 'update'])->name('user.update');
 Route::post('/v/users/delete', [UserController::class, 'destroy'])->name('user.destroy');
 Route::post('/v/users/logout/{token}', [UserController::class, 'logout'])->name('user.logout');
+Route::post('/v/profile/change-password', [UserController::class, 'change_password'])->name('user.change.password');
+
 
 // Profile
 Route::get('/v/profile/fetch/{id}', [ProfileController::class, 'show'])->name('profile.show');

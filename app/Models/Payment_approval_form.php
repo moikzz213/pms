@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Log;
 use App\Models\User;
 use App\Models\Company;
 use App\Models\Profile;
@@ -17,6 +18,11 @@ class Payment_approval_form extends Model
 {
     use HasFactory;
     protected $guarded = []; 
+
+    public function logs()
+    {
+        return $this->morphToMany(Log::class, 'loggable');
+    }
 
     public function lpos()
     {

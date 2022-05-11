@@ -168,6 +168,10 @@ table.normal-table {
   text-align: right;
 }
 
+.row-data:hover .td-action-btn {
+  width: 80px;
+}
+
 .dropzone {
   background: #efefef;
   padding: 10px;

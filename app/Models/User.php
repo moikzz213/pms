@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Log;
 use App\Models\Company;
 use App\Models\Profile;
 use App\Models\Department;
@@ -50,5 +51,10 @@ class User extends Authenticatable
     public function lpos()
     {
         return $this->hasMany(Local_purchase_order::class);
+    }
+
+    public function logs()
+    {
+        return $this->morphToMany(Log::class, 'loggable');
     }
 } 

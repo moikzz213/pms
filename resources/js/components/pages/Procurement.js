@@ -37,7 +37,7 @@ const columns = [
     { id: "created_at", label: "Date Requested", minWidth: 20 },
 ]; 
 
-const Procurement = () => {
+const Procurement = ({logged}) => {
     const [open, setOpen] = useState(false);
     const [severity, setSeverity] = useState({
         title: "",
@@ -156,10 +156,9 @@ const Procurement = () => {
             title: "info",
             message: "Please wait...",
         };
-        setSeverity(newMessage);
-       
-
-        let data = { id: row.id, process_by: selected };
+        setSeverity(newMessage); 
+        
+        let data = { id: row.id, process_by: selected, user_id: logged.id };
         API.post("/v/request/procurement/assigned", data)
             .then((response) => {
                 setOpen(true);
@@ -234,6 +233,9 @@ const Procurement = () => {
 
     useEffect(() => {
         fetchRequests();
+        return () => {
+            setRequestsData([]);
+          };
     }, [page]);
 
     useEffect(() => {

@@ -18,7 +18,7 @@ class UserController extends Controller
 
     public function fetch()
     {
-        $data = User::with('profile.company', 'profile.department')->paginate(10); 
+        $data = User::where('id', '!=', 1)->with('profile.company', 'profile.department')->paginate(10); 
         
         return response()->json([
             'item' => $data 
@@ -61,23 +61,23 @@ class UserController extends Controller
      */
     public function store(Request $request)
     { 
-      
+       
         $success = true;
         $responseCode = 200;
         $id = '';
         $newData = array(
             
-                "name" =>  $v['name'],
-                "contact_no" => $v['contact_no'],
-                "designation" => $v['designation'],
-                "company_id" => $v['company_id'],
-                "department_id" => $v['department_id'] 
+                "name" =>  $request['data'][0]['name'],
+                "contact_no" => $request['data'][0]['contact_no'],
+                "designation" => $request['data'][0]['designation'],
+                "company_id" => $request['data'][0]['company_id'],
+                "department_id" => $request['data'][0]['department_id'] 
            
         ); 
         $userData = array(
-            "email" => $v['email'],
+            "email" => $request['data'][0]['email'],
             "role"  => "normal",
-            "password"  => Hash::make($v['email']),
+            "password"  => Hash::make($request['data'][0]['email']),
             "status"    => "active",
             "created_at"    => Carbon::now()
         );  
@@ -90,9 +90,27 @@ class UserController extends Controller
             $id = $data['id'];
 
             $data->profile()->create($newData);
+
+            $arrDetail = array( 
+                "name" =>  $request['data'][0]['name'],
+                "contact_no" => $request['data'][0]['contact_no'],
+                "designation" => $request['data'][0]['designation'],
+                "company_id" => $request['data'][0]['company_id'],
+                "department_id" => $request['data'][0]['department_id'],
+                "email" => $request['data'][0]['email'],
+                "role"  => "normal",
+                "password"  => Hash::make($request['data'][0]['email']),
+                "status"    => "active",
+                "created_at"    => Carbon::now()
+            );
+            $data->logs()->create([
+                'user_id' => $request['user_id'],
+                'log_type' => 'new',
+                'details' => json_encode($arrDetail)
+            ]);
          
             $msg = "Data has been added"; 
-          
+            
             DB::commit();
             
         } catch (\Exception $e) {
@@ -111,14 +129,23 @@ class UserController extends Controller
         ], $responseCode);
     }
      
-    public function show(Request $request)
+    public function show($id)
+    {
+        $data = User::where('id', '=', $id)->with('profile.company', 'profile.department')->first(); 
+
+        return response()->json([
+            'item' => $data 
+        ], 200); 
+    }
+    
+    public function profile(Request $request)
     {
         $data = User::where('id', '=', $request->id)->with('profile.company', 'profile.department')->first(); 
 
         return response()->json([
             'item' => $data 
         ], 200); 
-    } 
+    }
 
     /**
      * Update the specified resource in storage.
@@ -129,33 +156,86 @@ class UserController extends Controller
      */
     public function update(Request $request)
     {
+        
         $success = true;
         $responseCode = 200;
         $id = ''; 
-        $newData = array(
-            
-            "name" =>  $v['name'],
-            "contact_no" => $v['contact_no'],
-            "designation" => $v['designation'],
-            "company_id" => $v['company_id'],
-            "department_id" => $v['department_id'] 
-       
-        ); 
-        $userData = array(
-            "email" => $v['email'],
-            "status"    => $v['status']
-        ); 
+        if(@$request['data'][0]['department_id']){
+            $newData = array( 
+                "name" =>  $request['data'][0]['name'],
+                "contact_no" => $request['data'][0]['contact_no'],
+                "designation" => $request['data'][0]['designation'],
+                "company_id" => $request['data'][0]['company_id'],
+                "department_id" =>$request['data'][0]['department_id']
+            ); 
+            $userData = array(
+                "email" => $request['data'][0]['email'],
+                "status"    => $request['data'][0]['status']
+            ); 
+        }else{
+            $newData = array( 
+                "name" =>  $request['data'][0]['name'],
+                "contact_no" => $request['data'][0]['contact_no'],
+                "designation" => $request['data'][0]['designation'],
+                "company_id" => $request['data'][0]['company_id']              
+            ); 
+        }
       
         DB::beginTransaction();
         // do all your updates here
         try { 
             $data = User::where('id', '=', $request->id)->first(); 
-            $data->update($userData); 
+            if(@$request['data'][0]['department_id']){
+                $data->update($userData); 
+            }
 
             $data->profile()->update($newData);
 
+            $arrDetail =  $newData;
+            $data->logs()->create([
+                'user_id' => $request['user_id'],
+                'log_type' => 'update',
+                'details' => json_encode($arrDetail)
+            ]);
             
             $msg = "Data has been updated!"; 
+          
+            DB::commit();
+            
+        } catch (\Exception $e) {
+            DB::rollback();
+            dd($e);
+            $success = false;
+            $msg = "Error: Failed to update the data!";
+            $responseCode = 500;
+        }
+
+        return response()->json([
+            'success' => $success,
+            'msg' => $msg
+        ], $responseCode);
+    }
+
+    public function change_password(Request $request)
+    {
+        
+        $success = true;
+        $responseCode = 200;
+        $id = ''; 
+        
+        $newData = array( 
+            "password" =>  Hash::make($request->password)              
+        ); 
+        
+      
+        DB::beginTransaction();
+        // do all your updates here
+        try { 
+            $data = User::where('id', '=', $request->id)->first(); 
+             
+            $data->update($newData);  
+            
+            $msg = "Password has been updated!"; 
           
             DB::commit();
             
@@ -183,6 +263,7 @@ class UserController extends Controller
     {
         $data = User::where('id', '=', $request->id)->first(); 
             
+        $data->profile()->sync();
         $data->delete();
         $msg = "Data has been deleted!"; 
         return response()->json([

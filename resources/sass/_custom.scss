@@ -41,6 +41,7 @@ table.normal-table{ width: 100%;}
 
 .row-data .action-btn{ display: none;}
 .row-data:hover .action-btn{ display: block; text-align: right;}
+.row-data:hover .td-action-btn { width: 80px; }
 .dropzone{ background: #efefef; padding:10px; text-align: center;}
 .underlined { text-decoration: underline;}
 .font-weight-bold { font-weight: bold; text-transform: uppercase;}

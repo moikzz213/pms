@@ -180,7 +180,7 @@ export default function CompanyFormEdit({ id }) {
                             <Grid item xs={12} md={4}>
                               
                               <TextField
-                                  
+                                  value={objData[0].code || ""}
                                   label=""
                                   onChange={(e) => handleData(e, "code")}
                                   size="small"

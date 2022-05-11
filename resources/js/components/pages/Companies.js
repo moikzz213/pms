@@ -92,9 +92,9 @@ const Companies = () => {
 
     useEffect(() => {
         fetchCompanies();
-        // return () => {
-        // setCompanyList({}); // This worked for me
-        // };
+        return () => {
+        setCompanyList([]); // This worked for me
+        };
     }, [page]);
 
     const handleChangePage = (selectedPage, n) => {
@@ -221,7 +221,7 @@ const Companies = () => {
                                                 </TableCell>
                                             );
                                         })}
-                                        <TableCell>
+                                        <TableCell className="td-action-btn">
                                             <Box className="action-btn">
                                                 <EditIcon
                                                     sx={{ mr: 1 }}

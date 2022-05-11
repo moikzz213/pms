@@ -21,6 +21,7 @@ import ExpandMore from "@mui/icons-material/ExpandMore";
 import StarBorder from "@mui/icons-material/StarBorder";
 import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
 import LogoutIcon from "@mui/icons-material/Logout";
+import SwitchAccountIcon from '@mui/icons-material/SwitchAccount';
 const listItems = ({ slug, page, page2 }) => {
     const navigate = useNavigate();
     const zlug = slug.toLowerCase().replaceAll(" ", "-");
@@ -74,6 +75,18 @@ const listItems = ({ slug, page, page2 }) => {
 
     return (
         <>
+        <Link to="/d/profile">
+                <ListItemButton
+                    className={`nav-item ${
+                        zlug == "profile" ? "active" : ""
+                    }`}
+                >
+                    <ListItemIcon>
+                        <SwitchAccountIcon />
+                    </ListItemIcon>
+                    <ListItemText primary="PROFILE" />
+                </ListItemButton>
+            </Link>
             <Link to="/d/dashboard">
                 <ListItemButton
                     className={`nav-item ${

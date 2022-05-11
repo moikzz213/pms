@@ -42,7 +42,7 @@ const Users = () => {
     const [toPage, settoPage] = useState(0);
     const [fromPage, setfromPage] = useState(0);
 
-    const [rows, setRows] = useState([
+    const [usersList, setUsersList] = useState([
         {
             id: null,
             status: "",
@@ -87,7 +87,7 @@ const Users = () => {
                 contact_no: o.profile.contact_no
             }
         });
-        setRows(newData);
+        setUsersList(newData);
     }     
 
     function axiosFunction(controller) {
@@ -110,10 +110,11 @@ const Users = () => {
     }
 
     useEffect(() => {
+        
         fetchUsers();
-        return () => {
-            setRows({}); // This worked for me
-            };
+         return () => {
+            setUsersList([]);
+          };
     }, [page]);
 
     const handleChangePage = (selectedPage, n) => {
@@ -209,7 +210,7 @@ const Users = () => {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {rows.map((row, index) => {
+                            {usersList.map((row, index) => {
                                 return (
                                     <TableRow
                                         hover

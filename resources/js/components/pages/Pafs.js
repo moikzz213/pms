@@ -202,6 +202,9 @@ const Pafs = () => {
 
     useEffect(() => {
         fetchRequests();
+        return () => {
+            setPafData([]);
+          };
     }, [page]);
 
     useEffect(() => {

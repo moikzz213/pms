@@ -61,14 +61,23 @@ class SupplierController extends Controller
         DB::beginTransaction();
         // do all your updates here
         try {
-            $data = DB::table("suppliers")->insertGetId($newData);
-         
+            $data = Supplier::create($newData);
+            $id = $data['id'];
+
+            $arrDetail =  $newData;
+            $data->logs()->create([
+                'user_id' => $request['user_id'],
+                'log_type' => 'new',
+                'details' => json_encode($arrDetail)
+            ]);
+
             $msg = "Data has been added"; 
           
             DB::commit();
             
         } catch (\Exception $e) {
             DB::rollback();
+            dd($e);
             $success = false;
             $msg = "Error: Failed to add the data!";
             $responseCode = 500;
@@ -77,7 +86,7 @@ class SupplierController extends Controller
         return response()->json([
             'success' => $success,
             'msg' => $msg,
-            'id' => $data,
+            'id' => $id,
            
         ], $responseCode);
     }
@@ -111,6 +120,13 @@ class SupplierController extends Controller
             $data = Supplier::where('id', '=', $request->id)->first(); 
             
             $data->update($newData);
+
+            $arrDetail =  $newData;
+            $data->logs()->create([
+                'user_id' => $request['user_id'],
+                'log_type' => 'update',
+                'details' => json_encode($arrDetail)
+            ]);
             $msg = "Data has been updated!"; 
           
             DB::commit();
@@ -137,8 +153,14 @@ class SupplierController extends Controller
      */
     public function destroy(Request $request)
     {
-        $data = Supplier::where('id', '=', $request->id)->first(); 
-            
+        $data = Supplier::where('id', '=', $request['id'])->first();  
+     
+        $data->logs()->create([
+            'user_id' => $request['user_id'],
+            'log_type' => 'delete',
+            'details' => json_encode($data)
+        ]);
+        
         $data->delete();
         $msg = "Data has been deleted!"; 
         return response()->json([
