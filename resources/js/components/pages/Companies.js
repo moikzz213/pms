@@ -33,7 +33,7 @@ const columns = [
     { id: "email", label: "Email", minWidth: 50 },
 ];
 
-const Companies = () => {
+const Companies = ({logged}) => {
     const navigate = useNavigate();
 
     const [page, setPage] = useState(1);
@@ -230,6 +230,8 @@ const Companies = () => {
                                                         viewDetails(row)
                                                     }
                                                 />
+                                                { logged && logged.role == 'admin' && 
+                                                (
                                                 <DeleteForeverIcon
                                                     color="error"
                                                     title="Edit"
@@ -237,6 +239,7 @@ const Companies = () => {
                                                         deleteData(row)
                                                     }
                                                 />
+                                                )}
                                             </Box>
                                         </TableCell>
                                     </TableRow>

@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Profile;
 use App\Models\Requests;
 use App\Models\Supplier;
+use App\Models\Department;
 use App\Models\Payment_approval_form;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Local_purchase_order_item;
@@ -71,7 +72,12 @@ class Local_purchase_order extends Model
     public function supplier()
     {
         return $this->belongsTo(Supplier::class);
-    }
+    } 
+
+    public function department()
+    {
+        return $this->belongsTo(Department::class);
+    } 
 
     public function pafs()
     {

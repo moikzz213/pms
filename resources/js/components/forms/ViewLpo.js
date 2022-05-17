@@ -25,7 +25,7 @@ function approvalLabelled(label){
         return "Approved By";
     } 
 }
-const ViewLpo = ({ id }) => {
+const ViewLpo = ({ id, logged }) => {
     const [logo, setLogo] = useState("");
     const [open, setOpen] = useState(false);
     const [severity, setSeverity] = useState({
@@ -103,7 +103,7 @@ const ViewLpo = ({ id }) => {
             message: "Please wait...",
         };
         setSeverity(newMessage);  
-        let data = {id : id, type: type};
+        let data = {id : id, type: type, user_id: logged.id};
         API.post('/v/local-purchase-order/update-status', data)
         .then((response) => {
             console.log(response);

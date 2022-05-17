@@ -12,6 +12,6 @@ class Payment_approval_form_item extends Model
 
     public function paf()
     {
-        return $this->belongsTo(Payment_approval_form::class);
+        return $this->belongsTo(Payment_approval_form::class, 'payment_approval_form_id');
     }
 }

@@ -15,7 +15,7 @@ class ProfileController extends Controller
     public function profile_procurement()
     {
         // department_id 41 = procurement
-        $data = Profile::where('department_id', '=', 41)->get(); 
+        $data = Profile::where('department_id', '=', 41)->orderBy('name', 'ASC')->get(); 
 
         return response()->json([
             'item' => $data 
@@ -24,7 +24,7 @@ class ProfileController extends Controller
 
     public function profile_users()
     { 
-        $data = Profile::get(); 
+        $data = Profile::where('user_id', '!=', 1)->orderBy('name', 'ASC')->get(); 
 
         return response()->json([
             'item' => $data 

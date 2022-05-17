@@ -13,7 +13,7 @@ import MuiAlert from "@mui/material/Alert";
 const Alert = React.forwardRef(function Alert(props, ref) {
     return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
-export default function ProcessRequest({id}) {
+export default function ProcessRequest({id, logged}) {
     const [open, setOpen] = useState(false);
     const [status, setStatus] = useState("");
     const [active, setActive] = useState(false);
@@ -47,11 +47,14 @@ export default function ProcessRequest({id}) {
             .then((response) => {
                 if(response.data){
                     let responseData = response.data.item;
-                  
+                    
                     setStatus(responseData.status);
-                    if(responseData.status !== 'cancelled'){ 
+                    if(logged.role !== 'admin' && responseData.status == 'closed'){
+                        setActive(false);
+                    }else if(responseData.status !== 'cancelled'){ 
                         setActive(true);
                     }
+
                     let date = new Date(responseData.created_at).toLocaleDateString();
                     let defaultDate =  new Date(responseData.created_at);
                     let minutes = defaultDate.getMinutes();
@@ -82,7 +85,7 @@ export default function ProcessRequest({id}) {
                      
                 }
             })
-    }, []);
+    }, [logged]);
 
     const changeStatus = (e, type) => {
         e.preventDefault();
@@ -94,7 +97,7 @@ export default function ProcessRequest({id}) {
         };
         setSeverity(newMessage); 
         setStatus(type);
-        let data = {id : id, type: type};
+        let data = {id : id, type: type, user_id: logged.id};
         API.post('/v/request/update-status', data)
         .then((response) => {
             console.log(response);
@@ -256,7 +259,7 @@ export default function ProcessRequest({id}) {
                             </> :  <>
                             <Grid item xs={12} md={6}>Only <b>ON PROCESS</b> status can create LPO/PAF </Grid> </> }
                             <Grid item xs={12} md={6}>
-                                STATUS: 
+                                
                                 <LoadingButton
                                     className="btn-cancel"
                                     color="red"
@@ -291,7 +294,7 @@ export default function ProcessRequest({id}) {
                                 </LoadingButton>
                                 <LoadingButton
                                     className="btn-info"
-                                    color="red"
+                                    color="green"
                                     size="small"
                                     variant="contained"
                                     onClick={(e) => changeStatus(e, "closed")}
@@ -299,9 +302,16 @@ export default function ProcessRequest({id}) {
                                 >
                                     Closed
                                 </LoadingButton>
+                                <br/><br/>
+                                <small style={{color: "red"}}>Procurement Team needs to manually closed the request.</small> <br/>
+                                <small>Once the request has been <b>cancelled/closed</b> it will no longer be updated.</small> <br/>
+                                <small>Only the requestor can re-open the request if it has been cancelled.</small>
                             </Grid>
                              </>
-                             : ''  }
+                             : <Grid item xs={12} md={6}>
+                                <small>Once the request has been <b>cancelled/closed</b> it will no longer be updated.</small> <br/>
+                                <small>Only the requestor can re-open the request if it has been cancelled.</small>
+                             </Grid>  }
                         </Grid>
                     </Grid>
                 </Box>

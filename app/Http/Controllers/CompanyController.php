@@ -60,8 +60,15 @@ class CompanyController extends Controller
         DB::beginTransaction();
         // do all your updates here
         try {
-            $data = DB::table("companies")->insertGetId($newData);
-         
+            $data = Company::create($newData);
+            $id = $data['id'];
+            $arrDetail = $newData;
+            $data->logs()->create([
+                'user_id' => $request['user_id'],
+                'log_type' => 'new',
+                'details' => json_encode($arrDetail)
+            ]);
+
             $msg = "Data has been added"; 
           
             DB::commit();
@@ -76,7 +83,7 @@ class CompanyController extends Controller
         return response()->json([
             'success' => $success,
             'msg' => $msg,
-            'id' => $data,
+            'id' => $id,
            
         ], $responseCode);
     }
@@ -110,6 +117,14 @@ class CompanyController extends Controller
             $data = Company::where('id', '=', $request->id)->first(); 
             
             $data->update($newData);
+
+            $arrDetail = $newData;
+            $data->logs()->create([
+                'user_id' => $request['user_id'],
+                'log_type' => 'update',
+                'details' => json_encode($arrDetail)
+            ]);
+
             $msg = "Data has been updated!"; 
           
             DB::commit();

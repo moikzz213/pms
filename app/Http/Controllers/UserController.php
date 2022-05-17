@@ -27,12 +27,56 @@ class UserController extends Controller
 
     public function fetchActiveUsers()
     {
-        $data = User::where("status", "=", "active")->with('profile.company', 'profile.department')->get(); 
+        $data = User::where("status", "=", "active")->where('id', '!=', 1)->with('profile.company', 'profile.department')->get(); 
         
         return response()->json([
             'item' => $data 
         ], 200); 
-    } 
+    }
+    
+
+    // For Reports - Status Counts
+    public function fetchProcurement(Request $request)
+    {
+        $year = $request['year'];
+        $data = User::whereYear('created_at', '=', $year)->where('role', '=', "procurement")->with('profile','requests', 'lpos', 'pafs')->get();
+        $newData = array();
+        
+        foreach($data AS $k => $v){
+            $newData[$k]['name'] = $v['profile']->name;
+ 
+            $requestPending = $v->requests->where('status', 'pending')->count(); 
+            $requestProcess =  $v->requests->where('status', 'onprocess')->count();
+            $requestHold =  $v->requests->where('status', 'onhold')->count();
+            $requestCancelled =  $v->requests->where('status', 'cancelled')->count();
+            $requestClosed =  $v->requests->where('status', 'closed')->count();
+
+            if($v->lpos){
+                $requestPending += $v->lpos->where('status', 'pending')->count(); 
+                $requestProcess +=  $v->lpos->where('status', 'onprocess')->count();
+                $requestHold +=  $v->lpos->where('status', 'onhold')->count();
+                $requestCancelled +=  $v->lpos->where('status', 'cancelled')->count();
+                $requestClosed +=  $v->lpos->where('status', 'closed')->count();
+            }
+            if($v->pafs){
+                $requestPending += $v->pafs->where('status', 'pending')->count(); 
+                $requestProcess +=  $v->pafs->where('status', 'onprocess')->count();
+                $requestHold +=  $v->pafs->where('status', 'onhold')->count();
+                $requestCancelled +=  $v->pafs->where('status', 'cancelled')->count();
+                $requestClosed +=  $v->pafs->where('status', 'closed')->count();
+            }
+            $newData[$k]['pending'] =  $requestPending;
+            $newData[$k]['onprocess'] = $requestProcess;
+            $newData[$k]['onhold'] =  $requestHold;
+            $newData[$k]['cancelled'] = $requestCancelled;
+            $newData[$k]['closed'] =  $requestClosed;
+        } 
+     
+        return response()->json([
+            'data' => $data,
+            'item' => $newData 
+        ], 200); 
+    }
 
     public function search($search){
         if($search !== '-'){
@@ -263,7 +307,7 @@ class UserController extends Controller
     {
         $data = User::where('id', '=', $request->id)->first(); 
             
-        $data->profile()->sync();
+        $data->profile()->delete();
         $data->delete();
         $msg = "Data has been deleted!"; 
         return response()->json([
@@ -274,8 +318,7 @@ class UserController extends Controller
 
     public function logout($token){
         $token = PersonalAccessToken::findToken($token);
-        $user = $token->tokenable;
-        
+        $user = $token->tokenable; 
         
         $data = User::where('id', '=', $user->id)->first(); 
         $data->tokens()->delete();

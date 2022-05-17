@@ -4,6 +4,8 @@ object-assign
 @license MIT
 */
 
+/*! sheetjs (C) 2013-present SheetJS -- http://sheetjs.com */
+
 /**
  * React Router DOM v6.2.2
  *

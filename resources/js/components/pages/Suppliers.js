@@ -230,6 +230,8 @@ const Suppliers = ({logged}) => {
                                                         viewDetails(row)
                                                     }
                                                 />
+                                                { logged && logged.role == 'admin' && 
+                                                (
                                                 <DeleteForeverIcon
                                                     color="error"
                                                     title="Edit"
@@ -237,6 +239,7 @@ const Suppliers = ({logged}) => {
                                                         deleteData(row)
                                                     }
                                                 />
+                                                )}
                                             </Box>
                                         </TableCell>
                                     </TableRow>

@@ -33,7 +33,7 @@ const columns = [
     { id: "contact_no", label: "Contact No.", minWidth: 20 },
 ]; 
 
-const Users = () => {
+const Users = ({logged}) => {
     const navigate = useNavigate();
 
     const [page, setPage] = useState(1);
@@ -115,6 +115,7 @@ const Users = () => {
          return () => {
             setUsersList([]);
           };
+
     }, [page]);
 
     const handleChangePage = (selectedPage, n) => {
@@ -239,7 +240,7 @@ const Users = () => {
                                                 </TableCell>
                                             );
                                         })}
-                                        <TableCell>
+                                        <TableCell className="td-action-btn">
                                             <Box className="action-btn">
                                                 <EditIcon
                                                     sx={{ mr: 1 }}
@@ -248,6 +249,8 @@ const Users = () => {
                                                         viewDetails(row)
                                                     }
                                                 />
+                                               { logged && logged.role == 'admin' && 
+                                               (
                                                 <DeleteForeverIcon
                                                     color="error"
                                                     title="Edit"
@@ -255,6 +258,7 @@ const Users = () => {
                                                         deleteData(row)
                                                     }
                                                 />
+                                               )}
                                             </Box>
                                         </TableCell>
                                     </TableRow>

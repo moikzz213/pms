@@ -271,7 +271,8 @@ const LpoForm = ({logged}) => {
         payment_mode: "",
         contact_person: "",
         billing: "",
-        net_amount: ""
+        net_amount: "",
+        department: "",
     }]);
 
     const handleSupplier = (event) => {
@@ -288,8 +289,8 @@ const LpoForm = ({logged}) => {
 
         let validatedData = validate.map((o,i) => {
             o.supplier = checkedData;
-
-            if(o.supplier && o.prf && o.payment_term && o.payment_mode && o.contact_person && o.billing && o.net_amount){
+            console.log(o);
+            if(o.supplier && o.prf && o.payment_term && o.payment_mode && o.contact_person && o.billing && o.net_amount && o.department){
                 setFieldState(false);
             }
             return o;
@@ -319,7 +320,7 @@ const LpoForm = ({logged}) => {
         let validatedData = validate.map((o,i) => {
             o.billing = checkedData;
             
-            if(o.supplier && o.prf && o.payment_term && o.payment_mode && o.contact_person && o.billing && o.net_amount){
+            if(o.supplier && o.prf && o.payment_term && o.payment_mode && o.contact_person && o.billing && o.net_amount && o.department){
                 setFieldState(false);
             }
             return o;
@@ -362,7 +363,7 @@ const LpoForm = ({logged}) => {
         let validatedData = validate.map((o,i) => {
             o.contact_person = checkedData;
             
-            if(o.supplier && o.prf && o.payment_term && o.payment_mode && o.contact_person && o.billing && o.net_amount){
+            if(o.supplier && o.prf && o.payment_term && o.payment_mode && o.contact_person && o.billing && o.net_amount && o.department){
                 setFieldState(false);
             }
             return o;
@@ -388,7 +389,7 @@ const LpoForm = ({logged}) => {
         let validatedData = validate.map((o,i) => {
             o.prf = checkedData;
             
-            if(o.supplier && o.prf && o.payment_term && o.payment_mode && o.contact_person && o.billing && o.net_amount){
+            if(o.supplier && o.prf && o.payment_term && o.payment_mode && o.contact_person && o.billing && o.net_amount && o.department){
                 setFieldState(false);
             }
             return o;
@@ -471,6 +472,26 @@ const LpoForm = ({logged}) => {
         });
 
         setObjData(newData);
+
+        let checkedData = false;
+
+        if (type == "department") {
+            if(value){
+                checkedData = true;
+            }
+            let validatedData = validate.map((o,i) => {
+                o.department = checkedData;
+                
+                if(o.supplier && o.prf && o.payment_term && o.payment_mode && o.contact_person && o.billing && o.net_amount && o.department){
+                    setFieldState(false);
+                }else{
+                    setFieldState(true);
+                }
+                return o;
+            });
+
+            setValidate(validatedData);
+        }
     };
 
     const handlePayments = (e, type) => {
@@ -491,7 +512,7 @@ const LpoForm = ({logged}) => {
                 o.payment_term = checkedData;
             }
             
-            if(o.supplier && o.prf && o.payment_term && o.payment_mode && o.contact_person && o.billing && o.net_amount){
+            if(o.supplier && o.prf && o.payment_term && o.payment_mode && o.contact_person && o.billing && o.net_amount && o.department){
                 setFieldState(false);
             }
             return o;
@@ -666,7 +687,7 @@ const LpoForm = ({logged}) => {
         let validatedData = validate.map((o,i) => {
             o.net_amount = checkedData;
 
-            if(o.supplier && o.prf && o.payment_term && o.payment_mode && o.contact_person && o.billing && o.net_amount){
+            if(o.supplier && o.prf && o.payment_term && o.payment_mode && o.contact_person && o.billing && o.net_amount && o.department){
                 setFieldState(false);
             }
             return o;
@@ -726,6 +747,7 @@ const LpoForm = ({logged}) => {
             o.request_id = prfs ? prfs : "";
             o.location_id = prfDetails ? prfDetails.location_id : "";
             o.company = prfDetails ? prfDetails.company : "";
+            o.company_id = prfDetails ? prfDetails.company_id : "";
             o.status = "onprocess";
             o.payment_mode = paymode;
             o.payment_terms = payterms;
@@ -762,10 +784,9 @@ const LpoForm = ({logged}) => {
                 approvals: newApproval,
                 comp_code: prfDetails.code,
                 supplier_code: supplierDetails.code,
+                user_id: logged.id
             },
         ]; 
-        console.log(dataSubmit);
-        
         API
         .post("/v/local-purchase-order/new", dataSubmit)
         .then((response) => {
@@ -846,7 +867,7 @@ const LpoForm = ({logged}) => {
                             <TextField
                                 select
                                 size="small"
-                                label="Supplier"
+                                label="Supplier*"
                                 value={supplier ? supplier : ""}
                                 onChange={(e) => handleSupplier(e)}
                                 SelectProps={{
@@ -961,7 +982,7 @@ const LpoForm = ({logged}) => {
                             <TextField
                                 select
                                 size="small"
-                                label="PRF No."
+                                label="PRF No*"
                                 sx={{width:"60% !important"}}
                                 value={prfs}
                                 multiple
@@ -1023,12 +1044,12 @@ const LpoForm = ({logged}) => {
                                 ADD
                             </Button>  
                         </Grid>
-                        <Grid item md="2">
+                        <Grid item md={2}>
                         <TextField
                                 select
                                 size="small"
                                 sx={{width:100}}
-                                label="Department"
+                                label="Department*"
                                 value={department.id}
                                 onChange={(e) => handleFreeText(
                                     e,
@@ -1046,7 +1067,7 @@ const LpoForm = ({logged}) => {
                                 ))}
                             </TextField>
                         </Grid>
-                        <Grid item md="8"></Grid>
+                        <Grid item md={8}></Grid>
                         <TableContainer sx={{ maxHeight: 600 }}>
                             <Table
                                 stickyHeader
@@ -1429,7 +1450,7 @@ const LpoForm = ({logged}) => {
                                 minHeight: 177,
                             }}
                         >
-                            <h4>PAYMENT TERMS</h4>
+                            <h4>PAYMENT TERMS*</h4>
 
                             <RadioGroup
                                 aria-labelledby="demo-radio-buttons-group-label"
@@ -1467,7 +1488,7 @@ const LpoForm = ({logged}) => {
                                 minHeight: 177,
                             }}
                         >
-                            <h4>PAYMENT MODE</h4>
+                            <h4>PAYMENT MODE*</h4>
 
                             <RadioGroup
                                 aria-labelledby="demo-radio-buttons-group-label"
@@ -1548,7 +1569,7 @@ const LpoForm = ({logged}) => {
                                                 pb: "5px !important",
                                             }}
                                         >
-                                            BILLING DETAILS
+                                            BILLING DETAILS*
                                         </Grid>
                                         <Grid item xs={12} md={4}>
                                             COMPANY
@@ -1661,7 +1682,7 @@ const LpoForm = ({logged}) => {
                                                 pb: "5px !important",
                                             }}
                                         >
-                                            SHIPPING DETAILS
+                                            SHIPPING DETAILS*
                                         </Grid>
                                         <Grid item xs={12} md={4}>
                                             COMPANY
@@ -1705,14 +1726,14 @@ const LpoForm = ({logged}) => {
                                             ></TextField>
                                         </Grid>
                                         <Grid item xs={12} md={4}>
-                                            CONTACT PERSON
+                                            CONTACT PERSON*
                                         </Grid>
                                         <Grid item xs={12} md={8}>
                                             <TextField
                                                 fullWidth
                                                 select
                                                 size="small"
-                                                label="Contact Person"
+                                                label="Contact Person*"
                                                 value={persons}
                                                 onChange={(e) =>
                                                     handleContactPerson(e)
@@ -1984,6 +2005,20 @@ const LpoForm = ({logged}) => {
                                 >
                                     SUBMIT FORM
                                 </LoadingButton>
+                        </Grid>
+                        <Grid item md={12}>
+                            <small>Onced form has been submitted, it cannot be Edited.</small> <br/>
+                            <small>Be sure to check the <b>approvals</b> before submitting.</small>
+                        </Grid>
+                        <Grid item md={4}>
+                            <ul> 
+                                <li className={validate[0].supplier ? "active" : ""}>Supplier: {validate[0].supplier ? "Ok" : "-"}</li>
+                                <li className={validate[0].prf ? "active" : ""}>PRF: {validate[0].prf ? "Ok" : "-"}</li>
+                                <li className={validate[0].department ? "active" : ""}>Department: {validate[0].department ? "Ok" : "-"}</li>
+                                <li className={validate[0].net_amount ? "active" : ""}>Items: {validate[0].net_amount ? "Ok" : "-"}</li>
+                                <li className={validate[0].billing ? "active" : ""}>Billing/Shipping: {validate[0].billing ? "Ok" : "-"}</li>
+                                <li className={validate[0].contact_person ? "active" : ""}>Contact Person: {validate[0].contact_person ? "Ok" : "-"}</li> 
+                            </ul>
                         </Grid>
                     </Grid>
                 </Box>

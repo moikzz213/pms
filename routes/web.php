@@ -147,3 +147,9 @@ Route::post('/v/companies/import', [CompanyController::class, 'import'])->name('
 Route::post('/v/locations/import', [LocationController::class, 'import'])->name('import.location');
 Route::post('/v/users/import', [UserController::class, 'import'])->name('import.users');
 Route::post('/v/departments/import', [DepartmentController::class, 'import'])->name('import.department');
+
+// Reports
+Route::post('/v/report/prf', [RequestController::class, 'reportTable'])->name('report.prf.table');
+Route::post('/v/report/lpo', [LocalPurchaseOrderController::class, 'reportTable'])->name('report.lpo.table');
+Route::post('/v/report/paf', [PaymentApprovalFormController::class, 'reportTable'])->name('report.paf.table');
+Route::post('/v/report/statuses/counts', [UserController::class, 'fetchProcurement'])->name('report.statuses.counts');

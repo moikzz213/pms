@@ -19,18 +19,16 @@ const mdTheme = createTheme({
         // This is green.A700 as hex.
         main: '#01579b',
       },
-
       red:{
         main: "red",
         contrastText: '#fff',
       },
-
       orange:{
         main: "orange",
         contrastText: '#fff',
       },
       green:{
-        main: "#12ab25",
+        main: "#1b8b29",
         contrastText: '#fff',
       }
     }, 

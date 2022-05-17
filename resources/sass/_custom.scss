@@ -3,6 +3,10 @@ html, body {font-size: 13px;}
 .onProcess, .ONPROCESS, .onprocess { color: #cba92c; text-transform: uppercase;}
 .pending{ text-transform: uppercase;}
 .Cancelled, .CANCELLED, .cancelled{ color: red; font-weight: bold;text-transform: uppercase; }
+.flagged{ background-color: #2e2c2c;}
+.flagged td { color: #fff !important}
+tr.flagged:hover{  background-color: #2e2c2c !important; }
+.filter-date input { padding: 6px !important; width: 72px;}
 .onhold, .onHold {color: rgb(240, 130, 13); font-weight: bold;text-transform: uppercase;}
 .nav-item.active{ background-color: #e7e7e7;}
 .show-form.show{ display: flex !important;}
@@ -11,6 +15,8 @@ html, body {font-size: 13px;}
 .mt-0 { margin-top: 0;}
 .mb-0 { margin-bottom: 0}
 .dense-table td{ padding: 10px 15px; font-size: 12px; }
+.report-table th,.report-table td{ padding:10px 8px; font-size:9px !important; vertical-align: top;}
+.report-page select, .report-page option { font-size:10px;}
 table thead th { text-transform: uppercase; font-size:12px !important;}
 table tbody tr { cursor: pointer;}
 .appbar-title{ text-transform: capitalize;}

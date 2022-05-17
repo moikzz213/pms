@@ -70,6 +70,7 @@ class RequestController extends Controller
             $pending = Requests::where([ "status" => "pending"])->get(); 
             $processed = Requests::where([ "status" => "onprocess"])->get(); 
             $newRequest = Requests::whereDate( "created_at" , Carbon::today())->get(); 
+            $closed = Requests::where([ "status" => "closed"])->get(); 
             $totalRequest = Requests::where( "status", "!=", "cancelled")->get();
         }
 
@@ -77,11 +78,13 @@ class RequestController extends Controller
         $processedCount = $processed->count();
         $newCount = $newRequest->count();
         $totalCount = $totalRequest->count();
+        $closedCount = $closed->count();
         return response()->json([
             'item'     =>$data,
             'pending' => $pendingCount,
             'process' => $processedCount,
             'new'     => $newCount,
+            'closed'    => $closedCount,
             'totalcount' => $totalCount
         ], 200); 
     }
@@ -252,6 +255,12 @@ class RequestController extends Controller
 
         $item = array("status" => $request['type']);
         $data->update($item); 
+
+        $data->logs()->create([
+            'user_id' => $request['user_id'],
+            'log_type' => 'change_status',
+            'details' => json_encode($item)
+        ]);
          
         $msg = 'Request has been '.$request['type']; 
 
@@ -293,9 +302,9 @@ class RequestController extends Controller
     {
         $ext = explode(".", $path);
         $ext = end($ext);
-        $ext = strtolower($ext); 
+        $ext = strtolower($ext);
 
-        $mime_type = 'image/'.$ext; 
+        $mime_type = 'image/'.$ext;
 
         if( isset($path) ){
             $fileUrl = storage_path(). '/app/uploads/'.$path;
@@ -305,7 +314,23 @@ class RequestController extends Controller
         }
     }
 
-    function pad($num, $size){ 
+    function pad($num, $size){
         return substr(str_repeat(0, $size).$num, - $size);
+    }
+
+    function reportTable(Request $request){
+         
+        $search = $request['daterange'];
+        $fromDate = $search['from'];
+        $toDate = $search['to'];
+        
+        $dataSearch = $request['data'];
+       
+        $data = Requests::whereDate('created_at', '>=', $fromDate)->whereDate('created_at', '<=', $toDate)->where($dataSearch) 
+        ->with("location","process_by", "profile", "company")->orderBy("created_at", "asc")->get();
+
+        return response()->json([
+            'item'     =>$data            
+        ], 200); 
     }
 }

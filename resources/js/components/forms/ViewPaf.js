@@ -30,7 +30,7 @@ function approvalLabelled(label){
         return "Approved By";
     } 
 }
-const ViewPaf = ({ id }) => { 
+const ViewPaf = ({ id, logged }) => { 
     const [files, setFiles] = useState("");
     const [logo, setLogo] = useState("");
     const [open, setOpen] = useState(false);
@@ -148,9 +148,8 @@ const ViewPaf = ({ id }) => {
             message: "Please wait...",
         };
         setSeverity(newMessage);
-        const data = new FormData(); 
+        const data = new FormData();  
         
-        console.log(invoiceSubmit);
         data.append('user_id', items.user_id); 
         data.append('id', items.id); 
         data.append('invoice_date', invoiceSubmit[0].invoice_date); 
@@ -194,7 +193,7 @@ const ViewPaf = ({ id }) => {
             message: "Please wait...",
         };
         setSeverity(newMessage);  
-        let data = {id : id, type: type};
+        let data = {id : id, type: type, user_id: logged.id};
         API.post('/v/payment-approval-form/update-status', data)
         .then((response) => {
             console.log(response);

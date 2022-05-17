@@ -97,6 +97,13 @@ class PaymentApprovalFormController extends Controller
             $result->update(array("paf_no" => $paf_no)); 
             $result->lpos()->sync( $request[0]['lpo'] );
              
+            $arrDetail = array(  array($request[0]['details'][0]), array($request[0]['approvals']), array($request[0]['items']) );
+            $result->logs()->create([
+                'user_id' => $request[0]['user_id'],
+                'log_type' => 'new',
+                'details' => json_encode($arrDetail)
+            ]);
+            
             $msg = "PAF has been created!"; 
           
             DB::commit();
@@ -166,10 +173,9 @@ class PaymentApprovalFormController extends Controller
                     array_push( $img_id, $images);
                 }
                  
-                $result->images()->sync($img_id);
-               
-                
+                $result->images()->sync($img_id); 
             }
+            
             $nDate = date('m/d/Y', strtotime($request['invoice_date']));
             $nDate = date('Y-m-d', strtotime($nDate));
             
@@ -186,6 +192,12 @@ class PaymentApprovalFormController extends Controller
 
         $item = array("status" => $request['type']);
         $data->update($item); 
+
+        $data->logs()->create([
+            'user_id' => $request['user_id'],
+            'log_type' => 'change_status',
+            'details' => json_encode($item)
+        ]);
          
         $msg = 'LPO Status changed to '.$request['type']; 
 
@@ -197,5 +209,9 @@ class PaymentApprovalFormController extends Controller
 
     function pad($num, $size){ 
         return substr(str_repeat(0, $size).$num, - $size);
+    }
+
+    function reportTable(Request $request){
+        
     }
 }

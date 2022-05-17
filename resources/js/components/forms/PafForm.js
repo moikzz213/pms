@@ -550,6 +550,7 @@ const PafForm = ({logged}) => {
                 details: newData,
                 items: newItems,
                 approvals: newApproval,
+                user_id: logged.id
             },
         ]; 
 

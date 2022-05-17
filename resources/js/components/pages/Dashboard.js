@@ -26,7 +26,7 @@ const Dashboard = ({logged}) => {
     const [countProcess, setCountProcess] = useState(0);
     const [countNew, setCountNew] = useState(0);
     const [countTotal, setCountTotal] = useState(0);
-    
+    const [countClosed, setCountClosed] = useState(0);
     
     useEffect(() => {
         let getRole = localStorage.getItem('auth_role');
@@ -46,6 +46,7 @@ const Dashboard = ({logged}) => {
             setCountPending(fetchItems.pending);
             setCountProcess(fetchItems.process);
             setCountNew(fetchItems.new);  
+            setCountClosed(fetchItems.closed);
             setCountTotal(fetchItems.totalcount);
         })
         .catch((error) => {
@@ -74,15 +75,16 @@ const Dashboard = ({logged}) => {
     } 
     return (
         <>
-            <Box sx={{ display: "flex" }}>
+            <Box sx={{ display: "flex", flexWrap: "wrap" }}>
                 <Box
                     sx={{
                         width: "auto",
                         minWidth: 200,
                         backgroundColor: "#fff",
-                        padding: "30px",
+                        padding: "20px 30px",
                         textAlign: "center",
-                        mr: 2
+                        mx: 1,
+                        my: 1
                     }}
                 >
                     TODAY'S REQUESTS
@@ -93,9 +95,10 @@ const Dashboard = ({logged}) => {
                         width: "auto",
                         minWidth: 200,
                         backgroundColor: "#fff",
-                        padding: "30px",
+                        padding: "20px 30px",
                         textAlign: "center",
-                        mx: 2
+                        mx: 1,
+                        my: 1
                     }}
                 >
                     OPEN REQUESTS
@@ -107,9 +110,10 @@ const Dashboard = ({logged}) => {
                         width: "auto",
                         minWidth: 200,
                         backgroundColor: "#fff",
-                        padding: "30px",
+                        padding: "20px 30px",
                         textAlign: "center",
-                        mx: 2
+                        mx: 1,
+                        my: 1
                     }}
                 >
                     ON PROCESS REQUESTS
@@ -120,12 +124,27 @@ const Dashboard = ({logged}) => {
                         width: "auto",
                         minWidth: 200,
                         backgroundColor: "#fff",
-                        padding: "30px",
+                        padding: "20px 30px",
                         textAlign: "center",
-                        mx: 2
+                        mx: 1,
+                        my: 1
                     }}
                 >
-                    TOTAL REQUESTS
+                    CLOSED REQUESTS
+                    <h2>{countClosed}</h2>
+                </Box>
+                <Box
+                    sx={{
+                        width: "auto",
+                        minWidth: 200,
+                        backgroundColor: "#fff",
+                        padding: "20px 30px",
+                        textAlign: "center",
+                        mx: 1,
+                        my: 1
+                    }}
+                >
+                    TOTAL REQUESTS)
                     <h2>{countTotal}</h2>
                 </Box>
             </Box>

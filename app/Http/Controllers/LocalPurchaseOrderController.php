@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Local_purchase_order;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use App\Models\Local_purchase_order;
+use App\Models\Local_purchase_order_item;
 
 class LocalPurchaseOrderController extends Controller
 {
@@ -96,6 +97,13 @@ class LocalPurchaseOrderController extends Controller
             $lpo_no = @$request[0]['comp_code'].'-'.@$request[0]['supplier_code'].'-'.$curYear.$lpo_no;
 
             $result->update(array("lpo_no" => $lpo_no)); 
+
+            $arrDetail = array(  array($request[0]['details'][0]), array($request[0]['approvals']), array($request[0]['items']) );
+            $result->logs()->create([
+                'user_id' => $request[0]['user_id'],
+                'log_type' => 'new',
+                'details' => json_encode($arrDetail)
+            ]);
              
             $msg = "LPO has been created!"; 
           
@@ -138,6 +146,12 @@ class LocalPurchaseOrderController extends Controller
 
         $item = array("status" => $request['type']);
         $data->update($item); 
+
+        $data->logs()->create([
+            'user_id' => $request['user_id'],
+            'log_type' => 'change_status',
+            'details' => json_encode($item)
+        ]);
          
         $msg = 'LPO has been '.$request['type']; 
 
@@ -149,5 +163,35 @@ class LocalPurchaseOrderController extends Controller
 
     function pad($num, $size){ 
         return substr(str_repeat(0, $size).$num, - $size);
+    }
+
+    function reportTable(Request $request){
+        $search = $request['daterange'];
+        $fromDate = $search['from'];
+        $toDate = $search['to'];
+        
+        $dataSearch = $request['data'];
+       
+        $data = Local_purchase_order_item::whereDate('created_at', '>=', $fromDate)->whereDate('created_at', '<=', $toDate)->whereHas('lpo', function($query) use ($dataSearch) {
+            if($dataSearch){
+                if(@$dataSearch['company_id']){
+                    $query->where("local_purchase_orders.company_id",$dataSearch['company_id']);
+                }
+                if(@$dataSearch['supplier_id']){
+                    $query->where("local_purchase_orders.supplier_id",$dataSearch['supplier_id']);
+                }
+                if(@$dataSearch['process_by']){
+                    $query->where("local_purchase_orders.user_id",$dataSearch['process_by']);
+                }
+                if(@$dataSearch['status']){
+                    $query->where("local_purchase_orders.status",$dataSearch['status']);
+                }
+            }
+        }) 
+        ->with("lpo.supplier","lpo.requests.location", "lpo.requests.profile" ,"lpo.process_by", 'lpo.department','category')->orderBy("created_at", "asc")->get();
+
+        return response()->json([
+            'item'     =>$data            
+        ], 200); 
     }
 }

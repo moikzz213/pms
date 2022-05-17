@@ -12,7 +12,7 @@ import MuiAlert from "@mui/material/Alert";
 const Alert = React.forwardRef(function Alert(props, ref) {
     return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
-export default function CompanyForm() {
+export default function CompanyForm({logged}) {
     let controller;
     const [open, setOpen] = useState(false);
     const [severity, setSeverity] = useState({
@@ -97,7 +97,7 @@ export default function CompanyForm() {
             message: "Please wait...",
         };
         setSeverity(newMessage);
-        let data = { data: objData };
+        let data = { data: objData, user_id: logged.id};
 
         axios
             .post(controller, data)

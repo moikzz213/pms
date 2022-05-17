@@ -94,13 +94,13 @@ function renderElement(logged){
   }else if(procSlug1 == 'requests' && procSlug2 == 'id'){
     return  <ViewRequest id={slug}/>;
   }else if(procSlug1 == 'request' && procSlug2 == 'id' && allow){
-    return  <ProcessRequest id={slug}/>;
+    return  <ProcessRequest logged={logged} id={slug}/>;
   }else if(procSlug1 == 'local-purchase-orders' && procSlug2 == 'id' && allow){
-    return  <ViewLpo id={slug}/>;
+    return  <ViewLpo logged={logged} id={slug}/>;
   }else if(procSlug2 == 'local-purchase-orders' && slug == 'create' && allow){
     return  <LpoForm logged={logged}/>;
   }else if(procSlug1 == 'payment-approval-forms' && procSlug2 == 'id' && allow){
-    return  <ViewPaf id={slug}/>;
+    return  <ViewPaf logged={logged} id={slug}/>;
   }else if(procSlug2 == 'payment-approval-forms' && slug == 'create' && allow){
     return  <PafForm logged={logged}/>;
   }else if(procSlug2 == 'suppliers' && slug == 'create' && allow){

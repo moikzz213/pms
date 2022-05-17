@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Log;
 use App\Models\Company;
 use App\Models\Profile;
+use App\Models\Requests;
 use App\Models\Department;
 use Laravel\Sanctum\HasApiTokens;
 use App\Models\Local_purchase_order;
@@ -51,6 +52,16 @@ class User extends Authenticatable
     public function lpos()
     {
         return $this->hasMany(Local_purchase_order::class);
+    }
+
+    public function pafs()
+    {
+        return $this->hasMany(Payment_approval_form::class);
+    }
+
+    public function requests()
+    {
+        return $this->hasMany(Requests::class, 'process_by', 'id');
     }
 
     public function logs()
