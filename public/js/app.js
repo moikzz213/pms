@@ -53590,7 +53590,6 @@ var PafForm = function PafForm(_ref) {
     currency: "aed",
     relation: "lpo",
     request_id: "",
-    local_purchase_order_id: "",
     user_id: "",
     department_head: "Saleh Al Chalabi",
     department_name: "Procurement",
@@ -53628,7 +53627,6 @@ var PafForm = function PafForm(_ref) {
     setPrfs(selected);
     var dataAssign = Object.assign([], objData);
     dataAssign[0].request_id = selected;
-    dataAssign[0].local_purchase_order_id = '';
     setObjData(dataAssign);
   };
 
@@ -60761,7 +60759,7 @@ var Dashboard = function Dashboard(_ref) {
           mx: 1,
           my: 1
         },
-        children: ["TOTAL REQUESTS)", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("h2", {
+        children: ["TOTAL REQUESTS", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("h2", {
           children: countTotal
         })]
       })]
@@ -64497,52 +64495,62 @@ var request_columns = [{
 }];
 
 var Reports = function Reports() {
+  var currentYear = new Date().getFullYear();
+  var year1 = currentYear - 1;
+  var year2 = currentYear - 2;
+  var year3 = currentYear - 3;
+  var year4 = currentYear - 4;
   var today = new Date();
   today.setDate(today.getDate() - 15);
   var dtDate = new Date(today).toLocaleDateString();
 
-  var _useState = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(new Date(dtDate)),
+  var _useState = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(new Date().getFullYear()),
       _useState2 = _slicedToArray(_useState, 2),
-      fromDate = _useState2[0],
-      setFromDate = _useState2[1];
+      reportYear = _useState2[0],
+      setReportYear = _useState2[1];
 
-  var _useState3 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(new Date()),
+  var _useState3 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(new Date(dtDate)),
       _useState4 = _slicedToArray(_useState3, 2),
-      toDate = _useState4[0],
-      setToDate = _useState4[1];
+      fromDate = _useState4[0],
+      setFromDate = _useState4[1];
 
-  var _useState5 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)("prf"),
+  var _useState5 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(new Date()),
       _useState6 = _slicedToArray(_useState5, 2),
-      vtype = _useState6[0],
-      setVtype = _useState6[1];
+      toDate = _useState6[0],
+      setToDate = _useState6[1];
 
-  var _useState7 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(0),
+  var _useState7 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)("prf"),
       _useState8 = _slicedToArray(_useState7, 2),
-      totalData = _useState8[0],
-      setTotalData = _useState8[1];
+      vtype = _useState8[0],
+      setVtype = _useState8[1];
 
-  var _useState9 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([{
-    id: null,
-    title: ""
-  }]),
+  var _useState9 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(0),
       _useState10 = _slicedToArray(_useState9, 2),
-      company = _useState10[0],
-      setCompany = _useState10[1];
+      totalData = _useState10[0],
+      setTotalData = _useState10[1];
 
   var _useState11 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([{
     id: null,
     title: ""
   }]),
       _useState12 = _slicedToArray(_useState11, 2),
-      supplier = _useState12[0],
-      setSupplier = _useState12[1];
+      company = _useState12[0],
+      setCompany = _useState12[1];
 
-  var _useState13 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(request_columns),
+  var _useState13 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([{
+    id: null,
+    title: ""
+  }]),
       _useState14 = _slicedToArray(_useState13, 2),
-      columns = _useState14[0],
-      setColumns = _useState14[1];
+      supplier = _useState14[0],
+      setSupplier = _useState14[1];
 
-  var _useState15 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([{
+  var _useState15 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(request_columns),
+      _useState16 = _slicedToArray(_useState15, 2),
+      columns = _useState16[0],
+      setColumns = _useState16[1];
+
+  var _useState17 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([{
     id: "name",
     label: "NAME",
     minWidth: 50
@@ -64567,34 +64575,39 @@ var Reports = function Reports() {
     label: "CLOSED",
     minWidth: 30
   }]),
-      _useState16 = _slicedToArray(_useState15, 2),
-      statusReport = _useState16[0],
-      setStatusReport = _useState16[1];
-
-  var _useState17 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]),
       _useState18 = _slicedToArray(_useState17, 2),
-      fullData = _useState18[0],
-      setFullData = _useState18[1];
+      statusReport = _useState18[0],
+      setStatusReport = _useState18[1];
 
   var _useState19 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]),
       _useState20 = _slicedToArray(_useState19, 2),
-      processBy = _useState20[0],
-      setProcessBy = _useState20[1];
+      fullData = _useState20[0],
+      setFullData = _useState20[1];
 
-  var _useState21 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([{
+  var _useState21 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]),
+      _useState22 = _slicedToArray(_useState21, 2),
+      processBy = _useState22[0],
+      setProcessBy = _useState22[1];
+
+  var _useState23 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([{
     company_id: "",
     status: "",
     process_by: "",
     supplier_id: ""
   }]),
-      _useState22 = _slicedToArray(_useState21, 2),
-      filterSearch = _useState22[0],
-      setFilterSearch = _useState22[1];
-
-  var _useState23 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]),
       _useState24 = _slicedToArray(_useState23, 2),
-      reportData = _useState24[0],
-      setReportData = _useState24[1];
+      filterSearch = _useState24[0],
+      setFilterSearch = _useState24[1];
+
+  var _useState25 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]),
+      _useState26 = _slicedToArray(_useState25, 2),
+      reportData = _useState26[0],
+      setReportData = _useState26[1];
+
+  var _useState27 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]),
+      _useState28 = _slicedToArray(_useState27, 2),
+      reportStatusData = _useState28[0],
+      setReportStatusData = _useState28[1];
 
   function dataWithRelations(data) {
     var newData = [];
@@ -64721,7 +64734,6 @@ var Reports = function Reports() {
         };
       } else if (vtype == "paf") {}
     });
-    console.log(newData);
     setFullData(fData);
     setReportData(newData);
   }
@@ -64803,22 +64815,12 @@ var Reports = function Reports() {
 
   var handleStatusReport = function handleStatusReport(e) {
     var search = {
-      year: 2022
+      year: reportYear
     };
-    _services_api_js__WEBPACK_IMPORTED_MODULE_1__["default"].post('/v/report/statuses/counts', search).then(function (response) {
+    _services_api_js__WEBPACK_IMPORTED_MODULE_1__["default"].post("/v/report/statuses/counts", search).then(function (response) {
       if (response.data) {
-        console.log(response.data);
         var fetchItems = response.data.item;
-        fetchItems.map(function (o, i) {}); // const [statusReport, setStatusReport] = useState(
-        //     [
-        //         { id: "name", label: "NAME", minWidth: 50 },
-        //         { id: "pending", label: "OPEN", minWidth: 30 },
-        //         { id: "onprocess", label: "PROCESSING", minWidth: 30 },
-        //         { id: "onhold", label: "HOLD", minWidth: 30 },
-        //         { id: "cancelled", label: "CANCELLED", minWidth: 30 },
-        //         { id: "closed", label: "CLOSED", minWidth: 30 },
-        //     ]
-        // );
+        setReportStatusData(fetchItems);
       }
     });
   };
@@ -65124,11 +65126,46 @@ var Reports = function Reports() {
       })
     }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("br", {}), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_mui_material_Button__WEBPACK_IMPORTED_MODULE_20__["default"], {
       size: "small",
+      sx: {
+        verticalAlign: "bottom",
+        mb: 2
+      },
       variant: "contained",
       onClick: function onClick(e) {
         return handleStatusReport(e);
       },
       children: "Show Data"
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)(_mui_material_TextField__WEBPACK_IMPORTED_MODULE_6__["default"], {
+      sx: {
+        m: 1,
+        width: 120
+      },
+      select: true,
+      size: "small",
+      label: "Year",
+      value: reportYear,
+      onChange: function onChange(e) {
+        return setReportYear(e.target.value);
+      },
+      SelectProps: {
+        "native": true
+      },
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("option", {
+        value: currentYear,
+        children: [" ", currentYear, " "]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("option", {
+        value: year1,
+        children: [" ", year1, " "]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("option", {
+        value: year2,
+        children: [" ", year2, " "]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("option", {
+        value: year3,
+        children: [" ", year3, " "]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("option", {
+        value: year4,
+        children: [" ", year4, " "]
+      })]
     }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_mui_material_Paper__WEBPACK_IMPORTED_MODULE_13__["default"], {
       sx: {
         width: "100%",
@@ -65141,7 +65178,6 @@ var Reports = function Reports() {
         children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)(_mui_material_Table__WEBPACK_IMPORTED_MODULE_15__["default"], {
           stickyHeader: true,
           "aria-label": "sticky table",
-          className: "report-table",
           children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_mui_material_TableHead__WEBPACK_IMPORTED_MODULE_16__["default"], {
             children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_mui_material_TableRow__WEBPACK_IMPORTED_MODULE_17__["default"], {
               children: statusReport.map(function (column) {
@@ -65154,7 +65190,29 @@ var Reports = function Reports() {
                 }, column.id);
               })
             })
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_mui_material_TableBody__WEBPACK_IMPORTED_MODULE_19__["default"], {})]
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)(_mui_material_TableBody__WEBPACK_IMPORTED_MODULE_19__["default"], {
+            children: [reportStatusData && reportStatusData.map(function (row, index) {
+              return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_mui_material_TableRow__WEBPACK_IMPORTED_MODULE_17__["default"], {
+                hover: true,
+                role: "checkbox",
+                tabIndex: -1,
+                children: statusReport.map(function (column) {
+                  var value = row[column.id];
+                  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_mui_material_TableCell__WEBPACK_IMPORTED_MODULE_18__["default"], {
+                    children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("span", {
+                      className: value,
+                      children: column.format && typeof value === "number" ? column.format(value) : value
+                    })
+                  }, column.id);
+                })
+              }, row.name);
+            }), !reportStatusData || reportStatusData.length == 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_mui_material_TableRow__WEBPACK_IMPORTED_MODULE_17__["default"], {
+              children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_mui_material_TableCell__WEBPACK_IMPORTED_MODULE_18__["default"], {
+                colSpan: "6",
+                children: "No record found."
+              }, "no-record")
+            }, "norecord")]
+          })]
         })
       })
     })]

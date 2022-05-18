@@ -17,13 +17,13 @@ import * as XLSX from "xlsx/xlsx.mjs";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { MobileDatePicker } from "@mui/x-date-pickers/MobileDatePicker";
-import Button from '@mui/material/Button';
+import Button from "@mui/material/Button";
 const paf_columns = [
     { id: "created_at", label: "PAF DATE", minWidth: 20 },
     { id: "paf_no", label: "PAF NO", minWidth: 20 },
     { id: "month", label: "MONTH", minWidth: 20 },
     { id: "lpo_date", label: "LPO DATE", minWidth: 20 },
-    { id: "lpo_no", label: "LPO NO", minWidth: 20 }, 
+    { id: "lpo_no", label: "LPO NO", minWidth: 20 },
     { id: "invoice_date", label: "INV. DATE", minWidth: 20 },
     { id: "supplier_invoice_num", label: "INV NO", minWidth: 20 },
     { id: "amount", label: "INV AMNT", minWidth: 20 },
@@ -80,10 +80,16 @@ const request_columns = [
 ];
 
 const Reports = () => {
+    let currentYear = new Date().getFullYear();
+    let year1 = currentYear - 1;
+    let year2 = currentYear - 2;
+    let year3 = currentYear - 3;
+    let year4 = currentYear - 4;
     let today = new Date();
     today.setDate(today.getDate() - 15);
     let dtDate = new Date(today).toLocaleDateString();
 
+    const [reportYear, setReportYear] = useState(new Date().getFullYear());
     const [fromDate, setFromDate] = useState(new Date(dtDate));
     const [toDate, setToDate] = useState(new Date());
     const [vtype, setVtype] = useState("prf");
@@ -102,16 +108,14 @@ const Reports = () => {
     ]);
 
     const [columns, setColumns] = useState(request_columns);
-    const [statusReport, setStatusReport] = useState(
-        [
-            { id: "name", label: "NAME", minWidth: 50 },
-            { id: "pending", label: "OPEN", minWidth: 30 },
-            { id: "onprocess", label: "PROCESSING", minWidth: 30 },
-            { id: "onhold", label: "HOLD", minWidth: 30 },
-            { id: "cancelled", label: "CANCELLED", minWidth: 30 },
-            { id: "closed", label: "CLOSED", minWidth: 30 },
-        ]
-    );
+    const [statusReport, setStatusReport] = useState([
+        { id: "name", label: "NAME", minWidth: 50 },
+        { id: "pending", label: "OPEN", minWidth: 30 },
+        { id: "onprocess", label: "PROCESSING", minWidth: 30 },
+        { id: "onhold", label: "HOLD", minWidth: 30 },
+        { id: "cancelled", label: "CANCELLED", minWidth: 30 },
+        { id: "closed", label: "CLOSED", minWidth: 30 },
+    ]);
     const [fullData, setFullData] = useState([]);
     const [processBy, setProcessBy] = useState([]);
 
@@ -125,6 +129,7 @@ const Reports = () => {
     ]);
 
     const [reportData, setReportData] = useState([]);
+    const [reportStatusData, setReportStatusData] = useState([]);
 
     function dataWithRelations(data) {
         let newData = [];
@@ -271,7 +276,7 @@ const Reports = () => {
             } else if (vtype == "paf") {
             }
         });
-        console.log(newData);
+        
         setFullData(fData);
         setReportData(newData);
     }
@@ -283,7 +288,7 @@ const Reports = () => {
         XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
 
         XLSX.writeFile(workbook, "Report.xlsx");
-    }; 
+    };
 
     const handleType = (e) => {
         setReportData([]);
@@ -348,29 +353,14 @@ const Reports = () => {
     };
 
     const handleStatusReport = (e) => {
-        let search = { year: 2022};
-        API.post('/v/report/statuses/counts', search).then((response) => {
-            if (response.data) {
-                console.log(response.data);
+        let search = { year: reportYear };
+        API.post("/v/report/statuses/counts", search).then((response) => {
+            if (response.data) { 
                 let fetchItems = response.data.item;
-                fetchItems.map((o, i) => {
-
-                });
-                
-                // const [statusReport, setStatusReport] = useState(
-                //     [
-                //         { id: "name", label: "NAME", minWidth: 50 },
-                //         { id: "pending", label: "OPEN", minWidth: 30 },
-                //         { id: "onprocess", label: "PROCESSING", minWidth: 30 },
-                //         { id: "onhold", label: "HOLD", minWidth: 30 },
-                //         { id: "cancelled", label: "CANCELLED", minWidth: 30 },
-                //         { id: "closed", label: "CLOSED", minWidth: 30 },
-                //     ]
-                // );
+                setReportStatusData(fetchItems);
             }
         });
-        
-    }
+    };
 
     useEffect(() => {
         API.get("/v/profile/procurements/list").then((response) => {
@@ -641,14 +631,39 @@ const Reports = () => {
                     </Table>
                 </TableContainer>
             </Paper>
-             <br/>
-             <Button size="small" variant="contained" onClick={(e) => handleStatusReport(e)}>Show Data</Button>
+            <br />
+            <Button
+                size="small"
+                sx={{ verticalAlign: "bottom", mb: 2 }}
+                variant="contained"
+                onClick={(e) => handleStatusReport(e)}
+            >
+                Show Data
+            </Button>
+            <TextField
+                sx={{ m: 1, width: 120 }}
+                select
+                size="small"
+                label="Year"
+                value={reportYear}
+                onChange={(e) => setReportYear(e.target.value)}
+                SelectProps={{
+                    native: true,
+                }}
+            >
+                <option value={currentYear}> {currentYear} </option>
+                <option value={year1}> {year1} </option>
+                <option value={year2}> {year2} </option>
+                <option value={year3}> {year3} </option>
+                <option value={year4}> {year4} </option>
+            </TextField>
+
             <Paper sx={{ width: "100%", overflow: "hidden" }}>
                 <TableContainer sx={{ maxHeight: 620 }}>
                     <Table
                         stickyHeader
                         aria-label="sticky table"
-                        className="report-table"
+                       
                     >
                         <TableHead>
                             <TableRow>
@@ -664,7 +679,43 @@ const Reports = () => {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            
+                            {reportStatusData && reportStatusData.map((row, index) => {
+                                return (
+                                    <TableRow
+                                        hover
+                                        role="checkbox"
+                                        tabIndex={-1}
+                                        key={row.name}
+                                    >
+                                        {statusReport.map((column) => {
+                                            const value = row[column.id];
+
+                                            return (
+                                                <TableCell key={column.id}>
+                                                    {
+                                                        <span className={value}>
+                                                            {column.format &&
+                                                            typeof value ===
+                                                                "number"
+                                                                ? column.format(
+                                                                      value
+                                                                  )
+                                                                : value}
+                                                        </span>
+                                                    }
+                                                </TableCell>
+                                            );
+                                        })}
+                                    </TableRow>
+                                );
+                            })}
+                            {!reportStatusData || reportStatusData.length == 0 && 
+                                <TableRow key="norecord">
+                                     <TableCell key="no-record" colSpan="6">
+                                 No record found.
+                                 </TableCell>
+                                 </TableRow> 
+                               }
                         </TableBody>
                     </Table>
                 </TableContainer>

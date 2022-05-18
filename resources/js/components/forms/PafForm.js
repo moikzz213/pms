@@ -153,8 +153,7 @@ const PafForm = ({logged}) => {
             currency_rate: 1,
             currency: "aed", 
             relation: "lpo",
-            request_id: "",
-            local_purchase_order_id: "",
+            request_id: "", 
             user_id: "", 
             department_head: "Saleh Al Chalabi",
             department_name: "Procurement",
@@ -192,8 +191,7 @@ const PafForm = ({logged}) => {
         setPrfs(selected);
 
         let dataAssign = Object.assign([], objData);
-        dataAssign[0].request_id = selected;
-        dataAssign[0].local_purchase_order_id = ''; 
+        dataAssign[0].request_id = selected; 
         setObjData(dataAssign); 
     };
 

@@ -144,7 +144,7 @@ const Dashboard = ({logged}) => {
                         my: 1
                     }}
                 >
-                    TOTAL REQUESTS)
+                    TOTAL REQUESTS
                     <h2>{countTotal}</h2>
                 </Box>
             </Box>

@@ -38,42 +38,45 @@ class UserController extends Controller
     // For Reports - Status Counts
     public function fetchProcurement(Request $request)
     {
+        //->where('created_at','LIKE', '%'.$year.'%')
         $year = $request['year'];
-        $data = User::whereYear('created_at', '=', $year)->where('role', '=', "procurement")->with('profile','requests', 'lpos', 'pafs')->get();
+        $data = User::where('role', '=', "procurement")->whereHas('requests', function($query) use ($year) {
+            $query->whereYear('created_at', $year);
+        })->with('profile', 'lpos', 'pafs')->get();
         $newData = array();
-        
-        foreach($data AS $k => $v){
-            $newData[$k]['name'] = $v['profile']->name;
- 
-            $requestPending = $v->requests->where('status', 'pending')->count(); 
-            $requestProcess =  $v->requests->where('status', 'onprocess')->count();
-            $requestHold =  $v->requests->where('status', 'onhold')->count();
-            $requestCancelled =  $v->requests->where('status', 'cancelled')->count();
-            $requestClosed =  $v->requests->where('status', 'closed')->count();
+        if($data){
+            foreach($data AS $k => $v){
+                $newData[$k]['name'] = $v['profile']->name;
+    
+                $requestPending     = $v->requests->where('status', 'pending')->count();
+                $requestProcess     = $v->requests->where('status', 'onprocess')->count();
+                $requestHold        = $v->requests->where('status', 'onhold')->count();
+                $requestCancelled   = $v->requests->where('status', 'cancelled')->count();
+                $requestClosed      = $v->requests->where('status', 'closed')->count();
 
-            if($v->lpos){
-                $requestPending += $v->lpos->where('status', 'pending')->count(); 
-                $requestProcess +=  $v->lpos->where('status', 'onprocess')->count();
-                $requestHold +=  $v->lpos->where('status', 'onhold')->count();
-                $requestCancelled +=  $v->lpos->where('status', 'cancelled')->count();
-                $requestClosed +=  $v->lpos->where('status', 'closed')->count();
-            }
-            if($v->pafs){
-                $requestPending += $v->pafs->where('status', 'pending')->count(); 
-                $requestProcess +=  $v->pafs->where('status', 'onprocess')->count();
-                $requestHold +=  $v->pafs->where('status', 'onhold')->count();
-                $requestCancelled +=  $v->pafs->where('status', 'cancelled')->count();
-                $requestClosed +=  $v->pafs->where('status', 'closed')->count();
-            }
-            $newData[$k]['pending'] =  $requestPending;
-            $newData[$k]['onprocess'] = $requestProcess;
-            $newData[$k]['onhold'] =  $requestHold;
-            $newData[$k]['cancelled'] = $requestCancelled;
-            $newData[$k]['closed'] =  $requestClosed;
+                if($v->lpos){
+                    $requestPending     += $v->lpos->where('status', 'pending')->count(); 
+                    $requestProcess     += $v->lpos->where('status', 'onprocess')->count();
+                    $requestHold        += $v->lpos->where('status', 'onhold')->count();
+                    $requestCancelled   += $v->lpos->where('status', 'cancelled')->count();
+                    $requestClosed      += $v->lpos->where('status', 'closed')->count();
+                }
+                if($v->pafs){
+                    $requestPending     += $v->pafs->where('status', 'pending')->count(); 
+                    $requestProcess     += $v->pafs->where('status', 'onprocess')->count();
+                    $requestHold        += $v->pafs->where('status', 'onhold')->count();
+                    $requestCancelled   += $v->pafs->where('status', 'cancelled')->count();
+                    $requestClosed      += $v->pafs->where('status', 'closed')->count();
+                }
+                $newData[$k]['pending'] =  $requestPending;
+                $newData[$k]['onprocess'] = $requestProcess;
+                $newData[$k]['onhold'] =  $requestHold;
+                $newData[$k]['cancelled'] = $requestCancelled;
+                $newData[$k]['closed'] =  $requestClosed;
+            } 
         } 
-     
-        return response()->json([
-            'data' => $data,
+       
+        return response()->json([ 
             'item' => $newData 
         ], 200); 
     }
