@@ -14,10 +14,11 @@ class CreatePaymentApprovalFormItemsTable extends Migration
     public function up()
     {
         Schema::create('payment_approval_form_items', function (Blueprint $table) {
-            $table->id();
-
+            $table->id(); 
             $table->unsignedBigInteger('payment_approval_form_id')->nullable();
+            $table->unsignedBigInteger('local_purchase_order_id')->nullable();
             $table->string('location', 150)->nullable();
+            $table->string('serial_number', 80)->nullable(); 
             $table->string('supplier_invoice_num', 100)->nullable();
             $table->string('description')->nullable();
             $table->string('invoice_date', 50)->nullable();

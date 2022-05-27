@@ -49,7 +49,7 @@ class LocalPurchaseOrderController extends Controller
                 $q->where("prf_no", "=", $search);  
             })->with("supplier","requests","process_by")->paginate(10);
         }else{
-            $data = Local_purchase_order::with("supplier","requests","process_by")->paginate(10); 
+            $data = Local_purchase_order::with("supplier","requests","process_by")->orderBy("updated_at", "desc")->paginate(10); 
         }
         return response()->json([
             'item' => $data 
@@ -58,9 +58,9 @@ class LocalPurchaseOrderController extends Controller
 
     public function filterSearch(Request $request){ 
         if($request['data']){
-            $data = Local_purchase_order::where($request['data'])->with("supplier","requests","process_by")->paginate(10);
+            $data = Local_purchase_order::where($request['data'])->with("supplier","requests","process_by")->orderBy("updated_at", "desc")->paginate(10);
         }else{
-            $data = Local_purchase_order::with("supplier","requests","process_by")->paginate(10); 
+            $data = Local_purchase_order::with("supplier","requests","process_by")->orderBy("updated_at", "desc")->paginate(10); 
         }
 
         return response()->json([
@@ -94,7 +94,7 @@ class LocalPurchaseOrderController extends Controller
 
             $curYear = Carbon::now()->format('Y');
             $lpo_no = $this->pad( $id, 6 );
-            $lpo_no = @$request[0]['comp_code'].'-'.@$request[0]['supplier_code'].'-'.$curYear.$lpo_no;
+            $lpo_no = @$request[0]['comp_code'].'-'.@$request[0]['supplier_code'].'-'.$curYear."-".$lpo_no;
 
             $result->update(array("lpo_no" => $lpo_no)); 
 
@@ -133,7 +133,7 @@ class LocalPurchaseOrderController extends Controller
      */
     public function show(Request $request)
     {
-        $data = Local_purchase_order::where('id', '=', $request->id)->with("supplier","requests","process_by", 'billing', 'contact_person.profile', 'lpo_approvals.users.profile', 'lpo_items')->first(); 
+        $data = Local_purchase_order::where('id', '=', $request->id)->with("supplier","requests", "location","process_by", 'billing', 'contact_person.profile', 'lpo_approvals.users.profile', 'lpo_items')->first(); 
 
         return response()->json([
             'item' => $data 
@@ -172,7 +172,7 @@ class LocalPurchaseOrderController extends Controller
         
         $dataSearch = $request['data'];
        
-        $data = Local_purchase_order_item::whereDate('created_at', '>=', $fromDate)->whereDate('created_at', '<=', $toDate)->whereHas('lpo', function($query) use ($dataSearch) {
+        $data = Local_purchase_order_item::whereBetween('created_at', [$fromDate, $toDate])->whereHas('lpo', function($query) use ($dataSearch) {
             if($dataSearch){
                 if(@$dataSearch['company_id']){
                     $query->where("local_purchase_orders.company_id",$dataSearch['company_id']);

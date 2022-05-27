@@ -30,12 +30,14 @@ table.normal-table td, table.normal-table th { border: 0.1px solid rgb(174, 173,
 table.normal-table{ width: 100%;}
 .logo{ min-width: 300px; max-width: 350px;}
 .paf-logo{ min-width: 120px; max-width: 150px;}
-
+.request-desc table{ width: 100%; border-spacing: 0;}
+.request-desc table td{ border: 1px solid #cecece; padding:2px 5px; margin: 0;}
 .text-red{ color: red;}
 .text-center{ text-align: center !important;}
 .text-right { text-align: right !important;}
 .ma-0{ margin: 0;}
 
+.ck-editor__editable_inline { min-height: 250px;}
 .lpo-title{ color: #cba92c;}
 
 // PAF CSS
@@ -48,26 +50,29 @@ table.normal-table{ width: 100%;}
 .row-data .action-btn{ display: none;}
 .row-data:hover .action-btn{ display: block; text-align: right;}
 .row-data:hover .td-action-btn { width: 80px; }
-.dropzone{ background: #efefef; padding:10px; text-align: center;}
+.dropzone{ background: #efefef; padding:30px; text-align: center; border: 1px solid #dfdfdf;}
 .underlined { text-decoration: underline;}
 .font-weight-bold { font-weight: bold; text-transform: uppercase;}
 .justify-content-left{ justify-content: left !important;}
+.request-desc .inner-request{overflow-x: scroll;}
+.css-1ct6ytl-MuiButtonBase-root-MuiMenuItem-root.Mui-selected { background-color: #c6a92d !important; color: #fff !important;}
 @media print{
     * { overflow: auto !important; float: none !important; overflow: visible !important;}
      .main-container{  margin:0 !important; padding:0 !important;  }
      .main-container .MuiPaper-root{ box-shadow: none; }
      .approval-main{   page-break-inside: avoid; padding-top: 0 !important;}
      .approval-box{ display: inline-block !important; page-break-inside: avoid}
+     .approval-box small { font-size: 10px !important;}
     html, body  { 
         height: initial !important;
         overflow: initial !important;
         -webkit-print-color-adjust: exact; 
-        font-size:8px !important;
+        font-size:11px !important;
       } 
     
-   .MuiGrid-container{ padding-bottom: 5px !important; padding-top: 0 !important}
+   .MuiGrid-container, .MuiGrid-item, div{ padding-bottom: 5px !important; padding-top: 0 !important; margin-top:0 !important; margin-bottom:0 !important;}
    table{ width: 100% !important;}
-    .delivery-term{ min-height: 135px !important; max-height: 167px !important;}
+    .delivery-term{ min-height: 150px !important; max-height: 167px !important;}
     body {
         min-width: 992px !important; 
        
@@ -87,8 +92,8 @@ table.normal-table{ width: 100%;}
     .logo { max-width: 220px; min-width:180px;}
 
     .MuiDrawer-root, .top-bar, .appbar-title, .btn-cancel, .app-toolbar, .no-print{ display:none !important; height: 0; margin:0 !important; padding:0 !important;}
-    th, td { font-size:9px !important; font-weight: normal !important;}
-    .table-small th, .table-small td { font-size: 7px !important;}
+    th, td { font-size:11px !important; font-weight: normal !important;}
+    .table-small th, .table-small td { font-size: 11px !important;}
     div{ padding:0;}
     .MuiGrid-grid-md-6{ width: 50% !important;}
     
@@ -99,10 +104,14 @@ table.normal-table{ width: 100%;}
     h1, h2,h3  {
         font-size: 16px !important;
     }
-    h4,h5,h6{ font-size: 10px !important;}
+    h4,h5,h6{ font-size: 11px !important;}
     
     .budget-area{ margin-bottom: 0 !important;}
     .table-paf-no { margin-bottom: 5px !important; margin-top: auto !important; }
     .paf-description{ width: 30%;}
+    .process-request{ margin: 30px 20px !important;}
+    .request-desc, .request-desc table{ width: 100%;}
+    .request-desc .inner-request{ max-width:93%;}
+    html,body,main, div{ background-color: #fff !important;}
 } 
  

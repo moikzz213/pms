@@ -36,7 +36,7 @@ class CategoryController extends Controller
         if($search !== '-'){
             $data = Category::where("title", "LIKE", "%".$search."%")->paginate(10);
         }else{
-            $data = Category::paginate(10); 
+            $data = Category::orderBy('title', 'ASC')->paginate(10); 
         }
         return response()->json([
             'item' => $data 

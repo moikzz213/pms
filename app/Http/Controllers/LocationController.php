@@ -36,7 +36,7 @@ class LocationController extends Controller
         if($search !== '-'){
             $data = Location::where("title", "LIKE", "%".$search."%")->paginate(10);
         }else{
-            $data = Location::paginate(10); 
+            $data = Location::orderBy('title', 'ASC')->paginate(10); 
         }
         return response()->json([
             'item' => $data 

@@ -56,6 +56,9 @@ class RequestController extends Controller
 
     public function dashboard($token){
         $token = PersonalAccessToken::findToken($token);
+        if(!$token){
+            return false;
+        }
         $user = $token->tokenable;
        
         if($user->role == 'normal'){
@@ -64,6 +67,7 @@ class RequestController extends Controller
             $pending = Requests::where(['user_id' => $id, "status" => "pending"])->get(); 
             $processed = Requests::where(['user_id' => $id, "status" => "onprocess"])->get(); 
             $newRequest = Requests::where(['user_id' => $id])->whereDate( "created_at" , Carbon::today())->get(); 
+            $closed = Requests::where(['user_id' => $id, "status" => "closed"])->get(); 
             $totalRequest = Requests::where(['user_id' => $id])->where("status", "!=", "cancelled")->get(); 
         }else{
             $data = Requests::with("company","location","process_by", "profile")->orderBy("updated_at", "desc")->take(10)->get();
@@ -97,7 +101,7 @@ class RequestController extends Controller
                 $q->where("title", "LIKE", "%".$search."%");  
             })->with("company","location","process_by", "profile")->paginate(10);
         }else{
-            $data = Requests::with("company","location","process_by", "profile")->paginate(10); 
+            $data = Requests::with("company","location","process_by", "profile")->orderBy("updated_at", "desc")->paginate(10); 
         }
         return response()->json([
             'item' => $data 
@@ -109,7 +113,7 @@ class RequestController extends Controller
         if($request['data']){
         $data = Requests::where($request['data'])->with("company","location","process_by", "profile")->paginate(10);
         }else{
-            $data = Requests::with("company","location","process_by", "profile")->paginate(10); 
+            $data = Requests::with("company","location","process_by", "profile")->orderBy("updated_at", "desc")->paginate(10); 
         }
 
         return response()->json([
@@ -212,7 +216,7 @@ class RequestController extends Controller
             $details = array("prf_no" => $prfNo, 'data' => $request['details'], 'user_id' => $request['user_id']);
             $rabbitArray = array("details" => $details, "email" => $emails, "subject" => "New Request");  
             
-            //RequestToProcurement::dispatch($rabbitArray); 
+           RequestToProcurement::dispatch($rabbitArray); 
              
             $msg = "New request has been created!"; 
           
@@ -288,7 +292,7 @@ class RequestController extends Controller
         $details = array("prf_no" => $data['prf_no'], 'user_id' => $request['process_by']); 
         
         $rabbitArray = array("details" => $details, "subject" => "Request Assigned");  
-       // RequestAssignToProcurement::dispatch($rabbitArray);
+        RequestAssignToProcurement::dispatch($rabbitArray);
          
         $msg = 'Request has been assigned!';
 
@@ -326,7 +330,7 @@ class RequestController extends Controller
         
         $dataSearch = $request['data'];
        
-        $data = Requests::whereDate('created_at', '>=', $fromDate)->whereDate('created_at', '<=', $toDate)->where($dataSearch) 
+        $data = Requests::whereBetween('created_at', [$fromDate, $toDate])->where($dataSearch) 
         ->with("location","process_by", "profile", "company")->orderBy("created_at", "asc")->get();
 
         return response()->json([

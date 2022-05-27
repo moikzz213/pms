@@ -170,7 +170,7 @@ const Companies = ({logged}) => {
                 </Box>
             </Stack>
             <Paper sx={{ width: "100%", overflow: "hidden" }}>
-                <TableContainer sx={{ maxHeight: 600 }}>
+                <TableContainer sx={{ maxHeight: 700 }}>
                     <Table
                         stickyHeader
                         aria-label="sticky table"
@@ -188,7 +188,7 @@ const Companies = ({logged}) => {
                                         {column.label}
                                     </TableCell>
                                 ))}
-                                <TableCell> </TableCell>
+                                <TableCell>-</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>

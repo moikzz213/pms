@@ -36,7 +36,7 @@ class DepartmentController extends Controller
         if($search !== '-'){
             $data = Department::where("title", "LIKE", "%".$search."%")->paginate(10);
         }else{
-            $data = Department::paginate(10); 
+            $data = Department::orderBy('title', 'ASC')->paginate(10); 
         }
         return response()->json([
             'item' => $data 

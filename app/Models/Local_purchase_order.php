@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Log;
 use App\Models\User;
 use App\Models\Profile;
+use App\Models\Location;
 use App\Models\Requests;
 use App\Models\Supplier;
 use App\Models\Department;
@@ -67,6 +68,11 @@ class Local_purchase_order extends Model
     public function requests()
     {
         return $this->belongsTo(Requests::class, 'request_id', 'id');
+    }
+
+    public function location()
+    {
+        return $this->belongsTo(Location::class, 'location_id');
     }
 
     public function supplier()

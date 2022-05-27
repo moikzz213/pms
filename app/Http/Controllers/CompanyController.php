@@ -36,7 +36,7 @@ class CompanyController extends Controller
         if($search !== '-'){
             $data = Company::where("title", "LIKE", "%".$search."%")->orWhere("tax_no", "LIKE", "%".$search."%")->orWhere("contact_person", "LIKE", "%".$search."%")->orWhere("email", "=", $search)->paginate(10);
         }else{
-            $data = Company::paginate(10); 
+            $data = Company::orderBy('title', 'ASC')->paginate(10); 
         }
         return response()->json([
             'item' => $data 

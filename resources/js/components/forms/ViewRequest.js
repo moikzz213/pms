@@ -238,19 +238,10 @@ export default function RequestForm({ id }) {
                             </Grid>
                             <Grid item xs={12} md={4}></Grid>
 
-                            <Grid item xs={12} md={12}>
-                                <TextareaAutosize 
-                                    aria-label="minimum height"
-                                    minRows={10}
-                                    maxRows={30}
-                                    placeholder="Detailed request will be displayed here."
-                                    style={{
-                                        width: "100%",
-                                        border: "1px solid #cecece",
-                                        padding: 10,
-                                    }}
-                                    value={data.details}
-                                />
+                            <Grid className="request-desc" item xs={12} md={12}>
+                                 <Box sx={{border: "1px solid #ccc", padding: "10px;", minHeight: "150px"}}  dangerouslySetInnerHTML={{__html: data.details}} >
+                                    
+                                 </Box>
                             </Grid>
 
                           

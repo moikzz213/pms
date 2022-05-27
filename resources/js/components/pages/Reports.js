@@ -27,10 +27,8 @@ const paf_columns = [
     { id: "invoice_date", label: "INV. DATE", minWidth: 20 },
     { id: "supplier_invoice_num", label: "INV NO", minWidth: 20 },
     { id: "amount", label: "INV AMNT", minWidth: 20 },
-    { id: "item", label: "ITEM", minWidth: 20 },
-    { id: "specification", label: "DESC", minWidth: 20 },
-    { id: "department", label: "CATEGORY", minWidth: 20 },
-    { id: "category", label: "SUB CAT", minWidth: 20 },
+    { id: "item", label: "ITEM", minWidth: 20 }, 
+    { id: "department", label: "CATEGORY", minWidth: 20 }, 
     { id: "qty", label: "QTY", minWidth: 20 },
     { id: "unit_price", label: "UNIT PRICE", minWidth: 20 },
     { id: "vat", label: "VAT 5%", minWidth: 20 },
@@ -165,7 +163,7 @@ const Reports = () => {
                         request_by: o.profile.name,
                         location: o.location ? o.location.title : "",
                         month: date.toLocaleString("en-us", { month: "long" }),
-                        details: o.details,
+                        details: o.details.replace(/(<([^>]+)>)/gi, " / "),
                         due_term: dterms,
                         cstatus: flagged,
                         due_date: due_date,
@@ -178,7 +176,7 @@ const Reports = () => {
                     Month: date.toLocaleString("en-us", { month: "long" }),
                     RQSTDATE: new Date(o.created_at).toLocaleDateString(),
                     Company: o.company ? o.company.title : "",
-                    Description: o.details,
+                    Description: o.details.replace(/(<([^>]+)>)/gi, " / "),
                     ProcessBy: o.process_by ? o.process_by.name : "",
                     RequestedBy: o.profile.name,
                     Location: o.location ? o.location.title : "",
@@ -258,7 +256,7 @@ const Reports = () => {
                     Category: o.category ? o.category.title : "",
                     Qty: o.qty,
                     UnitPrice: o.unit_price,
-                    Vat: o.vat,
+                    VAT: o.vat,
                     Total: o.lpo.total_amount,
                     Supplier: o.lpo.supplier ? o.lpo.supplier.title : "",
                     Location: o.lpo.requests
@@ -274,9 +272,77 @@ const Reports = () => {
                     Status: o.lpo.status,
                 };
             } else if (vtype == "paf") {
+                let date = new Date(o.created_at);
+                let udate = new Date(o.updated_at);
+                let ddate = new Date(
+                    date.setTime(date.getTime() + dterms * 86400000)
+                );
+
+                if (
+                    (currentDate > ddate && o.status !== "closed") ||
+                    udate > ddate
+                ) {
+                    flagged = "flagged";
+                }
+
+                if (i < 100) {
+                    newData[i] = {
+                        id: o.id,
+                        cstatus: flagged,
+                        created_at: new Date(o.created_at).toLocaleDateString(),
+                        paf_no: o.paf.paf_no,
+                        month: date.toLocaleString("en-us", { month: "long" }),
+                        lpo_date: new Date(
+                            o.lpo.created_at
+                        ).toLocaleDateString(),
+                        lpo_no: o.lpo.lpo_no,
+                        invoice_date: o.invoice_date,
+                        supplier_invoice_num: o.supplier_invoice_num,
+                        amount: o.amount,
+                        item: o.description,
+                        department: o.lpo.department.title, 
+                        qty: o.qty,
+                        unit_price: o.unit_price,
+                        vat: o.vat,
+                        total: o.total_amount,
+                        supplier: o.paf.supplier.title,
+                        location: o.location,
+                        company: o.paf.company.title,
+                        rname: o.paf.process_by.name,
+                        designation: o.paf.process_by.designation,
+                        status: o.paf.status,
+                    };
+                }
+                fData[i] = {
+                   
+                    
+                    PAFDate: new Date(o.created_at).toLocaleDateString(),
+                    PAFNo: o.paf.paf_no,
+                    Month: date.toLocaleString("en-us", { month: "long" }),
+                    LPODate: new Date(
+                        o.lpo.created_at
+                    ).toLocaleDateString(),
+                    LPONo: o.lpo.lpo_no,
+                    InvDate: o.invoice_date,
+                    InvNo: o.supplier_invoice_num,
+                    InvAmnt: o.total_amount,
+                    Item: o.description,
+                    Department: o.lpo.department.title, 
+                    Qty: o.qty,
+                    UnitPrice: o.unit_price,
+                    VAT: o.vat,
+                    Total: o.total_amount,
+                    Supplier: o.paf.supplier.title,
+                    Location: o.location,
+                    Company: o.paf.company.title,
+                    ProcessBy: o.paf.process_by.name,
+                    Designation: o.paf.process_by.designation,
+                    Flagged: flagged,
+                    status: o.paf.status,
+                };
             }
         });
-        
+
         setFullData(fData);
         setReportData(newData);
     }
@@ -355,7 +421,7 @@ const Reports = () => {
     const handleStatusReport = (e) => {
         let search = { year: reportYear };
         API.post("/v/report/statuses/counts", search).then((response) => {
-            if (response.data) { 
+            if (response.data) {
                 let fetchItems = response.data.item;
                 setReportStatusData(fetchItems);
             }
@@ -563,6 +629,7 @@ const Reports = () => {
                             onClick={(e) => downloadExcel(e)}
                             sx={{ p: "10px" }}
                             aria-label="search"
+                            color="green"
                         >
                             <SimCardDownloadOutlinedIcon />
                         </IconButton>
@@ -660,11 +727,7 @@ const Reports = () => {
 
             <Paper sx={{ width: "100%", overflow: "hidden" }}>
                 <TableContainer sx={{ maxHeight: 620 }}>
-                    <Table
-                        stickyHeader
-                        aria-label="sticky table"
-                       
-                    >
+                    <Table stickyHeader aria-label="sticky table">
                         <TableHead>
                             <TableRow>
                                 {statusReport.map((column) => (
@@ -679,43 +742,49 @@ const Reports = () => {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {reportStatusData && reportStatusData.map((row, index) => {
-                                return (
-                                    <TableRow
-                                        hover
-                                        role="checkbox"
-                                        tabIndex={-1}
-                                        key={row.name}
-                                    >
-                                        {statusReport.map((column) => {
-                                            const value = row[column.id];
+                            {reportStatusData &&
+                                reportStatusData.map((row, index) => {
+                                    return (
+                                        <TableRow
+                                            hover
+                                            role="checkbox"
+                                            tabIndex={-1}
+                                            key={row.name}
+                                        >
+                                            {statusReport.map((column) => {
+                                                const value = row[column.id];
 
-                                            return (
-                                                <TableCell key={column.id}>
-                                                    {
-                                                        <span className={value}>
-                                                            {column.format &&
-                                                            typeof value ===
-                                                                "number"
-                                                                ? column.format(
-                                                                      value
-                                                                  )
-                                                                : value}
-                                                        </span>
-                                                    }
-                                                </TableCell>
-                                            );
-                                        })}
+                                                return (
+                                                    <TableCell key={column.id}>
+                                                        {
+                                                            <span
+                                                                className={
+                                                                    value
+                                                                }
+                                                            >
+                                                                {column.format &&
+                                                                typeof value ===
+                                                                    "number"
+                                                                    ? column.format(
+                                                                          value
+                                                                      )
+                                                                    : value}
+                                                            </span>
+                                                        }
+                                                    </TableCell>
+                                                );
+                                            })}
+                                        </TableRow>
+                                    );
+                                })}
+                            {!reportStatusData ||
+                                (reportStatusData.length == 0 && (
+                                    <TableRow key="norecord">
+                                        <TableCell key="no-record" colSpan="6">
+                                            No record found.
+                                        </TableCell>
                                     </TableRow>
-                                );
-                            })}
-                            {!reportStatusData || reportStatusData.length == 0 && 
-                                <TableRow key="norecord">
-                                     <TableCell key="no-record" colSpan="6">
-                                 No record found.
-                                 </TableCell>
-                                 </TableRow> 
-                               }
+                                ))}
                         </TableBody>
                     </Table>
                 </TableContainer>

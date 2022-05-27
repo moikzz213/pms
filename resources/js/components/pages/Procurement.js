@@ -8,13 +8,11 @@ import Table from "@mui/material/Table";
 import TableHead from "@mui/material/TableHead";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-
+import TableContainer from "@mui/material/TableContainer"; 
 import TableRow from "@mui/material/TableRow";
-
+import Autocomplete from '@mui/material/Autocomplete';
 import Paper from "@mui/material/Paper";
-import IconButton from "@mui/material/IconButton";
-
+import IconButton from "@mui/material/IconButton"; 
 import SearchIcon from "@mui/icons-material/Search";
 import Pagination from "@mui/material/Pagination";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
@@ -181,9 +179,15 @@ const Procurement = ({logged}) => {
             });
     };
 
-    const handleData = (e, type) => {
-        let value = e.target.value;
-
+    const handleData = (e,val, type) => {
+        
+        let value = '';
+        if(val){
+              value = val.id;
+        }else{
+              value = e.target.value;
+        }
+        
         let objAssign = Object.assign([], filterSearch);
         
         if(type == "company"){
@@ -201,6 +205,7 @@ const Procurement = ({logged}) => {
 
     const searchSubmit = (e) =>{
         e.preventDefault();
+        setRequestsData([]);
         let search = filterSearch[0];
         Object.keys(search).forEach(key => {
             if (search[key] === '' || search[key] === '-') {
@@ -214,8 +219,7 @@ const Procurement = ({logged}) => {
             if (response.data) {
                 let fetchItems = response.data.item;
 
-                dataWithRelations(fetchItems.data);
-
+                dataWithRelations(fetchItems.data); 
                 setPage(fetchItems.current_page);
                 setlastPage(fetchItems.last_page);
                 settotalPage(fetchItems.total);
@@ -241,20 +245,26 @@ const Procurement = ({logged}) => {
     useEffect(() => {
         API.get("/v/profile/procurements/list").then((response) => {
             if (response.data) {
-                setProcessBy(response.data.item);
+                let fetchItems = response.data.item;
+                fetchItems = Object.assign([], fetchItems);
+                
+                setProcessBy(fetchItems);
             }
         });
 
         API.get("/v/profile/procurements/profile_users").then((response) => {
             if (response.data) {
-                setRequestedBy(response.data.item);
+                let fetchItems = response.data.item;
+                fetchItems = Object.assign([], fetchItems);
+                
+                setRequestedBy(fetchItems);
             }
         });
 
         API.get("/v/companies/fetch-non-paginate").then((response) => {
             let fetchItems = response.data.item;
             fetchItems = Object.assign([], fetchItems);
-
+            
             setCompany(fetchItems);
         });
     }, []);
@@ -266,6 +276,7 @@ const Procurement = ({logged}) => {
     };
 
     const handleSearch = (e) => {
+        
         if (e.target.value.length > 3) {
             axiosFunction("/v/request/search/" + e.target.value);
         } else if (e.target.value.length == 0) {
@@ -293,33 +304,33 @@ const Procurement = ({logged}) => {
                             {severity.message}
                         </Alert>
                     </Snackbar>
-                    <Box sx={{ display: "flex" }}>
+                    <Box sx={{ display: "flex", width: "80%" }}>
                         <Box sx={{ my: "auto" }}> Filter by:</Box>
+                      
+                        <Autocomplete
+                                    disablePortal
+                                    fullWidth
+                                    sx={{ m: 1 }} 
+                                    options={company}
+                                    getOptionLabel={(company) => company.title } 
+                                    size="small" 
+                                    onChange={(e,value) => handleData(e,value, "company")}
+                                    renderOption={(props, option) => {
+                                        return (
+                                          <li {...props} key={option.id}>
+                                            {option.title}
+                                          </li>
+                                        );
+                                      }}
+                                    renderInput={(params) => <TextField {...params} label="Company" fullWidth/>}
+                                    />       
                         <TextField
                             sx={{ m: 1 }}
-                            select
-                            size="small"
-                            label="Company"
-                            value={company.id}
-                            onChange={(e) => handleData(e, "company")}
-                            SelectProps={{
-                                native: true,
-                            }}
-                        >
-                            <option> - </option>
-                            {company.map((option) => (
-                                <option key={option.id} value={option.id}>
-                                    {option.title}
-                                </option>
-                            ))}
-                        </TextField>
-
-                        <TextField
-                            sx={{ m: 1 }}
+                            fullWidth
                             select
                             size="small"
                             label="Status"
-                            onChange={(e) => handleData(e, "status")}
+                            onChange={(e) => handleData(e,null, "status")}
                             SelectProps={{
                                 native: true,
                             }}
@@ -330,44 +341,43 @@ const Procurement = ({logged}) => {
                             <option value="onprocess"> OnProcess </option>
                             <option value="closed"> Closed </option>
                             <option value="cancelled"> Cancelled </option>
-                        </TextField>
-
-                        <TextField
-                            sx={{ m: 1 }}
-                            select
-                            size="small"
-                            label="Process By"
-                            value={processBy.user_id}
-                            onChange={(e) => handleData(e, "processby")}
-                            SelectProps={{
-                                native: true,
-                            }}
-                        >
-                            <option> - </option>
-                            {processBy.map((option) => (
-                                <option key={option.user_id} value={option.user_id}>
+                        </TextField> 
+                    
+                        <Autocomplete
+                                    disablePortal
+                                    sx={{ m: 1 }}
+                                    fullWidth
+                                    options={processBy} 
+                                    getOptionLabel={(company) => company.name } 
+                                    size="small" 
+                                    onChange={(e,value) => handleData(e,value, "processby")}
+                                    renderOption={(props, option) => {
+                                        return (
+                                          <li {...props} key={option.user_id}>
+                                            {option.name}
+                                          </li>
+                                        );
+                                      }}
+                                    renderInput={(params) => <TextField {...params} label="Process By" fullWidth/>}
+                                    />    
+                        <Autocomplete
+                            disablePortal
+                            fullWidth
+                            sx={{ m: 1 }} 
+                            options={requestedBy} 
+                            getOptionLabel={(company) => company.name } 
+                            size="small" 
+                            onChange={(e,value) => handleData(e,value, "requestedby")}
+                            renderOption={(props, option) => {
+                                return (
+                                  <li {...props} key={option.user_id}>
                                     {option.name}
-                                </option>
-                            ))}
-                        </TextField>
-                        <TextField
-                            sx={{ m: 1 }}
-                            select
-                            size="small"
-                            label="Requested By"
-                            value={requestedBy.user_id}
-                            onChange={(e) => handleData(e, "requestedby")}
-                            SelectProps={{
-                                native: true,
-                            }}
-                        >
-                            <option> - </option>
-                            {requestedBy.map((option) => (
-                                <option key={option.user_id} value={option.user_id}>
-                                    {option.name}
-                                </option>
-                            ))}
-                        </TextField>
+                                  </li>
+                                );
+                              }}
+                            renderInput={(params) => <TextField {...params} label="Requested By" fullWidth/>}
+                        />   
+                        
                     </Box>
                     <Box
                         sx={{
@@ -375,6 +385,7 @@ const Procurement = ({logged}) => {
                             p: "2px 4px",
                             display: "flex",
                             alignItems: "center",
+                            borderLeft: "1px solid #ccc"
                         }}
                     >
                         <TextField
@@ -422,7 +433,7 @@ const Procurement = ({logged}) => {
                                         hover
                                         role="checkbox"
                                         tabIndex={-1}
-                                        key={row.prf_no}
+                                        key={row.prf_no} 
                                     >
                                         {columns.map((column) => {
                                             const value = row[column.id];
@@ -447,6 +458,7 @@ const Procurement = ({logged}) => {
                                                         </span>
                                                     ) : (
                                                         <TextField
+                                                            disabled={row.status == 'cancelled' ? true : false}
                                                             select
                                                             size="small"
                                                             label="Assign To"

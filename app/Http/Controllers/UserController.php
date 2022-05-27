@@ -8,13 +8,79 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 use Laravel\Sanctum\PersonalAccessToken;
 class UserController extends Controller
 {
     public function __construct()
     {
        
-    } 
+    }
+
+    public function fetchHiveUsers(){
+        $response = Http::accept('application/json')->get('https://aboudcrm.com/hive/sys/api/fetch/active/users');
+        $newArr = array();
+        $emails = array();
+        foreach($response->json() AS $k => $v){ 
+            $newArr[] = [
+                            "email"     => strtolower($v['email']), 
+                            "fname"     => $v['fname'],
+                            "position"  => $v['position'],
+                            "company"   => $v['company'],
+                            "department" => $v['department'],
+                            "ecode"     => $v['ecode']
+                     ];
+           
+            $emails[] =  strtolower($v['email']);  
+          
+        }
+
+        $userExist = DB::table('users')->select("email")->whereIn('email', $emails)->get();
+        $notExist = array();
+        $userNew = array();
+        $profileNew = array();
+
+        foreach($userExist AS $k => $v){  
+            $notExist[] = strtolower($v->email);  
+        }
+
+         $newData = array();
+
+        foreach($newArr AS $k => $v){
+            if(!in_array($v['email'], $notExist)){
+                $newData[] = $v;   
+            }
+        } 
+
+        foreach($newData AS $k => $v){
+            
+                $role = 'normal';
+                if($v['department'] == 41){
+                    $role = 'procurement';
+                } 
+
+                $data  = User::create(array(
+                    "email" => $v['email'],
+                    "role"  => $role,
+                    "password"  => Hash::make($v['email']),
+                    "status"    => "active",
+                    "created_at"    => Carbon::now()
+                )); 
+
+                $data->profile()->create(array( 
+                    "name" =>  $v['fname'], 
+                    "designation" => $v['position'],
+                    "company_id" => $v['company'],
+                    "ecode" => $v['ecode'],
+                    "department_id" =>$v['department'] 
+               
+                ));  
+            
+        } 
+     
+        echo  "Direct access is not allowed!"; 
+       
+    }
 
     public function fetch()
     {
@@ -32,8 +98,7 @@ class UserController extends Controller
         return response()->json([
             'item' => $data 
         ], 200); 
-    }
-    
+    } 
 
     // For Reports - Status Counts
     public function fetchProcurement(Request $request)
@@ -83,7 +148,7 @@ class UserController extends Controller
 
     public function search($search){
         if($search !== '-'){
-            $data = User::whereHas('profile', function ($q) use ($search){
+            $data = User::where('email', "LIKE", "%".$search."%")->orWhereHas('profile', function ($q) use ($search){
                 $q->where("name", "LIKE", "%".$search."%"); 
                 $q->orWhere("designation", "LIKE", "%".$search."%");
             })->orWhereHas('profile.company', function ($q) use ($search){
@@ -122,9 +187,9 @@ class UserController extends Controller
            
         ); 
         $userData = array(
-            "email" => $request['data'][0]['email'],
+            "email" => strtolower($request['data'][0]['email']),
             "role"  => "normal",
-            "password"  => Hash::make($request['data'][0]['email']),
+            "password"  => Hash::make(strtolower($request['data'][0]['email'])),
             "status"    => "active",
             "created_at"    => Carbon::now()
         );  
@@ -144,7 +209,7 @@ class UserController extends Controller
                 "designation" => $request['data'][0]['designation'],
                 "company_id" => $request['data'][0]['company_id'],
                 "department_id" => $request['data'][0]['department_id'],
-                "email" => $request['data'][0]['email'],
+                "email" => strtolower($request['data'][0]['email']),
                 "role"  => "normal",
                 "password"  => Hash::make($request['data'][0]['email']),
                 "status"    => "active",
@@ -216,7 +281,7 @@ class UserController extends Controller
                 "department_id" =>$request['data'][0]['department_id']
             ); 
             $userData = array(
-                "email" => $request['data'][0]['email'],
+                "email" => strtolower($request['data'][0]['email']),
                 "status"    => $request['data'][0]['status']
             ); 
         }else{
@@ -240,7 +305,7 @@ class UserController extends Controller
 
             $arrDetail =  $newData;
             $data->logs()->create([
-                'user_id' => $request['user_id'],
+                'user_id' => $request['user_id'] ? $request['user_id'] : $request->id,
                 'log_type' => 'update',
                 'details' => json_encode($arrDetail)
             ]);
@@ -342,9 +407,9 @@ class UserController extends Controller
                 
                 $data = User::create(
                                     [
-                                    "email" => $v['email'],
+                                    "email" => strtolower($v['email']),
                                     "role"  => "normal",
-                                    "password"  => Hash::make($v['email']),
+                                    "password"  => Hash::make(strtolower($v['email'])),
                                     "status"    => "active",
                                     "created_at"    => Carbon::now()
                                     ]

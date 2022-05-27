@@ -18,7 +18,7 @@ import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import API from "../../services/api.js";
 import AddIcon from "@mui/icons-material/Add";
-
+import Autocomplete from "@mui/material/Autocomplete";
 const columns = [
     { id: "status", label: "STATUS", minWidth: 20 },
     { id: "paf_no", label: "PAF NO.", minWidth: 30 },
@@ -150,8 +150,13 @@ const Pafs = () => {
             });
     }  
 
-    const handleData = (e, type) => {
-        let value = e.target.value;
+    const handleData = (e, val, type) => {
+        let value = "";
+        if (val) {
+            value = val.id;
+        } else {
+            value = e.target.value;
+        }
 
         let objAssign = Object.assign([], filterSearch);
         
@@ -251,75 +256,98 @@ const Pafs = () => {
             >
                 <Box sx={{ display: "flex", width: "100%" }}>
                     
-                    <Box sx={{ display: "flex" }}>
+                    <Box sx={{ display: "flex", width: "80%" }}>
                     <Link to="/d/procurement-team/payment-approval-forms/create" style={{margin: "auto 5px", marginRight: "20px"}}>
                             <IconButton sx={{backgroundColor: "#000", color: "#fff"}}>
                                 <AddIcon />
                             </IconButton>
                         </Link>
                         <Box sx={{ my: "auto" }}> Filter by:</Box>
-                        <TextField
+                         
+                        <Autocomplete
+                            disablePortal
+                            fullWidth
+                             
                             sx={{ m: 1 }}
-                            select
+                            options={company}
+                            getOptionLabel={(company) => company.title}
                             size="small"
-                            label="Company"
-                            value={company.id}
-                            onChange={(e) => handleData(e, "company")}
-                            SelectProps={{
-                                native: true,
+                            onChange={(e, value) =>
+                                handleData(e, value, "company")
+                            }
+                            renderOption={(props, option) => {
+                                return (
+                                    <li {...props} key={option.id}>
+                                        {option.title}
+                                    </li>
+                                );
                             }}
-                        >
-                            <option> - </option>
-                            {company.map((option) => (
-                                <option key={option.id} value={option.id}>
-                                    {option.title}
-                                </option>
-                            ))}
-                        </TextField>
-                        <TextField
-                            sx={{ m: 1 }}
-                            select
-                            size="small"
-                            label="Suppliers"
-                            value={supplier.id}
-                            onChange={(e) => handleData(e, "supplier")}
-                            SelectProps={{
-                                native: true,
-                            }}
-                        >
-                            <option> - </option>
-                            {supplier.map((option) => (
-                                <option key={option.id} value={option.id}>
-                                    {option.title}
-                                </option>
-                            ))}
-                        </TextField>
+                            renderInput={(params) => (
+                                <TextField
+                                    {...params}
+                                    label="Company"
+                                    fullWidth
+                                />
+                            )}
+                        /> 
 
-                       
-                        <TextField
+                        <Autocomplete
+                            disablePortal
                             sx={{ m: 1 }}
-                            select
+                            fullWidth
+                            options={supplier}
+                            getOptionLabel={(supplier) => supplier.title}
                             size="small"
-                            label="Process By"
-                            value={processBy.user_id}
-                            onChange={(e) => handleData(e, "processby")}
-                            SelectProps={{
-                                native: true,
+                            onChange={(e, value) =>
+                                handleData(e, value, "supplier")
+                            }
+                            renderOption={(props, option) => {
+                                return (
+                                    <li {...props} key={option.id}>
+                                        {option.title}
+                                    </li>
+                                );
                             }}
-                        >
-                            <option> - </option>
-                            {processBy.map((option) => (
-                                <option key={option.user_id} value={option.user_id}>
-                                    {option.name}
-                                </option>
-                            ))}
-                        </TextField>
+                            renderInput={(params) => (
+                                <TextField
+                                    {...params}
+                                    label="Supplier"
+                                    fullWidth
+                                />
+                            )}
+                        /> 
+                        <Autocomplete
+                            disablePortal
+                            sx={{ m: 1 }}
+                            fullWidth
+                            options={processBy}
+                            getOptionLabel={(process) => process.name}
+                            size="small"
+                            onChange={(e, value) =>
+                                handleData(e, value, "processby")
+                            }
+                            renderOption={(props, option) => {
+                                return (
+                                    <li {...props} key={option.user_id}>
+                                        {option.name}
+                                    </li>
+                                );
+                            }}
+                            renderInput={(params) => (
+                                <TextField
+                                    {...params}
+                                    label="Process by"
+                                    fullWidth
+                                />
+                            )}
+                        />
                         <TextField
                             sx={{ m: 1 }}
                             select
                             size="small"
+                            fullWidth
                             label="Status"
-                            onChange={(e) => handleData(e, "status")}
+                            onChange={(e) => handleData(e,null, "status")}
                             SelectProps={{
                                 native: true,
                             }}

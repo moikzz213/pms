@@ -82,8 +82,8 @@ const Users = ({logged}) => {
                 name: o.profile.name,
                 email: o.email,
                 designation: o.profile.designation,
-                company: o.profile.company.title,
-                department: o.profile.department.title,
+                company: o.profile.company ? o.profile.company.title : '',
+                department: o.profile.department ? o.profile.department.title : '',
                 contact_no: o.profile.contact_no
             }
         });

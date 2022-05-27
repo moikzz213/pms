@@ -29,6 +29,11 @@ class Payment_approval_form extends Model
         return $this->belongsToMany(Local_purchase_order::class);
     }
 
+    public function prfs()
+    {
+        return $this->belongsToMany(Requests::class);
+    } 
+
     public function paf_items()
     {
         return $this->hasMany(Payment_approval_form_item::class);
@@ -49,10 +54,7 @@ class Payment_approval_form extends Model
         return $this->belongsTo(Requests::class, 'request_id');
     }
 
-    public function supplier()
-    {
-        return $this->belongsTo(Supplier::class);
-    }
+  
 
     public function company()
     {

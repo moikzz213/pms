@@ -17,42 +17,42 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import AdapterDateFns from "@mui/lab/AdapterDateFns";
 import LocalizationProvider from "@mui/lab/LocalizationProvider";
 import MobileDatePicker from "@mui/lab/MobileDatePicker";
-import Radio from '@mui/material/Radio';
-import RadioGroup from '@mui/material/RadioGroup';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import FormControl from '@mui/material/FormControl';
+import Radio from "@mui/material/Radio";
+import RadioGroup from "@mui/material/RadioGroup";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import FormControl from "@mui/material/FormControl";
+import LoadingButton from "@mui/lab/LoadingButton";
 
-import { useTheme } from '@mui/material/styles';
-import OutlinedInput from '@mui/material/OutlinedInput';
-import InputLabel from '@mui/material/InputLabel';
-import MenuItem from '@mui/material/MenuItem'; 
-import Select from '@mui/material/Select';
+import { useTheme } from "@mui/material/styles";
+import OutlinedInput from "@mui/material/OutlinedInput";
+import InputLabel from "@mui/material/InputLabel";
+import MenuItem from "@mui/material/MenuItem";
+import Select from "@mui/material/Select";
 
-
-import API from "../../services/api.js";  
+import API from "../../services/api.js";
 import Snackbar from "@mui/material/Snackbar";
 import MuiAlert from "@mui/material/Alert";
 
 const Alert = React.forwardRef(function Alert(props, ref) {
     return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
-}); 
+});
 function getStyles(name, lpo, theme) {
     return {
-      fontWeight:
-        lpo.indexOf(name) === -1
-          ? theme.typography.fontWeightRegular
-          : theme.typography.fontWeightMedium,
+        fontWeight:
+            lpo.indexOf(name) === -1
+                ? theme.typography.fontWeightRegular
+                : theme.typography.fontWeightMedium,
     };
-  }
+}
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
 const MenuProps = {
-  PaperProps: {
-    style: {
-      maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
-      width: 250,
+    PaperProps: {
+        style: {
+            maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
+            width: 250,
+        },
     },
-  },
 };
 function mapFilterData(array, selected) {
     let supp = array.map((sup) => {
@@ -68,7 +68,7 @@ function mapFilterData(array, selected) {
     return supp[0];
 }
 
-const PafForm = ({logged}) => {
+const PafForm = ({ logged }) => {
     const navigate = useNavigate();
     const theme = useTheme();
     const [open, setOpen] = useState(false);
@@ -93,15 +93,29 @@ const PafForm = ({logged}) => {
     const [relation, setRelation] = useState("lpo");
     const [currency, setCurrency] = useState("AED");
     // End PAF
-    
-    const [dateValue, setDateValue] = useState(new Date().toLocaleDateString());  
-    const [preparedBy, setPreparedBy] = useState({ name: "", user_id: ""}); 
-    const [supplierList, setSuppliers] = useState([]); 
-    const [employees, setEmployees] = useState([]); 
-    const [prfList, setPrfList] = useState([]); 
-    const [lpoList, setLpoList] = useState([]); 
+
+    const [dateValue, setDateValue] = useState(new Date().toLocaleDateString());
+    const [preparedBy, setPreparedBy] = useState({ name: "", user_id: "" });
+    const [supplierList, setSuppliers] = useState([]);
+    const [employees, setEmployees] = useState([]);
+    const [prfList, setPrfList] = useState([]);
+    const [lpoList, setLpoList] = useState([]);
+    const [validate, setValidate] = useState([
+        {
+            supplier: "",
+            payment_mode: "",
+            net_amount: "",
+            prf_lpo: "",
+            approval: "",
+            lpo: "",
+        },
+    ]);
 
     const [approvalLabelled, setApprovalLabelled] = useState([
+        {
+            id: "requested_by",
+            title: "Requested By",
+        },
         {
             id: "reviewed_by",
             title: "Reviewed By",
@@ -119,11 +133,13 @@ const PafForm = ({logged}) => {
     const [tableRows, setTableRows] = useState([
         {
             row: 0,
+            local_purchase_order_id: "",
+            supplier_id: "",
             location: "",
             supplier_invoice_num: "",
             description: "",
             invoice_date: new Date().toLocaleDateString(),
-            qty: 1, 
+            qty: 1,
             unit_price: 0,
             amount: 0,
             vat: 0,
@@ -131,30 +147,34 @@ const PafForm = ({logged}) => {
         },
     ]);
 
-    const [approvalRows, setApprovalRows] = useState([{
-        row: 0,
-        approval_type: "",
-        user_id : ""
-    }]);
-    
+    const [approvalRows, setApprovalRows] = useState([
+        {
+            row: 0,
+            approval_type: "",
+            user_id: "",
+        },
+    ]);
+
+    const [itemLPO, setItemLPO] = useState([]);
+    const [itemSupplier, setItemSupplier] = useState([]);
+    const [itemPRF, setItemPRF] = useState([]);
     const [totalamount, setTotalamount] = useState(0);
     const [rowCount, setRowCount] = useState(1);
     const [rowCountApproval, setRowCountApproval] = useState(1);
-    const [netamount, setNetAmount] = useState(0); 
+    const [netamount, setNetAmount] = useState(0);
     const [discount, setDiscount] = useState(0);
     const [vat, setVat] = useState(0);
-    const [supplier, setSupplier] = useState("");
+    const [supplier, setSupplier] = useState([]);
 
-    const [prfs, setPrfs] = useState("");
+    const [prfs, setPrfs] = useState([]);
     const [lpo, setLpo] = useState([]);
     // Data to be submit
     const [objData, setObjData] = useState([
         {
             currency_rate: 1,
-            currency: "aed", 
-            relation: "lpo",
-            request_id: "", 
-            user_id: "", 
+            currency: "aed",
+            relation: "lpo", 
+            user_id: "",
             department_head: "Saleh Al Chalabi",
             department_name: "Procurement",
             budgeted: "",
@@ -162,8 +182,8 @@ const PafForm = ({logged}) => {
             purchase_limit: 0,
             cash_card_limit: 0,
             document_no_1: "",
-            document_no_2: "",
-            supplier_id: "", 
+            document_no_2: "", 
+            supplier_count: 0,
             total_amount: 0,
             total_vat: 0,
             discount: 0,
@@ -172,59 +192,129 @@ const PafForm = ({logged}) => {
             amount_in_words: "",
             approval_limit_payment: "",
             remarks_finance: "",
-            status: "onprocess"
-        }]
-    ); 
+            status: "onprocess",
+        },
+    ]);
 
-    const handleSupplier = (event) => {
+    const handleSupplier = (event) => { 
+         
         let selected = event.target.value;
-      
-        setSupplier(selected);
+        let checkedData = false; 
+ 
+        if (selected.length <= 0) {
+            
+            setItemSupplier([]);
+        } else {
+            checkedData = true;
+            let fff = [];
+            selected.map((o, i) => {
+                fff[i] = mapFilterData(supplierList, o);
+            });
+            setItemSupplier(fff); 
+        }
 
-        let dataAssign = Object.assign([], objData);
-        dataAssign[0].supplier_id = selected;  
-        setObjData(dataAssign); 
+        setSupplier(
+            // On autofill we get a stringified value.
+            typeof selected === "string" ? selected.split(",") : selected
+        );
+
+        let validatedData = validate.map((o, i) => { 
+            o.supplier = checkedData;
+            if (o.supplier && o.payment_mode && o.net_amount && o.prf_lpo && o.approval && o.lpo) {
+                setFieldState(false);
+            }
+            return o;
+        });
+
+        setValidate(validatedData); 
+
+        
     };
 
     const handlePrf = (event) => {
         let selected = event.target.value;
-        setPrfs(selected);
+        let checkedData = false; 
+ 
+        if (selected.length <= 0) {
+            setSupplier([]);
+            setItemPRF([]);
+        } else {
+            checkedData = true;
+            let fff = [];
+            selected.map((o, i) => {
+                fff[i] = mapFilterData(prfList, o);
+            });
+            setItemPRF(fff); 
+        }
 
-        let dataAssign = Object.assign([], objData);
-        dataAssign[0].request_id = selected; 
-        setObjData(dataAssign); 
+        setPrfs(
+            // On autofill we get a stringified value.
+            typeof selected === "string" ? selected.split(",") : selected
+        );
+
+        let validatedData = validate.map((o, i) => { 
+            o.prf_lpo = checkedData; 
+            if (o.supplier && o.payment_mode && o.net_amount && o.prf_lpo && o.approval && o.lpo) {
+                setFieldState(false);
+            }
+            return o;
+        });
+
+        setValidate(validatedData); 
+         
     };
 
     const handleLpo = (event) => {
         let selected = event.target.value;
         let supplier = "";
         let company = "";
-       
+        let checkedData = false;
         if (selected.length <= 0) {
-            setSupplier("-"); 
+            setSupplier([]);
+            setItemLPO([]);
         } else {
-            if(selected.length == 1){
-                let supp = mapFilterData(lpoList, selected); 
+            checkedData = true;
+            let fff = [];
+            selected.map((o, i) => {
+                fff[i] = mapFilterData(lpoList, o);
+            });
+            setItemLPO(fff);
+
+            if (selected.length == 1) {
+                let supp = mapFilterData(lpoList, selected);
+                console.log(supp);
                 supplier = supp.supplier_id;
                 company = supp.billing_details_id;
-                setSupplier(supplier); 
+                setSupplier([supplier]);
+                 
+                let zzz = [];
+                [supplier].map((o, i) => {
+                    zzz[i] = mapFilterData(supplierList, o);
+                });
+                setItemSupplier(zzz); 
 
-                let dataAssign = Object.assign([], objData);
-                dataAssign[0].supplier_id = supplier; 
-                dataAssign[0].company_id = company;  
-                dataAssign[0].request_id = ""; 
-
-                setObjData(dataAssign); 
+                let dataAssign = Object.assign([], objData); 
+                dataAssign[0].company_id = company; 
+                setObjData(dataAssign);
             }
         }
-       
-      
+
         setLpo(
-        // On autofill we get a stringified value.
-        typeof selected === 'string' ? selected.split(',') : selected,
-        ); 
-         
-        
+            // On autofill we get a stringified value.
+            typeof selected === "string" ? selected.split(",") : selected
+        );
+
+        let validatedData = validate.map((o, i) => {
+            o.supplier = checkedData;
+            o.prf_lpo = checkedData;
+
+            if (o.supplier && o.payment_mode && o.net_amount && o.prf_lpo && o.approval && o.lpo) {
+                setFieldState(false);
+            }
+            return o;
+        });
+
+        setValidate(validatedData);
     };
 
     const handleApproveType = (event, index) => {
@@ -247,8 +337,19 @@ const PafForm = ({logged}) => {
                 o.user_id = selected;
             }
             return o;
-        }); 
+        });
         setApprovalRows(tempRows);
+
+        let validatedData = validate.map((o, i) => {
+            o.approval = true;
+
+            if (o.supplier && o.payment_mode && o.net_amount && o.prf_lpo && o.approval && o.lpo) {
+                setFieldState(false);
+            }
+            return o;
+        }); 
+
+        setValidate(validatedData);
     };
 
     const handleDateRow = (value, index) => {
@@ -256,57 +357,57 @@ const PafForm = ({logged}) => {
             if (i == index) {
                 o.invoice_date = new Date(value).toLocaleDateString();
             }
-            
+
             return o;
-        }); 
+        });
 
         setTableRows(tempRows);
     };
 
     const handleCurrencyRate = (e, rate, totalAmnt, discount) => {
-        let value = 1;  
+        let value = 1;
         let newRate = 1;
-        
-        if(e){
-            value = e.target.value; 
+
+        if (e) {
+            value = e.target.value;
             newRate = value;
-        }else{
+        } else {
             value = rate;
             newRate = rate;
         }
-         
+
         let amount = parseFloat(totalamount);
-        if(totalAmnt){
+        if (totalAmnt) {
             let totAmount = totalAmnt - discount;
             amount = parseFloat(totAmount);
-        } 
-        
+        }
+
         let newNetAmount = 0;
-        
-        if(!value && value <= 0){
+
+        if (!value && value <= 0) {
             value = 1;
-        } 
-        
+        }
+
         newNetAmount = amount * value;
         Math.round(newNetAmount * 100) / 100;
-        
+
         let dataAssign = Object.assign([], objData);
         dataAssign[0].currency_rate = newRate;
         dataAssign[0].net_amount = newNetAmount;
         setObjData(dataAssign);
         setNetAmount(newNetAmount.toFixed(2));
-        
     };
 
     const handleAddRow = () => {
         let totalRow = rowCount + 1;
         const newItem = {
             row: totalRow,
-            location: "", 
+            location: "",
             supplier_invoice_num: "",
+            supplier_id: "",
             invoice_date: new Date().toLocaleDateString(),
             description: "",
-            qty: 1, 
+            qty: 1,
             unit_price: 0,
             amount: 0,
             vat: 0,
@@ -330,57 +431,92 @@ const PafForm = ({logged}) => {
     };
 
     const handleObjData = (e, type) => {
-         
         let value = e.target.value;
-
+       
         let dataAssign = Object.assign([], objData);
-        let newData = dataAssign.map((o,i) => { 
-            if(type == 'purchase_limit'){
+        let newData = dataAssign.map((o, i) => {
+            if (type == "purchase_limit") {
                 o.purchase_limit = value;
-            }else if(type == 'mode_of_payment'){
-                o.mode_of_payment = value;
-            }else if(type == 'cash_card_limit'){
+            } else if (type == "mode_of_payment") {
+                o.mode_of_payment = value; 
+            } else if (type == "cash_card_limit") {
                 o.cash_card_limit = value;
-            }else if(type == 'docs_account_1'){
+            } else if (type == "docs_account_1") {
                 o.document_no_1 = value;
-            }else if(type == 'docs_account_2'){
+            } else if (type == "docs_account_2") {
                 o.document_no_2 = value;
-            }else if(type == 'general_remarks'){
+            } else if (type == "general_remarks") {
                 o.remarks_general = value;
-            }else if(type == 'amount_words'){
+            } else if (type == "amount_words") {
                 o.amount_in_words = value;
-            }else if(type == 'approval_limit'){
+            } else if (type == "approval_limit") {
                 o.approval_limit_payment = value;
-            }else if(type == 'finance_comment'){
+            } else if (type == "finance_comment") {
                 o.remarks_finance = value;
-            }else if(type == 'budget'){
-                o.budgeted = value;
-            }else if(type == 'dept_head'){
+            }
+            // else if(type == 'budget'){
+            //     o.budgeted = value;
+            // }
+            else if (type == "dept_head") {
                 o.department_head = value;
             }
-            
+
             return o;
-        });
-        
+        }); 
+
+        if (type == "mode_of_payment") {
+             
+            let validatedData = validate.map((o, i) => {
+                o.payment_mode = true;
+
+                if (o.supplier && o.payment_mode && o.net_amount && o.prf_lpo && o.approval && o.lpo) {
+                    setFieldState(false);
+                }
+                return o;
+            });
+           
+            setValidate(validatedData);
+        }
+
         setObjData(newData);
     };
 
-    const handleItemData = (e,index, type) => {
+    const handleItemData = (e, index, type) => {
         let value = e.target.value;
 
         let dataAssign = Object.assign([], tableRows);
-        let newData = dataAssign.map((o,i) => { 
-            if(i == index && type == 'location'){
+        let newData = dataAssign.map((o, i) => {
+            if (i == index && type == "location") {
                 o.location = value;
-            }else if(i == index && type == 'supplier_invoice_num'){
+            } else if (i == index && type == "supplier_invoice_num") {
                 o.supplier_invoice_num = value;
-            }else if(i == index && type == 'description'){
+            } else if (i == index && type == "description") {
                 o.description = value;
-            }  
+            } else if (i == index && type == "lpo") {
+                o.local_purchase_order_id = value;
+            } else if (i == index && type == "serial") {
+                o.serial_number = value;
+            } else if (i == index && type == "supplier") {
+                o.supplier_id = value;
+            }
             return o;
         });
-      
+
         setTableRows(newData);
+
+        if (type == "lpo") {
+             
+            let validatedData = validate.map((o, i) => {
+                o.lpo = true;
+
+                if (o.supplier && o.payment_mode && o.net_amount && o.prf_lpo && o.approval && o.lpo) {
+                    setFieldState(false);
+                }
+                return o;
+            });
+           
+            setValidate(validatedData);
+        }
     };
 
     const calculateAmount = (e, index, type) => {
@@ -394,44 +530,42 @@ const PafForm = ({logged}) => {
         let curDiscount = 0;
         let totalVat = 0;
         let tempRows = tableRows.map((o, i) => {
-           
             if (i == index && type == "qty") {
                 let amount = o.unit_price;
-                
-                    if (!amount) {
-                        amount = 0;
-                    }
-                    o.amount = (value * amount).toFixed(2);
-                    o.qty = value;
-                    o.total_amount = (parseFloat(o.amount) + parseFloat(defaultVat)).toFixed(2);
-                
+
+                if (!amount) {
+                    amount = 0;
+                }
+                o.amount = (value * amount).toFixed(2);
+                o.qty = value;
+                o.total_amount = (
+                    parseFloat(o.amount) + parseFloat(defaultVat)
+                ).toFixed(2);
             } else if (i == index && type == "price") {
                 let qty = o.qty;
-                
-                    if (!qty) {
-                        qty = 1;
-                    }
-                    
-                    let totalAmountz = value * qty;
-                    let getVat = totalAmountz * defaultVat;
-                    o.amount = totalAmountz.toFixed(2);
-                   
-                    o.vat = getVat.toFixed(2);
-                    o.total_amount = (totalAmountz + getVat).toFixed(2);
-                    o.unit_price = value;
-               
+
+                if (!qty) {
+                    qty = 1;
+                }
+
+                let totalAmountz = value * qty;
+                let getVat = totalAmountz * defaultVat;
+                o.amount = totalAmountz.toFixed(2);
+
+                o.vat = getVat.toFixed(2);
+                o.total_amount = (totalAmountz + getVat).toFixed(2);
+                o.unit_price = value;
             } else if (i == index && type == "vat") {
                 let amount = o.amount;
 
-                
-                    if (!value) {
-                        value = 0;2
-                    }
-                    o.vat = value;
-                    let totalAmountz = parseFloat(amount) + parseFloat(value);
+                if (!value) {
+                    value = 0;
+                    2;
+                }
+                o.vat = value;
+                let totalAmountz = parseFloat(amount) + parseFloat(value);
 
-                    o.total_amount = totalAmountz.toFixed(2);
-                
+                o.total_amount = totalAmountz.toFixed(2);
             }
 
             totalVat += parseFloat(o.vat);
@@ -467,15 +601,33 @@ const PafForm = ({logged}) => {
         setNetAmount(netAmountz.toFixed(2));
         setTableRows(tempRows);
         let dataAssign = Object.assign([], objData);
-        if(currency == "usd"){
-             handleCurrencyRate(null, objData[0].currency_rate, totalAmnt, curDiscount);
-        }else{
+
+        if (currency == "usd") {
+            handleCurrencyRate(
+                null,
+                objData[0].currency_rate,
+                totalAmnt,
+                curDiscount
+            );
+        } else {
             dataAssign[0].net_amount = netAmountz;
-        } 
-        dataAssign[0].discount = curDiscount; 
-       
+        }
+
+        let validatedData = validate.map((o, i) => {
+            o.net_amount = true;
+
+            if (o.supplier && o.payment_mode && o.net_amount && o.prf_lpo && o.approval && o.lpo) {
+                setFieldState(false);
+            }
+            return o;
+        }); 
+
+        setValidate(validatedData);
+
+        dataAssign[0].discount = curDiscount;
+
         dataAssign[0].total_amount = totalAmnt;
-        dataAssign[0].total_vat = totalVat; 
+        dataAssign[0].total_vat = totalVat;
         setObjData(dataAssign);
     };
 
@@ -494,22 +646,20 @@ const PafForm = ({logged}) => {
     };
 
     const handleCurrency = (e) => {
-       
-        let value = e.target.value; 
+        let value = e.target.value;
         setCurrency(value);
-        
-        if(value == "aed"){ 
+
+        if (value == "aed") {
             handleCurrencyRate(null, 1, totalamount, discount);
-        } 
+        }
 
         let dataAssign = Object.assign([], objData);
-        dataAssign[0].currency = value; 
-            
+        dataAssign[0].currency = value;
+
         setObjData(dataAssign);
     };
 
-    const handleSubmitForm = (e) => { 
-
+    const handleSubmitForm = (e) => {
         e.preventDefault();
         setLoading(true);
         let newMessage = {
@@ -518,71 +668,74 @@ const PafForm = ({logged}) => {
         };
         setSeverity(newMessage);
 
+        let suppCount = supplier;
+
         let dataAssign = Object.assign([], objData);
-        let newData = dataAssign.map((o, i) => {  
-            o.status = "onprocess"; 
+        let newData = dataAssign.map((o, i) => {
+            o.status = "onprocess";
+            o.supplier_count = suppCount.length;
             return o;
         });
 
         newData = Object.assign({}, newData);
         let newTablerow = Object.assign([], tableRows);
         let newItems = newTablerow.map((o, i) => {
-            delete o['row'];
+            delete o["row"];
             return o;
-        }); 
+        });
 
         let prepend_prepared_by = {
             approval_type: "prepared_by",
-            user_id: preparedBy.user_id
-        }
+            user_id: preparedBy.user_id,
+        };
         approvalRows.unshift(prepend_prepared_by);
-        
-        let newApproval = approvalRows.map((o, i) => { 
-            delete o['row'];
+
+        let newApproval = approvalRows.map((o, i) => {
+            delete o["row"];
             return o;
         });
 
         let dataSubmit = [
             {
                 lpo: lpo,
+                prfs: prfs,
                 details: newData,
                 items: newItems,
                 approvals: newApproval,
-                user_id: logged.id
+                user_id: logged.id,
             },
-        ]; 
+        ];
+        
+        API.post("/v/payment-approval-form/new", dataSubmit)
+            .then((response) => {
+                console.log(response.data);
+                setOpen(true);
+                setTimeout(() => {
+                    newMessage = {
+                        title: "success",
+                        message: response.data.message,
+                    };
+                    setLoading(false);
+                    setSeverity(newMessage);
+                }, 500);
 
-        API
-        .post("/v/payment-approval-form/new", dataSubmit)
-        .then((response) => {
-            console.log(response.data);
-            setOpen(true);
-            setTimeout(() => {
+                setTimeout(() => {
+                    // Route to Edit by id
+                    navigate(
+                        "/d/procurement-team/payment-approval-forms/id/" +
+                            response.data.id
+                    );
+                }, 1000);
+            })
+            .catch((error) => {
+                console.log(error);
                 newMessage = {
-                    title: "success",
-                    message: response.data.message,
+                    title: "error",
+                    message: error.message,
                 };
-                setLoading(false);
                 setSeverity(newMessage);
-            }, 500);
-
-            setTimeout(() => {
-                // Route to Edit by id
-                navigate(
-                    "/d/procurement-team/payment-approval-forms/id/" + response.data.id
-                );
-            }, 1000);
-        })
-        .catch((error) => {
-            console.log(error);
-            newMessage = {
-                title: "error",
-                message: error.message,
-            };
-            setSeverity(newMessage);
-            setLoading(false);
-        });
-
+                setLoading(false);
+            });
     };
 
     const handleRelation = (e) => {
@@ -590,31 +743,35 @@ const PafForm = ({logged}) => {
         setSupplier("");
         if (e.target.value == "prf") {
             setLpo("");
+            setPrfs([]);
+            setItemLPO([]);
         } else {
             setPrfs("");
             setLpo([]);
+            setItemPRF([]);
         }
-       
+
         let dataAssign = Object.assign([], objData);
         dataAssign[0].relation = e.target.value;
-            
+
         setObjData(dataAssign);
-    }; 
+    };
 
-    useEffect(() => { 
-
-        API.get("/v/local-purchase-order/onprocess-status/fetch").then((response) => {
-            let fetchItems = response.data.item; 
-            setLpoList(fetchItems);
-        });
+    useEffect(() => {
+        API.get("/v/local-purchase-order/onprocess-status/fetch").then(
+            (response) => {
+                let fetchItems = response.data.item;
+                setLpoList(fetchItems);
+            }
+        );
 
         API.get("/v/request/fetch-onprocess/pendings").then((response) => {
-            let fetchItems = response.data.item; 
+            let fetchItems = response.data.item;
             setPrfList(fetchItems);
         });
 
         API.get("/v/suppliers/fetch-non-paginate").then((response) => {
-            let fetchItems = response.data.item;  
+            let fetchItems = response.data.item;
             setSuppliers(fetchItems);
         });
 
@@ -631,28 +788,27 @@ const PafForm = ({logged}) => {
                     email: o.email,
                     name: o.profile ? o.profile.name : "",
                 };
-            }); 
-           
+            });
+
             setEmployees(newData);
         });
-        
     }, []);
 
     useEffect(() => {
-        API.get("/v/profile/fetch/" + logged.id).then((response) => {  
+        API.get("/v/profile/fetch/" + logged.id).then((response) => {
             setPreparedBy(response.data.item);
-          
+
             let dataAssign = Object.assign([], objData);
             dataAssign[0].user_id = response.data.item.user_id;
-            
-            setObjData(dataAssign); 
-         });
+
+            setObjData(dataAssign);
+        });
     }, [logged]);
 
     return (
         <Paper sx={{ px: 3, py: 3 }}>
             <Box sx={{ flexGrow: 1 }} className="paf-form">
-            <Snackbar
+                <Snackbar
                     open={open}
                     autoHideDuration={4000}
                     onClose={handleClose}
@@ -676,16 +832,21 @@ const PafForm = ({logged}) => {
                 >
                     <Grid
                         container
-                        spacing={2} 
-                        sx={{ borderBottom: "1px solid #cecece", pb: 1, mb: 1, py: 3 }}
+                        spacing={2}
+                        sx={{
+                            borderBottom: "1px solid #cecece",
+                            pb: 1,
+                            mb: 1,
+                            py: 3,
+                        }}
                     >
                         <Grid item xs={12} md={12}>
                             <small style={{ color: "red" }}>
                                 RELATION: IF THERE IS LPO, SELECT LPO. OTHERWISE
                                 SELECT PRF.
-                             
-                            <br/>
-                            PRF/LPO NO: ONLY ONPROCESS STATUS WILL BE SHOWN ON DROPDOWN SELECTION!
+                                <br />
+                                PRF/LPO NO: ONLY ONPROCESS STATUS WILL BE SHOWN
+                                ON DROPDOWN SELECTION!
                             </small>
                         </Grid>
                         <Grid item xs={12} md={2}>
@@ -710,58 +871,80 @@ const PafForm = ({logged}) => {
                         {relation == "prf" && (
                             <>
                                 <Grid item xs={12} md={2}>
-                                    PRF NO.
+                                    PRF NO.*
                                 </Grid>
-                                <Grid item xs={12} md={4}>
-                                    <TextField
-                                        select
-                                        size="small"
-                                        label="PRF No."
-                                        value={prfs}
-                                        onChange={(e) => handlePrf(e)}
-                                        SelectProps={{
-                                            native: true,
-                                        }}
+                                <Grid item xs={12} md={4}> 
+                                    <FormControl
+                                        fullWidth
+                                        sx={{ width: "90%", ml: "9px" }}
                                     >
-                                        <option value=""> - </option>
-                                        {prfList.map((option) => (
-                                            <option
-                                                key={option.id}
-                                                value={option.id}
-                                            >
-                                                {option.prf_no}
-                                            </option>
-                                        ))}
-                                    </TextField>
+                                        <InputLabel sx={{ top: "-6px" }}>
+                                            PRF No.
+                                        </InputLabel>
+                                        <Select
+                                            multiple
+                                            size="small"
+                                            value={prfs}
+                                            onChange={(e) => handlePrf(e)}
+                                            input={
+                                                <OutlinedInput label="PRF No." />
+                                            }
+                                            MenuProps={MenuProps}
+                                        >
+                                            {prfList.map((option) => (
+                                                <MenuItem
+                                                    key={option.id}
+                                                    value={option.id}
+                                                    style={getStyles(
+                                                        option,
+                                                        prfs,
+                                                        theme
+                                                    )}
+                                                >
+                                                    {option.prf_no}
+                                                </MenuItem>
+                                            ))}
+                                        </Select>
+                                    </FormControl>
                                 </Grid>
                             </>
                         )}
                         {relation == "lpo" && (
                             <>
                                 <Grid item xs={12} md={2}>
-                                    LPO NO.
+                                    LPO NO.*
                                 </Grid>
-                                <Grid item xs={12} md={4}> 
-
-                                    <FormControl fullWidth>
-                                        <InputLabel id="demo-multiple-name-label">LPO No.</InputLabel>
-                                        <Select 
-                                        multiple
-                                        size="small"
-                                        value={lpo}
-                                        onChange={(e) => handleLpo(e)}
-                                        input={<OutlinedInput label="LPO No." />}
-                                        MenuProps={MenuProps}
+                                <Grid item xs={12} md={4}>
+                                    <FormControl
+                                        fullWidth
+                                        sx={{ width: "90%", ml: "9px" }}
+                                    >
+                                        <InputLabel sx={{ top: "-6px" }}>
+                                            LPO No.
+                                        </InputLabel>
+                                        <Select
+                                            multiple
+                                            size="small"
+                                            value={lpo}
+                                            onChange={(e) => handleLpo(e)}
+                                            input={
+                                                <OutlinedInput label="LPO No." />
+                                            }
+                                            MenuProps={MenuProps}
                                         >
-                                        {lpoList.map((option) => (
-                                            <MenuItem
-                                            key={option.id}
-                                            value={option.id}
-                                            style={getStyles(option, lpo, theme)}
-                                            >
-                                             {option.lpo_no}
-                                            </MenuItem>
-                                        ))}
+                                            {lpoList.map((option) => (
+                                                <MenuItem
+                                                    key={option.id}
+                                                    value={option.id}
+                                                    style={getStyles(
+                                                        option,
+                                                        lpo,
+                                                        theme
+                                                    )}
+                                                >
+                                                    {option.lpo_no}
+                                                </MenuItem>
+                                            ))}
                                         </Select>
                                     </FormControl>
                                 </Grid>
@@ -800,18 +983,18 @@ const PafForm = ({logged}) => {
                                 label="Name"
                                 size="small"
                                 variant="outlined"
-                                value={preparedBy ? preparedBy.name : ''}
+                                value={preparedBy ? preparedBy.name : ""}
                             />
                         </Grid>
                         <Grid item xs={12} md={2}>
-                            DEPARTMENT HEAD NAME
+                            DEPARTMENT HEAD NAME*
                         </Grid>
                         <Grid item xs={12} md={4}>
                             <TextField
                                 size="small"
                                 variant="outlined"
                                 value={objData[0].department_head}
-                                onChange={(e) => handleObjData(e, 'dept_head')}
+                                onChange={(e) => handleObjData(e, "dept_head")}
                             />
                         </Grid>
 
@@ -827,13 +1010,16 @@ const PafForm = ({logged}) => {
                         </Grid>
 
                         <Grid item xs={12} md={2}>
-                            MODE OF PAYMENT
+                            MODE OF PAYMENT*
                         </Grid>
                         <Grid item xs={12} md={4}>
                             <TextField
                                 size="small"
                                 variant="outlined"
-                                onChange={(e) => handleObjData(e, 'mode_of_payment')}
+                                placeholder="Required"
+                                onChange={(e) =>
+                                    handleObjData(e, "mode_of_payment")
+                                }
                             />
                         </Grid>
 
@@ -845,7 +1031,9 @@ const PafForm = ({logged}) => {
                                 size="small"
                                 type="number"
                                 variant="outlined"
-                                onChange={(e) => handleObjData(e, 'purchase_limit')}
+                                onChange={(e) =>
+                                    handleObjData(e, "purchase_limit")
+                                }
                             />
                         </Grid>
 
@@ -857,7 +1045,9 @@ const PafForm = ({logged}) => {
                                 size="small"
                                 variant="outlined"
                                 type="number"
-                                onChange={(e) => handleObjData(e, 'cash_card_limit')}
+                                onChange={(e) =>
+                                    handleObjData(e, "cash_card_limit")
+                                }
                             />
                         </Grid>
 
@@ -868,7 +1058,9 @@ const PafForm = ({logged}) => {
                             <TextField
                                 size="small"
                                 variant="outlined"
-                                onChange={(e) => handleObjData(e, 'docs_account_1')}
+                                onChange={(e) =>
+                                    handleObjData(e, "docs_account_1")
+                                }
                             />
                         </Grid>
 
@@ -879,31 +1071,49 @@ const PafForm = ({logged}) => {
                             <TextField
                                 size="small"
                                 variant="outlined"
-                                onChange={(e) => handleObjData(e, 'docs_account_2')}
+                                onChange={(e) =>
+                                    handleObjData(e, "docs_account_2")
+                                }
                             />
                         </Grid>
 
                         <Grid item xs={12} md={2}>
-                            SUPPLIER NAME
+                            SUPPLIER NAME*
                         </Grid>
-                        <Grid item xs={12} md={4}>
-                            <TextField
-                                select
-                                size="small"
-                                label="Supplier"
-                                value={supplier}
-                                onChange={(e) => handleSupplier(e)}
-                                SelectProps={{
-                                    native: true,
-                                }}
-                            >
-                                <option value=""> - </option>
-                                {supplierList.map((option) => (
-                                    <option key={option.id} value={option.id}>
-                                        {option.title}
-                                    </option>
-                                ))}
-                            </TextField>
+                        <Grid item xs={12} md={4}> 
+                        <FormControl
+                                        fullWidth
+                                        sx={{ width: "90%", ml: "9px" }}
+                                    >
+                                        <InputLabel sx={{ top: "-6px" }}>
+                                        Supplier*
+                                        </InputLabel>
+                            <Select
+                                            multiple
+                                            size="small"
+                                           
+                                            value={supplier}
+                                            onChange={(e) => handleSupplier(e)}
+                                            input={
+                                                <OutlinedInput label="Supplier" />
+                                            }
+                                            MenuProps={MenuProps}
+                                        >
+                                            {supplierList.map((option) => (
+                                                <MenuItem
+                                                    key={option.id}
+                                                    value={option.id}
+                                                    style={getStyles(
+                                                        option,
+                                                        supplier,
+                                                        theme
+                                                    )}
+                                                >
+                                                    {option.title}
+                                                </MenuItem>
+                                            ))}
+                                        </Select>
+                                        </FormControl>
                         </Grid>
                     </Grid>
                     {/* Table - Items */}
@@ -943,9 +1153,12 @@ const PafForm = ({logged}) => {
                             >
                                 <TableHead>
                                     <TableRow>
+                                        <TableCell>LPO/PRF</TableCell>
                                         <TableCell>LOCATION</TableCell>
+                                        <TableCell>SUPPLIER</TableCell>
                                         <TableCell>SUPPLIER INVOICE#</TableCell>
                                         <TableCell>DESCRIPTION</TableCell>
+                                        <TableCell>S/N</TableCell>
                                         <TableCell>INVOICE DATE</TableCell>
                                         <TableCell>QTY</TableCell>
                                         <TableCell>UNIT PRICE</TableCell>
@@ -968,6 +1181,62 @@ const PafForm = ({logged}) => {
                                                     sx={{ px: "0 !important" }}
                                                 >
                                                     <TextField
+                                                        select
+                                                        size="small"
+                                                        label="LPO/PRF*"
+                                                        onChange={(e) =>
+                                                            handleItemData(
+                                                                e,
+                                                                index,
+                                                                "lpo"
+                                                            )
+                                                        }
+                                                        SelectProps={{
+                                                            native: true,
+                                                        }}
+                                                    >
+                                                        <option value="">
+                                                            {" "}
+                                                            -{" "}
+                                                        </option>
+                                                        { itemLPO && itemLPO.map(
+                                                            (option) => (
+                                                                <option
+                                                                    key={
+                                                                        option.id
+                                                                    }
+                                                                    value={
+                                                                        option.id
+                                                                    }
+                                                                >
+                                                                    {
+                                                                        option.lpo_no
+                                                                    }
+                                                                </option>
+                                                            )
+                                                        )}
+                                                        { itemPRF && itemPRF.map(
+                                                            (option) => (
+                                                                <option
+                                                                    key={
+                                                                        option.id
+                                                                    }
+                                                                    value={
+                                                                        option.id
+                                                                    }
+                                                                >
+                                                                    {
+                                                                        option.prf_no
+                                                                    }
+                                                                </option>
+                                                            )
+                                                        )}
+                                                    </TextField>
+                                                </TableCell>
+                                                <TableCell
+                                                    sx={{ px: "0 !important" }}
+                                                >
+                                                    <TextField
                                                         label="Location"
                                                         size="small"
                                                         variant="outlined"
@@ -984,9 +1253,50 @@ const PafForm = ({logged}) => {
                                                     sx={{ px: "0 !important" }}
                                                 >
                                                     <TextField
+                                                        select
+                                                        size="small"
+                                                        label="Supplier"
+                                                        onChange={(e) =>
+                                                            handleItemData(
+                                                                e,
+                                                                index,
+                                                                "supplier"
+                                                            )
+                                                        }
+                                                        SelectProps={{
+                                                            native: true,
+                                                        }}
+                                                    >
+                                                        <option value=""> 
+                                                            - 
+                                                        </option>
+                                                        { itemSupplier && itemSupplier.map(
+                                                            (option) => (
+                                                                <option
+                                                                    key={
+                                                                        option.id
+                                                                    }
+                                                                    value={
+                                                                        option.id
+                                                                    }
+                                                                >
+                                                                    {
+                                                                        option.title
+                                                                    }
+                                                                </option>
+                                                            )
+                                                        )}
+                                                       
+                                                    </TextField>
+                                                </TableCell>
+                                                <TableCell
+                                                    sx={{ px: "0 !important" }}
+                                                >
+                                                    <TextField
                                                         label=""
                                                         size="small"
                                                         variant="outlined"
+                                                        placeholder="Inv no."
                                                         onChange={(e) =>
                                                             handleItemData(
                                                                 e,
@@ -1000,7 +1310,7 @@ const PafForm = ({logged}) => {
                                                     sx={{ px: "0 !important" }}
                                                 >
                                                     <TextField
-                                                        label="description"
+                                                        label="Description"
                                                         size="small"
                                                         variant="outlined"
                                                         onChange={(e) =>
@@ -1008,6 +1318,22 @@ const PafForm = ({logged}) => {
                                                                 e,
                                                                 index,
                                                                 "description"
+                                                            )
+                                                        }
+                                                    />
+                                                </TableCell>
+                                                <TableCell
+                                                    sx={{ px: "0 !important" }}
+                                                >
+                                                    <TextField
+                                                        label="S/N"
+                                                        size="small"
+                                                        variant="outlined"
+                                                        onChange={(e) =>
+                                                            handleItemData(
+                                                                e,
+                                                                index,
+                                                                "serial"
                                                             )
                                                         }
                                                     />
@@ -1026,7 +1352,9 @@ const PafForm = ({logged}) => {
                                                             size="small"
                                                             variant="outlined"
                                                             inputFormat="MM/dd/yyyy"
-                                                            value={row.invoice_date}
+                                                            value={
+                                                                row.invoice_date
+                                                            }
                                                             onChange={(e) =>
                                                                 handleDateRow(
                                                                     e,
@@ -1080,7 +1408,7 @@ const PafForm = ({logged}) => {
                                                     <TextField
                                                         type="number"
                                                         label="Unit Price"
-                                                        size="small" 
+                                                        size="small"
                                                         variant="outlined"
                                                         onChange={(e) =>
                                                             calculateAmount(
@@ -1117,9 +1445,7 @@ const PafForm = ({logged}) => {
                                                     <TextField
                                                         size="small"
                                                         type="number"
-                                                        value={
-                                                            "" || row.vat
-                                                        }
+                                                        value={"" || row.vat}
                                                         variant="outlined"
                                                         onChange={(e) =>
                                                             calculateAmount(
@@ -1141,7 +1467,10 @@ const PafForm = ({logged}) => {
                                                     <TextField
                                                         disabled
                                                         size="small"
-                                                        value={"" || row.total_amount}
+                                                        value={
+                                                            "" ||
+                                                            row.total_amount
+                                                        }
                                                         variant="outlined"
                                                         sx={{
                                                             width: "70px !important",
@@ -1185,7 +1514,12 @@ const PafForm = ({logged}) => {
                                                 minRows={12}
                                                 maxRows={15}
                                                 placeholder="Remarks"
-                                                onChange={(e) => handleObjData(e, 'general_remarks')}
+                                                onChange={(e) =>
+                                                    handleObjData(
+                                                        e,
+                                                        "general_remarks"
+                                                    )
+                                                }
                                                 style={{
                                                     width: "90%",
                                                     border: "1px solid #cecece",
@@ -1239,21 +1573,24 @@ const PafForm = ({logged}) => {
                                                 }
                                             />
                                         </Grid>
-                                       
+
                                         {currency == "usd" && (
                                             <>
                                                 <Grid item xs={4} md={4}>
-                                                USD TO AED
+                                                    USD TO AED
                                                 </Grid>
                                                 <Grid item xs={8} md={8}>
-                                                    <TextField 
-                                                        size="small" 
-                                                        type="number" 
+                                                    <TextField
+                                                        size="small"
+                                                        type="number"
                                                         variant="outlined"
-                                                        value={objData.currency_rate}
+                                                        value={
+                                                            objData.currency_rate
+                                                        }
                                                         onChange={(e) =>
-                                                            
-                                                            handleCurrencyRate( e )
+                                                            handleCurrencyRate(
+                                                                e
+                                                            )
                                                         }
                                                     />
                                                 </Grid>
@@ -1282,23 +1619,27 @@ const PafForm = ({logged}) => {
                             AMOUNT IN WORDS
                         </Grid>
                         <Grid item xs={12} md={10}>
-                            <TextField 
+                            <TextField
                                 size="small"
                                 variant="outlined"
                                 className="full-width"
-                                onChange={(e) => handleObjData(e, 'amount_words')}
+                                onChange={(e) =>
+                                    handleObjData(e, "amount_words")
+                                }
                             />
                         </Grid>
                         <Grid item xs={12} md={2}>
                             APPROVALS LIMIT FOR PAYMENT
                         </Grid>
                         <Grid item xs={12} md={10}>
-                        <TextField
-                                className="full-width" 
+                            <TextField
+                                className="full-width"
                                 size="small"
                                 value="Up to AED 50,000 by Finance Manager, above AED 50,000 to AED 200,000 by Finance Director &amp; all above by CEO &amp; CFO Jointly."
                                 variant="outlined"
-                                onChange={(e) => handleObjData(e, 'approval_limit')}
+                                onChange={(e) =>
+                                    handleObjData(e, "approval_limit")
+                                }
                             />
                         </Grid>
                         <Grid item xs={12} md={2}>
@@ -1307,34 +1648,45 @@ const PafForm = ({logged}) => {
                         <Grid item xs={12} md={10}>
                             <TextField
                                 className="full-width"
-                                onChange={(e) => handleObjData(e, 'finance_comment')}
+                                onChange={(e) =>
+                                    handleObjData(e, "finance_comment")
+                                }
                                 size="small"
                                 variant="outlined"
                             />
                         </Grid>
                     </Grid>
 
-                    <Box sx={{ mb:2, backgroundColor: "#cecece", textAlign: "center"}}>
-                    <FormControl> 
-                        <RadioGroup
-                            row
-                            aria-labelledby="demo-row-radio-buttons-group-label"
-                            name="row-radio-buttons-group"
-                            onChange={(e) => handleObjData(e, 'budget')}
-                        >
-                            <FormControlLabel value="1" control={<Radio />} label="BUDGETED" />
-                            <FormControlLabel value="2" control={<Radio />} label="NOT BUDGETED" />
-                            
-                        </RadioGroup>
+                    <Box
+                        sx={{
+                            mb: 2,
+                            backgroundColor: "#cecece",
+                            textAlign: "center",
+                        }}
+                    >
+                        <FormControl>
+                            <RadioGroup
+                                row
+                                aria-labelledby="demo-row-radio-buttons-group-label"
+                                name="row-radio-buttons-group"
+                                onChange={(e) => handleObjData(e, "budget")}
+                            >
+                                <FormControlLabel
+                                    value="1"
+                                    control={<Radio />}
+                                    label="BUDGETED"
+                                />
+                                <FormControlLabel
+                                    value="2"
+                                    control={<Radio />}
+                                    label="NOT BUDGETED"
+                                />
+                            </RadioGroup>
                         </FormControl>
                     </Box>
 
                     {/* Approval Setup */}
-                    <Grid
-                        container
-                        spacing={2}
-                        sx={{ py: 2}}
-                    >
+                    <Grid container spacing={2} sx={{ py: 2 }}>
                         <Grid item md={12}>
                             <Button
                                 id="addBtn"
@@ -1346,7 +1698,7 @@ const PafForm = ({logged}) => {
                             </Button>
                             APPROVAL SETUP
                         </Grid>
-                        <Grid item md={6} xs={12}>
+                        <Grid item md={10} xs={12}>
                             <TableContainer sx={{ maxHeight: 600 }}>
                                 <Table
                                     stickyHeader
@@ -1358,14 +1710,18 @@ const PafForm = ({logged}) => {
                                             <TableCell>S/N</TableCell>
                                             <TableCell>Title</TableCell>
                                             <TableCell>Name</TableCell>
-                                            <TableCell></TableCell>
+                                            <TableCell>-</TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
                                         <TableRow>
                                             <TableCell>1</TableCell>
                                             <TableCell>Prepared By</TableCell>
-                                            <TableCell>{preparedBy ? preparedBy.name : ''}</TableCell>
+                                            <TableCell>
+                                                {preparedBy
+                                                    ? preparedBy.name
+                                                    : ""}
+                                            </TableCell>
                                         </TableRow>
                                         {approvalRows.map((row, index) => {
                                             return (
@@ -1385,7 +1741,7 @@ const PafForm = ({logged}) => {
                                                         <TextField
                                                             select
                                                             size="small"
-                                                            label="Approval Type" 
+                                                            label="Approval Type"
                                                             value={
                                                                 row.approval_type
                                                             }
@@ -1483,18 +1839,24 @@ const PafForm = ({logged}) => {
                                 </Table>
                             </TableContainer>
                         </Grid>
-                    </Grid> 
+                    </Grid>
 
                     <Grid container spacing={2} sx={{ py: 2 }}>
                         <Grid item md={12}>
-                            <Button
+                        <LoadingButton
                                 id="addBtn"
                                 variant="contained"
                                 color="secondary"
+                                disabled={fieldState}
                                 onClick={(e) => handleSubmitForm(e)}
+                                loading={loading}
                             >
                                 SUBMIT FORM
-                            </Button>
+                                </LoadingButton>
+                        </Grid>
+                        <Grid item md={12}>
+                            <small>Once form has been submitted, it cannot be Edited.</small> <br/>
+                            <small>Be sure to check the <b>approvals</b> before submitting.</small>
                         </Grid>
                     </Grid>
                 </Box>

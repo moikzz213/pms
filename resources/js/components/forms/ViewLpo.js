@@ -7,23 +7,25 @@ import FormGroup from "@mui/material/FormGroup";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Checkbox from "@mui/material/Checkbox";
 
-import API from "../../services/api.js";  
+import API from "../../services/api.js";
 import Snackbar from "@mui/material/Snackbar";
 import MuiAlert from "@mui/material/Alert";
 
 const Alert = React.forwardRef(function Alert(props, ref) {
     return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
-function approvalLabelled(label){
-    if(label == 'prepared_by'){
+function approvalLabelled(label) {
+    if (label == "prepared_by") {
         return "Prepared By";
-    }else if(label == 'reviewed_by'){
-       return "Reviewed By";
-    }else if(label == 'verified_by'){
+    }else if (label == "requested_by") {
+        return "Requested By";
+    } else if (label == "reviewed_by") {
+        return "Reviewed By";
+    } else if (label == "verified_by") {
         return "Verified By";
-    }else if(label == 'approved_by'){ 
+    } else if (label == "approved_by") {
         return "Approved By";
-    } 
+    }
 }
 const ViewLpo = ({ id, logged }) => {
     const [logo, setLogo] = useState("");
@@ -36,63 +38,107 @@ const ViewLpo = ({ id, logged }) => {
     const handleClose = (event, reason) => {
         if (reason === "clickaway") {
             return;
-        } 
+        }
         setOpen(false);
     };
-    
+    const [active, setActive] = useState(false);
     const [approvals, setApprovals] = useState([]);
-    const [items, setItems] = useState({});  
+    const [items, setItems] = useState({});
     useEffect(() => {
         let fetchApprovals = [];
         setApprovals(fetchApprovals);
 
         API.get("/v/local-purchase-order/fetch/" + id).then((response) => {
             let fetchItems = response.data.item;
-            console.log(fetchItems);
+
+            if(logged.role !== 'admin' && fetchItems.status == 'closed'){
+                setActive(false);
+            }else if( fetchItems.status == 'cancelled'){
+                setActive(true);
+            }else if(logged.role == 'admin'){
+                setActive(true);
+            }
+          
             setItems(fetchItems);
             let img = "";
-            if( fetchItems.company && (fetchItems.company).toLowerCase().includes("aboud group")){
+            if (
+                fetchItems.company &&
+                fetchItems.company.toLowerCase().includes("aboud group")
+            ) {
                 img = "/logo/gag.png";
-            }else if( fetchItems.company && (fetchItems.company).toLowerCase().includes("gallega")){
+            } else if (
+                fetchItems.company &&
+                fetchItems.company.toLowerCase().includes("gallega")
+            ) {
                 img = "/logo/gallega.png";
-            }else if( fetchItems.company && (fetchItems.company).toLowerCase().includes("platforms")){
+            } else if (
+                fetchItems.company &&
+                fetchItems.company.toLowerCase().includes("platforms")
+            ) {
                 img = "/logo/buygro.png";
-            }else if( fetchItems.company && (fetchItems.company).toLowerCase().includes("catering")){
+            } else if (
+                fetchItems.company &&
+                fetchItems.company.toLowerCase().includes("catering")
+            ) {
                 img = "/logo/catering.png";
-            }else if( fetchItems.company && (fetchItems.company).toLowerCase().includes("crystal")){
+            } else if (
+                fetchItems.company &&
+                fetchItems.company.toLowerCase().includes("crystal")
+            ) {
                 img = "/logo/crystalbrook.png";
-            }else if( fetchItems.company && (fetchItems.company).toLowerCase().includes("news")){
+            } else if (
+                fetchItems.company &&
+                fetchItems.company.toLowerCase().includes("news")
+            ) {
                 img = "/logo/orient.png";
-            }else if( fetchItems.company && (fetchItems.company).toLowerCase().includes("cars")){
+            } else if (
+                fetchItems.company &&
+                fetchItems.company.toLowerCase().includes("cars")
+            ) {
                 img = "/logo/gac.png";
-            }else if( fetchItems.company && (fetchItems.company).toLowerCase().includes("gaelan")){
+            } else if (
+                fetchItems.company &&
+                fetchItems.company.toLowerCase().includes("gaelan")
+            ) {
                 img = "/logo/gaelan.png";
-            }else if( fetchItems.company && (fetchItems.company).toLowerCase().includes("point")){
+            } else if (
+                fetchItems.company &&
+                fetchItems.company.toLowerCase().includes("point")
+            ) {
                 img = "/logo/livepoint.png";
-            }else if( fetchItems.company && (fetchItems.company).toLowerCase().includes("training")){
+            } else if (
+                fetchItems.company &&
+                fetchItems.company.toLowerCase().includes("training")
+            ) {
                 img = "/logo/otc.png";
-            }else if( fetchItems.company && (fetchItems.company).toLowerCase().includes("supermarket")){
+            } else if (
+                fetchItems.company &&
+                fetchItems.company.toLowerCase().includes("supermarket")
+            ) {
                 img = "/logo/supermarket.png";
-            }else if( fetchItems.company && (fetchItems.company).toLowerCase().includes("olive")){
+            } else if (
+                fetchItems.company &&
+                fetchItems.company.toLowerCase().includes("olive")
+            ) {
                 img = "/logo/olive.png";
-            }else{
+            } else {
                 img = "/logo/gag.png";
             }
-            
+
             setLogo(img);
 
             let approvals = [];
-            fetchItems.lpo_approvals.map((o,i) =>{
-                approvals[i] ={
+            fetchItems.lpo_approvals.map((o, i) => {
+                approvals[i] = {
                     id: o.user_id,
                     name: o.users.profile.name,
                     designation: o.users.profile.designation,
                     type: approvalLabelled(o.approval_type),
-                }
+                };
             });
             setApprovals(approvals);
         });
-    }, []);
+    }, [logged]);
 
     const changeStatus = (e, type) => {
         e.preventDefault();
@@ -102,25 +148,25 @@ const ViewLpo = ({ id, logged }) => {
             title: "info",
             message: "Please wait...",
         };
-        setSeverity(newMessage);  
-        let data = {id : id, type: type, user_id: logged.id};
-        API.post('/v/local-purchase-order/update-status', data)
-        .then((response) => {
-            console.log(response);
-            setTimeout(() => {
-                newMessage = {
-                    title: "success",
-                    message:  response.data.message,
-                };
-                setLoading(false);
-                setSeverity(newMessage);
-            }, 1500);
-        });
-    }
+        setSeverity(newMessage);
+        let data = { id: id, type: type, user_id: logged.id };
+        API.post("/v/local-purchase-order/update-status", data).then(
+            (response) => {
+                setTimeout(() => {
+                    newMessage = {
+                        title: "success",
+                        message: response.data.message,
+                    };
+                    setLoading(false);
+                    setSeverity(newMessage);
+                }, 1500);
+            }
+        );
+    };
     return (
         <Paper sx={{ px: 3, py: 3 }}>
             <Box sx={{ flexGrow: 1 }}>
-            <Snackbar
+                <Snackbar
                     open={open}
                     autoHideDuration={4000}
                     onClose={handleClose}
@@ -156,57 +202,94 @@ const ViewLpo = ({ id, logged }) => {
                                 LOCAL PURCHASE ORDER (LPO)
                             </h2>
                         </Grid>
+
                         <Grid
                             item
                             md={3}
                             className="btn-cancel"
                             sx={{ textAlign: "right" }}
                         >
-                            <LoadingButton
-                                    className="btn-info"
-                                    color="red"
-                                    size="small"
-                                    variant="contained"
-                                    onClick={(e) => changeStatus(e, "cancelled")}
-                                    loading={loading}
-                                    sx={{ mx:2, margin: "0 0 0 auto", mb:"10px", display: "block" }}
-                                >
-                                    Cancel
-                                </LoadingButton>
-                             <LoadingButton
-                                    className="btn-info"
-                                    color="orange"
-                                    size="small"
-                                    variant="contained"
-                                    onClick={(e) => changeStatus(e, "onhold")}
-                                    loading={loading}
-                                    sx={{ mx:2, margin: "0 0 0 auto", mb:"10px", display: "block" }}
-                                >
-                                    onHold
-                                </LoadingButton>
-                                <LoadingButton
-                                    className="btn-info"
-                                    color="secondary"
-                                    size="small"
-                                    variant="contained"
-                                    hide="true"
-                                    onClick={(e) => changeStatus(e, "onprocess")}
-                                    loading={loading}
-                                    sx={{ mx:2, margin: "0 0 0 auto", mb:"10px", display: "block" }}
-                                >
-                                    On Process
-                                </LoadingButton>
-                                <LoadingButton
-                                    className="btn-info"
-                                    color="green"
-                                    size="small"
-                                    variant="contained"
-                                    onClick={(e) => changeStatus(e, "closed")}
-                                    loading={loading}
-                                >
-                                    Closed
-                                </LoadingButton>
+                            <>
+                            { active ?  
+                                    <>
+                                  
+                                        <LoadingButton
+                                            className="btn-info"
+                                            color="red"
+                                            size="small"
+                                            variant="contained"
+                                            onClick={(e) =>
+                                                changeStatus(e, "cancelled")
+                                            }
+                                            loading={loading}
+                                            sx={{
+                                                mx: 2,
+                                                margin: "0 0 0 auto",
+                                                mb: "10px",
+                                                display: "block",
+                                            }}
+                                        >
+                                            Cancel
+                                        </LoadingButton>
+                                        
+                                        <LoadingButton
+                                            className="btn-info"
+                                            color="orange"
+                                            size="small"
+                                            variant="contained"
+                                            onClick={(e) =>
+                                                changeStatus(e, "onhold")
+                                            }
+                                            loading={loading}
+                                            sx={{
+                                                mx: 2,
+                                                margin: "0 0 0 auto",
+                                                mb: "10px",
+                                                display: "block",
+                                            }}
+                                        >
+                                            onHold
+                                        </LoadingButton> 
+                                       
+                                        <LoadingButton
+                                            className="btn-info"
+                                            color="secondary"
+                                            size="small"
+                                            variant="contained"
+                                            hide="true"
+                                            onClick={(e) =>
+                                                changeStatus(e, "onprocess")
+                                            }
+                                            loading={loading}
+                                            sx={{
+                                                mx: 2,
+                                                margin: "0 0 0 auto",
+                                                mb: "10px",
+                                                display: "block",
+                                            }}
+                                        >
+                                            On Process
+                                        </LoadingButton>
+                                        
+                                        <LoadingButton
+                                            className="btn-info"
+                                            color="green"
+                                            size="small"
+                                            variant="contained"
+                                            onClick={(e) =>
+                                                changeStatus(e, "closed")
+                                            }
+                                            loading={loading}
+                                        >
+                                            Closed
+                                        </LoadingButton>
+                                    </>
+                                :
+                                 <div>Status: {items.status ? items.status : '' }</div> 
+                                        }
+                                </>
                         </Grid>
+
                         <Grid item md={6}>
                             <table className="normal-table" cellSpacing="0">
                                 <tbody>
@@ -244,7 +327,7 @@ const ViewLpo = ({ id, logged }) => {
                                     </tr>
                                     <tr>
                                         <th>STORE NAME</th>
-                                        <th>{items.location}</th>
+                                        <th>{items.location ? items.location.title : ""}</th>
                                     </tr>
                                     <tr>
                                         <th>EMAIL</th>
@@ -266,7 +349,8 @@ const ViewLpo = ({ id, logged }) => {
                                     </tr>
                                     <tr>
                                         <th>LPO DATE:</th>
-                                        <th>{new Date(
+                                        <th>
+                                            {new Date(
                                                 items.created_at
                                             ).toLocaleDateString()}
                                         </th>
@@ -292,7 +376,11 @@ const ViewLpo = ({ id, logged }) => {
                                     </tr>
                                     <tr>
                                         <th>TOTAL AMOUNT</th>
-                                        <th style={{textAlign:"right"}}>{  items.net_amount ? (items.net_amount).toFixed(2) : ""}</th>
+                                        <th style={{ textAlign: "right" }}>
+                                            {items.net_amount
+                                                ? items.net_amount.toFixed(2)
+                                                : "0.00"}
+                                        </th>
                                     </tr>
                                 </tbody>
                             </table>
@@ -300,7 +388,7 @@ const ViewLpo = ({ id, logged }) => {
                     </Grid>
                     {/* Table - Items */}
                     <Grid container spacing={2} sx={{ py: 3 }}>
-                        <Grid item md={12} sm={12} xs={12}>
+                        <Grid item md={12} sm={12} xs={12} sx={{pt:"0 !important"}}>
                             <table className="normal-table" cellSpacing="0">
                                 <thead>
                                     <tr>
@@ -364,10 +452,12 @@ const ViewLpo = ({ id, logged }) => {
                                                         {row.unit_price}
                                                     </td>
                                                     <td className="text-right">
-                                                        {row.unit_price ? (
-                                                            row.qty *
-                                                            row.unit_price
-                                                        ).toFixed(2) : ''}
+                                                        {row.unit_price
+                                                            ? (
+                                                                  row.qty *
+                                                                  row.unit_price
+                                                              ).toFixed(2)
+                                                            : ""}
                                                     </td>
                                                 </tr>
                                             );
@@ -378,12 +468,15 @@ const ViewLpo = ({ id, logged }) => {
                     </Grid>
 
                     {/* Remarks - Net Amount */}
-                    <Grid container spacing={2} sx={{ pb: 3 }}>
-                        <Grid item md={12} xs={12}>
+                    <Grid container spacing={2} sx={{ pb: 1 }}>
+                        <Grid item md={12} xs={12} sx={{pt:"0 !important"}}>
                             <table className="normal-table" cellSpacing="0">
                                 <tbody>
                                     <tr>
-                                        <td width="68.2%" style={{verticalAlign:"top"}}>
+                                        <td
+                                            width="68.2%"
+                                            style={{ verticalAlign: "top" }}
+                                        >
                                             {items.remarks_general}
                                         </td>
                                         <td style={{ padding: 0, margin: 0 }}>
@@ -400,7 +493,11 @@ const ViewLpo = ({ id, logged }) => {
                                                             className="text-right"
                                                             width="150"
                                                         >
-                                                            { items.total_amount ? (items.total_amount).toFixed(2) : ''}
+                                                            {items.total_amount
+                                                                ? items.total_amount.toFixed(
+                                                                      2
+                                                                  )
+                                                                : "0.00"}
                                                         </td>
                                                     </tr>
                                                     {items.is_license ? (
@@ -442,9 +539,7 @@ const ViewLpo = ({ id, logged }) => {
                                                                 </td>
                                                             </tr>
                                                         </>
-                                                    ) : (
-                                                        null
-                                                    )}
+                                                    ) : null}
                                                     <tr>
                                                         <td
                                                             className="text-right"
@@ -456,7 +551,9 @@ const ViewLpo = ({ id, logged }) => {
                                                             className="text-right"
                                                             width="150"
                                                         >
-                                                            {items.discount}
+                                                            {items.discount ? items.discount.toFixed(
+                                                                      2
+                                                                  ) : "0.00"}
                                                         </td>
                                                     </tr>
                                                     <tr>
@@ -470,7 +567,9 @@ const ViewLpo = ({ id, logged }) => {
                                                             className="text-right"
                                                             width="150"
                                                         >
-                                                            {items.vat}
+                                                            {items.vat ? items.vat.toFixed(
+                                                                      2
+                                                                  ) : "0.00"}
                                                         </td>
                                                     </tr>
                                                     <tr>
@@ -484,7 +583,9 @@ const ViewLpo = ({ id, logged }) => {
                                                             className="text-right"
                                                             width="150"
                                                         >
-                                                            {items.net_amount}
+                                                            {items.net_amount ? items.net_amount.toFixed(
+                                                                      2
+                                                                  ) : "0.00"}
                                                         </td>
                                                     </tr>
                                                 </tbody>
@@ -497,7 +598,7 @@ const ViewLpo = ({ id, logged }) => {
                     </Grid>
 
                     {/* Payment Terms */}
-                    <Grid container spacing={2} sx={{ pb: 3 }}>
+                    <Grid container spacing={2} sx={{ pb: 1 }}>
                         <Grid
                             item
                             xs={4}
@@ -517,19 +618,58 @@ const ViewLpo = ({ id, logged }) => {
                                 <h4>PAYMENT TERMS</h4>
                                 <FormGroup>
                                     <FormControlLabel
-                                        control={<Checkbox checked={items.payment_terms == 1 ? true : false} size="small"/>}
+                                        control={
+                                            <Checkbox
+                                                checked={
+                                                    items.payment_terms == 1
+                                                        ? true
+                                                        : false
+                                                }
+                                                size="small"
+                                            />
+                                        }
                                         label="Credit"
-                                        disabled={items.payment_terms == 1 ? false : true}
+                                        disabled={
+                                            items.payment_terms == 1
+                                                ? false
+                                                : true
+                                        }
                                     />
                                     <FormControlLabel
-                                        control={<Checkbox checked={items.payment_terms == 2 ? true : false} size="small"/>}
+                                        control={
+                                            <Checkbox
+                                                checked={
+                                                    items.payment_terms == 2
+                                                        ? true
+                                                        : false
+                                                }
+                                                size="small"
+                                            />
+                                        }
                                         label="Payment upon delivery"
-                                        disabled={items.payment_terms == 2 ? false : true}
+                                        disabled={
+                                            items.payment_terms == 2
+                                                ? false
+                                                : true
+                                        }
                                     />
                                     <FormControlLabel
-                                        control={<Checkbox checked={items.payment_terms == 3 ? true : false} size="small"/>}
+                                        control={
+                                            <Checkbox
+                                                checked={
+                                                    items.payment_terms == 3
+                                                        ? true
+                                                        : false
+                                                }
+                                                size="small"
+                                            />
+                                        }
                                         label="Advance"
-                                        disabled={items.payment_terms == 3 ? false : true}
+                                        disabled={
+                                            items.payment_terms == 3
+                                                ? false
+                                                : true
+                                        }
                                     />
                                 </FormGroup>
                             </Box>
@@ -553,19 +693,58 @@ const ViewLpo = ({ id, logged }) => {
                                 <h4>PAYMENT MODE</h4>
                                 <FormGroup>
                                     <FormControlLabel
-                                        control={<Checkbox checked={items.payment_mode == 1 ? true : false} size="small"/>}
+                                        control={
+                                            <Checkbox
+                                                checked={
+                                                    items.payment_mode == 1
+                                                        ? true
+                                                        : false
+                                                }
+                                                size="small"
+                                            />
+                                        }
                                         label="Cheque/Bank Transfers"
-                                        disabled={items.payment_mode == 1 ? false : true}
+                                        disabled={
+                                            items.payment_mode == 1
+                                                ? false
+                                                : true
+                                        }
                                     />
                                     <FormControlLabel
-                                        control={<Checkbox   checked={items.payment_mode == 2 ? true : false} size="small"/>}
+                                        control={
+                                            <Checkbox
+                                                checked={
+                                                    items.payment_mode == 2
+                                                        ? true
+                                                        : false
+                                                }
+                                                size="small"
+                                            />
+                                        }
                                         label="Credit Card"
-                                        disabled={items.payment_mode == 2 ? false : true}
+                                        disabled={
+                                            items.payment_mode == 2
+                                                ? false
+                                                : true
+                                        }
                                     />
                                     <FormControlLabel
-                                        control={<Checkbox checked={items.payment_mode == 3 ? true : false} size="small"/>}
+                                        control={
+                                            <Checkbox
+                                                checked={
+                                                    items.payment_mode == 3
+                                                        ? true
+                                                        : false
+                                                }
+                                                size="small"
+                                            />
+                                        }
                                         label="Cash"
-                                        disabled={items.payment_mode == 3 ? false : true}
+                                        disabled={
+                                            items.payment_mode == 3
+                                                ? false
+                                                : true
+                                        }
                                     />
                                 </FormGroup>
                             </Box>
@@ -588,7 +767,7 @@ const ViewLpo = ({ id, logged }) => {
                     </Grid>
 
                     {/* Billing / Shipping Details */}
-                    <Grid container spacing={2} sx={{ pb: 3 }}>
+                    <Grid container spacing={2} sx={{ pb: 1 }}>
                         <Grid item md={6}>
                             <table className="normal-table" cellSpacing="0">
                                 <tbody>
@@ -597,29 +776,47 @@ const ViewLpo = ({ id, logged }) => {
                                     </tr>
                                     <tr>
                                         <td>COMPANY</td>
-                                        <td>
-                                        {items.company}
-                                        </td>
+                                        <td>{items.company}</td>
                                     </tr>
                                     <tr>
                                         <td>TAX NO.</td>
-                                        <td>{items.billing ? items.billing.tax_no : ""}</td>
+                                        <td>
+                                            {items.billing
+                                                ? items.billing.tax_no
+                                                : ""}
+                                        </td>
                                     </tr>
                                     <tr>
                                         <td>CONTACT PERSON:</td>
-                                        <td>{items.billing ? items.billing.contact_person : ""}</td>
+                                        <td>
+                                            {items.billing
+                                                ? items.billing.contact_person
+                                                : ""}
+                                        </td>
                                     </tr>
                                     <tr>
                                         <td>ADDRESS</td>
-                                        <td>{items.billing ? items.billing.address : ""}</td>
+                                        <td>
+                                            {items.billing
+                                                ? items.billing.address
+                                                : ""}
+                                        </td>
                                     </tr>
                                     <tr>
                                         <td>CONTACT NO.</td>
-                                        <td>{items.billing ? items.billing.contact_no : ""}</td>
+                                        <td>
+                                            {items.billing
+                                                ? items.billing.contact_no
+                                                : ""}
+                                        </td>
                                     </tr>
                                     <tr>
                                         <td>EMAIL</td>
-                                        <td>{items.billing ? items.billing.email : ""}</td>
+                                        <td>
+                                            {items.billing
+                                                ? items.billing.email
+                                                : ""}
+                                        </td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -636,23 +833,44 @@ const ViewLpo = ({ id, logged }) => {
                                     </tr>
                                     <tr>
                                         <td>TAX NO.</td>
-                                        <td>{items.billing ? items.billing.tax_no : ""}</td>
+                                        <td>
+                                            {items.billing
+                                                ? items.billing.tax_no
+                                                : ""}
+                                        </td>
                                     </tr>
                                     <tr>
                                         <td>CONTACT PERSON:</td>
-                                        <td>{items.contact_person ? items.contact_person.profile.name : ""}</td>
+                                        <td>
+                                            {items.contact_person
+                                                ? items.contact_person.profile
+                                                      .name
+                                                : ""}
+                                        </td>
                                     </tr>
                                     <tr>
                                         <td>ADDRESS</td>
-                                        <td>{items.billing ? items.billing.address : ""}</td>
+                                        <td>
+                                            {items.billing
+                                                ? items.billing.address
+                                                : ""}
+                                        </td>
                                     </tr>
                                     <tr>
                                         <td>CONTACT NO.</td>
-                                        <td>{items.billing ? items.billing.contact_no : ""}</td>
+                                        <td>
+                                            {items.billing
+                                                ? items.billing.contact_no
+                                                : ""}
+                                        </td>
                                     </tr>
                                     <tr>
                                         <td>EMAIL</td>
-                                        <td>{items.contact_person ? items.contact_person.email : ""}</td>
+                                        <td>
+                                            {items.contact_person
+                                                ? items.contact_person.email
+                                                : ""}
+                                        </td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -660,13 +878,15 @@ const ViewLpo = ({ id, logged }) => {
                     </Grid>
 
                     {/* Remarks */}
-                    <Grid container spacing={2} sx={{ pb: 3 }}>
+                    <Grid container spacing={2} sx={{ pb: 1 }}>
                         <Grid item xs={12} md={12}>
                             <table className="normal-table" cellSpacing="0">
                                 <tbody>
                                     <tr>
                                         <td width="15%">REMARKS: </td>
-                                        <td width="85%">{items.remarks_optional}</td>
+                                        <td width="85%">
+                                            {items.remarks_optional}
+                                        </td>
                                     </tr>
                                     <tr>
                                         <td width="15%">FINANCE REMARKS: </td>
@@ -674,8 +894,10 @@ const ViewLpo = ({ id, logged }) => {
                                     </tr>
                                     <tr>
                                         <td width="15%">* PAYMENT TERMS: </td>
-                                        <td width="85%">{items.remarks_payment_terms}</td>
-                                    </tr> 
+                                        <td width="85%">
+                                            {items.remarks_payment_terms}
+                                        </td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </Grid>
@@ -686,7 +908,7 @@ const ViewLpo = ({ id, logged }) => {
                         className="approval-main"
                         container
                         spacing={2}
-                        sx={{ py: 2 }}
+                        sx={{ py: 1 }}
                     >
                         {approvals.map((row, index) => {
                             return (
@@ -701,12 +923,11 @@ const ViewLpo = ({ id, logged }) => {
                                 >
                                     <Box
                                         sx={{ border: 1, minHeight: 80 }}
-                                    ></Box>
-                                    <br />
+                                    ></Box> 
                                     <small>{row.type}</small> <br />
-                                    <small>{row.name}</small>
+                                     {row.name} 
                                     <br />
-                                    <small>{row.designation}</small>
+                                     {row.designation} 
                                 </Grid>
                             );
                         })}

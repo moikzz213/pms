@@ -16,7 +16,7 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import Checkbox from "@mui/material/Checkbox";
 import IconButton from "@mui/material/IconButton";
 import DeleteIcon from "@mui/icons-material/Delete";
-
+import Autocomplete from "@mui/material/Autocomplete";
 import Radio from "@mui/material/Radio";
 import RadioGroup from "@mui/material/RadioGroup";
 import LoadingButton from "@mui/lab/LoadingButton";
@@ -82,7 +82,7 @@ function mapFilterData(array, selected) {
     return supp[0];
 }
 
-const LpoForm = ({logged}) => {
+const LpoForm = ({ logged }) => {
     const navigate = useNavigate();
     const defaultVat = 0.05; // 5% VAT
     const vatLabel = 5;
@@ -96,7 +96,7 @@ const LpoForm = ({logged}) => {
 
     const [loading, setLoading] = useState(false);
     const [preparedBy, setPreparedBy] = useState({});
-   
+
     const [dateValue, setDateValue] = useState(new Date().toLocaleDateString());
     const [prfDetails, setPrfDetails] = useState(funcSetPRF());
     const [supplierDetails, setSupplierDetails] = useState(funcSetSupplier());
@@ -105,23 +105,30 @@ const LpoForm = ({logged}) => {
     const [contactPersonDefault, setContactPersonDefault] = useState(
         funcSetContactPerson()
     );
-
-    const [department, setDepartment] = useState([{
-        id: null,
-        title: ""       
-    }]); 
+    const [val, setVal] = useState({});
+    const [department, setDepartment] = useState([
+        {
+            id: null,
+            title: "",
+        },
+    ]);
     const [contactPersons, setContactPersons] = useState([]);
-    const [companies, setCompanies] = useState([]); 
+    const [companies, setCompanies] = useState([]);
     const [shippingCompanies, setShippingCompanies] = useState([]);
-    const [supplierList, setSuppliers] = useState([]); 
-    const [employees, setEmployees] = useState([]); 
-    const [prfList, setPrfList] = useState([]); 
-    const [categoryList, setCategories] = useState([]); 
-    const [approvalLabelled, setApprovalLabelled] = useState([ 
+    const [supplierList, setSuppliers] = useState([]);
+    const [employees, setEmployees] = useState([]);
+    const [prfList, setPrfList] = useState([]);
+    const [categoryList, setCategories] = useState([]);
+    const [approvalLabelled, setApprovalLabelled] = useState([
+        {
+            id: "requested_by",
+            title: "Requested By",
+        },
         {
             id: "reviewed_by",
             title: "Reviewed By",
         },
+        
         {
             id: "verified_by",
             title: "Verified By",
@@ -145,26 +152,26 @@ const LpoForm = ({logged}) => {
         },
     ]);
 
-    function fetchDepartments(){
-        API
-        .get("/v/departments/fetch-non-paginate")
-        .then((response) => {
-            let fetchItems = response.data.item;
-            fetchItems = Object.assign([], fetchItems); 
-            
-            setDepartment(fetchItems);  
+    function fetchDepartments() {
+        API.get("/v/departments/fetch-non-paginate")
+            .then((response) => {
+                let fetchItems = response.data.item;
+                fetchItems = Object.assign([], fetchItems);
 
-        })
-        .catch((error) => {
-            console.log(error);
-        });
+                setDepartment(fetchItems);
+            })
+            .catch((error) => {
+                console.log(error);
+            });
     }
 
-    const [approvalRows, setApprovalRows] = useState([{
-        row: 0,
-        approval_type: "",
-        user_id : ""
-    }]);
+    const [approvalRows, setApprovalRows] = useState([
+        {
+            row: 0,
+            approval_type: "",
+            user_id: "",
+        },
+    ]);
 
     useEffect(() => {
         // Fetch Suppliers
@@ -194,6 +201,7 @@ const LpoForm = ({logged}) => {
             fetchItems.map((o, i) => {
                 newData[i] = {
                     id: o.id,
+                    user_id: o.id,
                     contact_person: o.profile ? o.profile.name : "",
                     email: o.email,
                     name: o.profile ? o.profile.name : "",
@@ -208,11 +216,10 @@ const LpoForm = ({logged}) => {
             let fetchItems = response.data.item;
             fetchItems = Object.assign([], fetchItems);
 
-            setCategories(fetchItems); 
+            setCategories(fetchItems);
         });
 
         fetchDepartments();
-        
     }, []);
 
     useEffect(() => {
@@ -236,14 +243,13 @@ const LpoForm = ({logged}) => {
             });
 
             setPrfList(newData);
-        }); 
-       
+        });
     }, []);
 
     useEffect(() => {
-        API.get("/v/profile/fetch/" + logged.id).then((response) => {  
+        API.get("/v/profile/fetch/" + logged.id).then((response) => {
             setPreparedBy(response.data.item);
-         });
+        });
     }, [logged]);
 
     const [payterms, setPayterms] = React.useState("");
@@ -264,33 +270,44 @@ const LpoForm = ({logged}) => {
     const [enableLicense, setEnableLicense] = useState(false);
     // Data to be submit
     const [objData, setObjData] = useState([{}]);
-    const [validate, setValidate] = useState([{
-        supplier: "",
-        prf: "",
-        payment_term: "",
-        payment_mode: "",
-        contact_person: "",
-        billing: "",
-        net_amount: "",
-        department: "",
-    }]);
+    const [validate, setValidate] = useState([
+        {
+            supplier: "",
+            prf: "",
+            payment_term: "",
+            payment_mode: "",
+            contact_person: "",
+            billing: "",
+            net_amount: "",
+            department: "",
+        },
+    ]);
 
-    const handleSupplier = (event) => {
-        let selected = event.target.value;
+    const handleSupplier = (event, val) => {
+        let selected = val.id;
         let checkedData = false;
         if (!selected) {
             setSupplierDetails(funcSetSupplier());
         } else {
-            let supp = mapFilterData(supplierList, selected); 
+            let supp = mapFilterData(supplierList, selected);
             checkedData = true;
-            setSupplierDetails(supp); 
-        } 
+            setSupplierDetails(supp);
+        }
         setSupplier(selected);
 
-        let validatedData = validate.map((o,i) => {
+        let validatedData = validate.map((o, i) => {
             o.supplier = checkedData;
             console.log(o);
-            if(o.supplier && o.prf && o.payment_term && o.payment_mode && o.contact_person && o.billing && o.net_amount && o.department){
+            if (
+                o.supplier &&
+                o.prf &&
+                o.payment_term &&
+                o.payment_mode &&
+                o.contact_person &&
+                o.billing &&
+                o.net_amount &&
+                o.department
+            ) {
                 setFieldState(false);
             }
             return o;
@@ -300,10 +317,10 @@ const LpoForm = ({logged}) => {
     };
 
     const handleCompany = (event, direct) => {
-        let selected = '';
-        if(direct){
+        let selected = "";
+        if (direct) {
             selected = event;
-        }else{
+        } else {
             selected = event.target.value;
         }
 
@@ -317,10 +334,19 @@ const LpoForm = ({logged}) => {
         }
         setCompany(selected);
 
-        let validatedData = validate.map((o,i) => {
+        let validatedData = validate.map((o, i) => {
             o.billing = checkedData;
-            
-            if(o.supplier && o.prf && o.payment_term && o.payment_mode && o.contact_person && o.billing && o.net_amount && o.department){
+
+            if (
+                o.supplier &&
+                o.prf &&
+                o.payment_term &&
+                o.payment_mode &&
+                o.contact_person &&
+                o.billing &&
+                o.net_amount &&
+                o.department
+            ) {
                 setFieldState(false);
             }
             return o;
@@ -330,26 +356,30 @@ const LpoForm = ({logged}) => {
     };
 
     const handleShippingCompany = (event, direct) => {
-        let selected = '';
-        if(direct){
+        let selected = "";
+        if (direct) {
             selected = event;
-        }else{
+        } else {
             selected = event.target.value;
         }
 
         if (!selected) {
             setShippingCompany(funcSetCompany());
-        } else {  
-            
-             let  supp = mapFilterData(shippingCompanies, selected);
-            
+        } else {
+            let supp = mapFilterData(shippingCompanies, selected);
             setShippingCompany(supp);
         }
         setShipping(selected);
     };
 
-    const handleContactPerson = (event) => {
-        let selected = event.target.value;
+    const handleContactPerson = (e, val) => {
+        let selected = "";
+        if (val) {
+            selected = val.id;
+        } else {
+            selected = e.target.value;
+        }
+
         let checkedData = false;
         if (!selected) {
             setContactPersonDefault(funcSetContactPerson());
@@ -360,10 +390,19 @@ const LpoForm = ({logged}) => {
         }
         setPersons(selected);
 
-        let validatedData = validate.map((o,i) => {
+        let validatedData = validate.map((o, i) => {
             o.contact_person = checkedData;
-            
-            if(o.supplier && o.prf && o.payment_term && o.payment_mode && o.contact_person && o.billing && o.net_amount && o.department){
+
+            if (
+                o.supplier &&
+                o.prf &&
+                o.payment_term &&
+                o.payment_mode &&
+                o.contact_person &&
+                o.billing &&
+                o.net_amount &&
+                o.department
+            ) {
                 setFieldState(false);
             }
             return o;
@@ -382,14 +421,23 @@ const LpoForm = ({logged}) => {
             checkedData = true;
             console.log(supp);
             setPrfDetails(supp);
-            handleShippingCompany(supp.company_id, 'direct');
-            handleCompany(supp.company_id, 'direct');
+            handleShippingCompany(supp.company_id, "direct");
+            handleCompany(supp.company_id, "direct");
         }
         setPrfs(selected);
-        let validatedData = validate.map((o,i) => {
+        let validatedData = validate.map((o, i) => {
             o.prf = checkedData;
-            
-            if(o.supplier && o.prf && o.payment_term && o.payment_mode && o.contact_person && o.billing && o.net_amount && o.department){
+
+            if (
+                o.supplier &&
+                o.prf &&
+                o.payment_term &&
+                o.payment_mode &&
+                o.contact_person &&
+                o.billing &&
+                o.net_amount &&
+                o.department
+            ) {
                 setFieldState(false);
             }
             return o;
@@ -402,18 +450,20 @@ const LpoForm = ({logged}) => {
         let selected = event.target.value;
         let rowsData = Object.assign([], tableRows);
         let tempRows = rowsData.map((o, i) => {
-            if (i == index && type == 'category') {
+            if (i == index && type == "category") {
                 o.category_id = selected;
-            }else if (i == index && type == 'uom') {
+            } else if (i == index && type == "uom") {
                 o.uom = selected;
-            }if (i == index && type == 'specs') {
+            }
+            if (i == index && type == "specs") {
                 o.specification = selected;
-            }if (i == index && type == 'item') {
+            }
+            if (i == index && type == "item") {
                 o.item = selected;
             }
             return o;
         });
-        
+
         setTableRows(tempRows);
     };
 
@@ -425,25 +475,26 @@ const LpoForm = ({logged}) => {
                 o.approval_type = selected;
             }
             return o;
-        }); 
+        });
         setApprovalRows(tempRows);
     };
 
-    const handleApproveEmployee = (event, index) => {
-        let selected = event.target.value;
+    const handleApproveEmployee = (e, index) => {
+        let selected = e.target.value;
 
         let tempRows = approvalRows.map((o, i) => {
             if (i == index) {
                 o.user_id = selected;
             }
             return o;
-        }); 
+        });
+
         setApprovalRows(tempRows);
     };
 
-    const handleFreeText = (e, type) => {
+    const handleFreeText = (e, val, type) => {
         let value = e.target.value;
-
+      
         let dataAssign = Object.assign([], objData);
         let newData = dataAssign.map((o, i) => {
             if (type == "remarks_general") {
@@ -464,10 +515,10 @@ const LpoForm = ({logged}) => {
                 o.license_title_label_1 = value;
             } else if (type == "prf_extension") {
                 o.prf_extension = value;
-            }else if (type == "department") {
-                o.department_id = value;
+            } else if (type == "department") {
+                o.department_id = val ? val.id : "";
             }
-            
+
             return o;
         });
 
@@ -476,15 +527,24 @@ const LpoForm = ({logged}) => {
         let checkedData = false;
 
         if (type == "department") {
-            if(value){
+            if (val && val.id) {
                 checkedData = true;
             }
-            let validatedData = validate.map((o,i) => {
+            let validatedData = validate.map((o, i) => {
                 o.department = checkedData;
-                
-                if(o.supplier && o.prf && o.payment_term && o.payment_mode && o.contact_person && o.billing && o.net_amount && o.department){
+
+                if (
+                    o.supplier &&
+                    o.prf &&
+                    o.payment_term &&
+                    o.payment_mode &&
+                    o.contact_person &&
+                    o.billing &&
+                    o.net_amount &&
+                    o.department
+                ) {
                     setFieldState(false);
-                }else{
+                } else {
                     setFieldState(true);
                 }
                 return o;
@@ -505,14 +565,23 @@ const LpoForm = ({logged}) => {
             checkedData = true;
         }
 
-        let validatedData = validate.map((o,i) => {
+        let validatedData = validate.map((o, i) => {
             if (type == "payment_mode") {
                 o.payment_mode = checkedData;
-            }else if (type == "payment_terms") {
+            } else if (type == "payment_terms") {
                 o.payment_term = checkedData;
             }
-            
-            if(o.supplier && o.prf && o.payment_term && o.payment_mode && o.contact_person && o.billing && o.net_amount && o.department){
+
+            if (
+                o.supplier &&
+                o.prf &&
+                o.payment_term &&
+                o.payment_mode &&
+                o.contact_person &&
+                o.billing &&
+                o.net_amount &&
+                o.department
+            ) {
                 setFieldState(false);
             }
             return o;
@@ -654,7 +723,7 @@ const LpoForm = ({logged}) => {
         let totalVat = 0;
         if (type == "vat") {
             totalVat = value;
-        }else{
+        } else {
             totalVat = totalAmount * defaultVat;
         }
 
@@ -666,7 +735,7 @@ const LpoForm = ({logged}) => {
 
         if (netAmount < 0) {
             netAmount = 0;
-        }else{
+        } else {
             checkedData = true;
         }
 
@@ -684,10 +753,19 @@ const LpoForm = ({logged}) => {
 
         setObjData(amountValue);
 
-        let validatedData = validate.map((o,i) => {
+        let validatedData = validate.map((o, i) => {
             o.net_amount = checkedData;
 
-            if(o.supplier && o.prf && o.payment_term && o.payment_mode && o.contact_person && o.billing && o.net_amount && o.department){
+            if (
+                o.supplier &&
+                o.prf &&
+                o.payment_term &&
+                o.payment_mode &&
+                o.contact_person &&
+                o.billing &&
+                o.net_amount &&
+                o.department
+            ) {
                 setFieldState(false);
             }
             return o;
@@ -761,19 +839,19 @@ const LpoForm = ({logged}) => {
         newData = Object.assign({}, newData);
         let newTablerow = Object.assign([], tableRows);
         let newItems = newTablerow.map((o, i) => {
-            delete o['amount'];
-            delete o['row'];
+            delete o["amount"];
+            delete o["row"];
             return o;
-        }); 
+        });
 
         let prepend_prepared_by = {
             approval_type: "prepared_by",
-            user_id: preparedBy.user_id
-        }
+            user_id: preparedBy.user_id,
+        };
         approvalRows.unshift(prepend_prepared_by);
-        
-        let newApproval = approvalRows.map((o, i) => { 
-            delete o['row'];
+
+        let newApproval = approvalRows.map((o, i) => {
+            delete o["row"];
             return o;
         });
 
@@ -784,45 +862,45 @@ const LpoForm = ({logged}) => {
                 approvals: newApproval,
                 comp_code: prfDetails.code,
                 supplier_code: supplierDetails.code,
-                user_id: logged.id
+                user_id: logged.id,
             },
-        ]; 
-        API
-        .post("/v/local-purchase-order/new", dataSubmit)
-        .then((response) => {
-            console.log(response.data);
-            setOpen(true);
-            setTimeout(() => {
-                newMessage = {
-                    title: "success",
-                    message: response.data.message,
-                };
-                setLoading(false);
-                setSeverity(newMessage);
-            }, 500);
+        ];
+        API.post("/v/local-purchase-order/new", dataSubmit)
+            .then((response) => {
+                console.log(response.data);
+                setOpen(true);
+                setTimeout(() => {
+                    newMessage = {
+                        title: "success",
+                        message: response.data.message,
+                    };
+                    setLoading(false);
+                    setSeverity(newMessage);
+                }, 500);
 
-            setTimeout(() => {
-                // Route to Edit by id
-                navigate(
-                    "/d/procurement-team/local-purchase-orders/id/" + response.data.id
-                );
-            }, 1000);
-        })
-        .catch((error) => {
-            console.log(error);
-            newMessage = {
-                title: "error",
-                message: "Kindly refresh the page.",
-            };
-            setSeverity(newMessage);
-            setLoading(false);
-        });
+                setTimeout(() => {
+                    // Route to Edit by id
+                    navigate(
+                        "/d/procurement-team/local-purchase-orders/id/" +
+                            response.data.id
+                    );
+                }, 1000);
+            })
+            .catch((error) => {
+                console.log(error);
+                newMessage = {
+                    title: "error",
+                    message: "Kindly refresh the page.",
+                };
+                setSeverity(newMessage);
+                setLoading(false);
+            });
     };
 
     return (
         <Paper sx={{ px: 3, py: 3 }}>
             <Box sx={{ flexGrow: 1 }} className="lpo-form">
-            <Snackbar
+                <Snackbar
                     open={open}
                     autoHideDuration={4000}
                     onClose={handleClose}
@@ -836,7 +914,7 @@ const LpoForm = ({logged}) => {
                     </Alert>
                 </Snackbar>
                 <Box
-                    component="form" 
+                    component="form"
                     onSubmit={(e) => handleSubmitForm(e)}
                     sx={{
                         "& .MuiTextField-root": { m: 1, width: "90%" },
@@ -864,23 +942,30 @@ const LpoForm = ({logged}) => {
                             TO
                         </Grid>
                         <Grid item xs={12} md={4}>
-                            <TextField
-                                select
+                            <Autocomplete
+                                disablePortal
+                                fullWidth
+                                options={supplierList}
+                                getOptionLabel={(supplier) => supplier.title}
                                 size="small"
-                                label="Supplier*"
-                                value={supplier ? supplier : ""}
-                                onChange={(e) => handleSupplier(e)}
-                                SelectProps={{
-                                    native: true,
+                                onChange={(e, value) =>
+                                    handleSupplier(e, value)
+                                }
+                                renderOption={(props, option) => {
+                                    return (
+                                        <li {...props} key={option.id}>
+                                            {option.title}
+                                        </li>
+                                    );
                                 }}
-                            >
-                                <option value=""> - </option>
-                                {supplierList.map((option) => (
-                                    <option key={option.id} value={option.id}>
-                                        {option.title}
-                                    </option>
-                                ))}
-                            </TextField>
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        label="Supplier*"
+                                        fullWidth
+                                    />
+                                )}
+                            />
                         </Grid>
 
                         <Grid item xs={12} md={2}>
@@ -902,7 +987,11 @@ const LpoForm = ({logged}) => {
                                 label="Address"
                                 size="small"
                                 variant="outlined"
-                                value={supplierDetails.address ? supplierDetails.address : ""}
+                                value={
+                                    supplierDetails.address
+                                        ? supplierDetails.address
+                                        : ""
+                                }
                             />
                         </Grid>
                         <Grid item xs={12} md={2}>
@@ -924,7 +1013,11 @@ const LpoForm = ({logged}) => {
                                 label="Tax No."
                                 size="small"
                                 variant="outlined"
-                                value={supplierDetails.tax_no ? supplierDetails.tax_no : ""}
+                                value={
+                                    supplierDetails.tax_no
+                                        ? supplierDetails.tax_no
+                                        : ""
+                                }
                             />
                         </Grid>
                         <Grid item xs={12} md={2}>
@@ -936,7 +1029,7 @@ const LpoForm = ({logged}) => {
                                 size="small"
                                 variant="outlined"
                                 onChange={(e) =>
-                                    handleFreeText(e, "supplier_ref_num")
+                                    handleFreeText(e, null, "supplier_ref_num")
                                 }
                             />
                         </Grid>
@@ -948,7 +1041,11 @@ const LpoForm = ({logged}) => {
                                 label="Contact No."
                                 size="small"
                                 variant="outlined"
-                                value={supplierDetails.contact_no ? supplierDetails.contact_no : ""}
+                                value={
+                                    supplierDetails.contact_no
+                                        ? supplierDetails.contact_no
+                                        : ""
+                                }
                             />
                         </Grid>
                         <Grid item xs={12} md={2}>
@@ -965,7 +1062,7 @@ const LpoForm = ({logged}) => {
                             />
                         </Grid>
                         <Grid item xs={12} md={2}>
-                            LOCATION 
+                            LOCATION
                         </Grid>
                         <Grid item xs={12} md={4}>
                             <TextField
@@ -978,12 +1075,12 @@ const LpoForm = ({logged}) => {
                         <Grid item xs={12} md={2}>
                             PRF NO. *
                         </Grid>
-                        <Grid item xs={12} md={4} sx={{display: "flex"}}>
+                        <Grid item xs={12} md={4} sx={{ display: "flex" }}>
                             <TextField
                                 select
                                 size="small"
                                 label="PRF No*"
-                                sx={{width:"60% !important"}}
+                                sx={{ width: "60% !important" }}
                                 value={prfs}
                                 multiple
                                 onChange={(e) => handlePrf(e)}
@@ -1003,11 +1100,10 @@ const LpoForm = ({logged}) => {
                                 size="small"
                                 variant="outlined"
                                 onChange={(e) =>
-                                    handleFreeText(e, "prf_extension")
+                                    handleFreeText(e, null, "prf_extension")
                                 }
-                                sx={{width:"40% !important"}}
-                                
-                            /> 
+                                sx={{ width: "40% !important" }}
+                            />
                         </Grid>
                         <Grid item xs={12} md={2}>
                             EMAIL
@@ -1017,7 +1113,11 @@ const LpoForm = ({logged}) => {
                                 label="Email"
                                 size="small"
                                 variant="outlined"
-                                value={supplierDetails.email ? supplierDetails.email : ""}
+                                value={
+                                    supplierDetails.email
+                                        ? supplierDetails.email
+                                        : ""
+                                }
                             />
                         </Grid>
                         <Grid item xs={12} md={2}>
@@ -1042,30 +1142,34 @@ const LpoForm = ({logged}) => {
                                 size="small"
                             >
                                 ADD
-                            </Button>  
+                            </Button>
                         </Grid>
-                        <Grid item md={2}>
-                        <TextField
-                                select
+                        <Grid item md={3}>
+                            <Autocomplete
+                                disablePortal
+                                fullWidth
+                                sx={{ m: 0 }}
+                                options={department}
+                                getOptionLabel={(employees) => employees.title}
                                 size="small"
-                                sx={{width:100}}
-                                label="Department*"
-                                value={department.id}
-                                onChange={(e) => handleFreeText(
-                                    e,
-                                    "department"
-                                )}
-                                SelectProps={{
-                                    native: true,
+                                onChange={(e, value) =>
+                                    handleFreeText(e, value, "department")
+                                }
+                                renderOption={(props, option) => {
+                                    return (
+                                        <li {...props} key={option.id}>
+                                            {option.title}
+                                        </li>
+                                    );
                                 }}
-                            >
-                                <option value=""> - </option>
-                                {department.map((option) => (
-                                    <option key={option.id} value={option.id}>
-                                        {option.title}
-                                    </option>
-                                ))}
-                            </TextField>
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        label="Department*"
+                                        fullWidth
+                                    />
+                                )}
+                            />
                         </Grid>
                         <Grid item md={8}></Grid>
                         <TableContainer sx={{ maxHeight: 600 }}>
@@ -1139,7 +1243,7 @@ const LpoForm = ({logged}) => {
                                                         )}
                                                     </TextField>
                                                 </TableCell>
-                                                <TableCell> 
+                                                <TableCell>
                                                     <TextField
                                                         label="Item"
                                                         size="small"
@@ -1209,7 +1313,6 @@ const LpoForm = ({logged}) => {
                                                                 "uom"
                                                             )
                                                         }
-                                                        
                                                     />
                                                 </TableCell>
                                                 <TableCell
@@ -1290,6 +1393,7 @@ const LpoForm = ({logged}) => {
                                                 onChange={(e) =>
                                                     handleFreeText(
                                                         e,
+                                                        null,
                                                         "remarks_general"
                                                     )
                                                 }
@@ -1340,6 +1444,7 @@ const LpoForm = ({logged}) => {
                                                         onChange={(e) =>
                                                             handleFreeText(
                                                                 e,
+                                                                null,
                                                                 "license_title_label_1"
                                                             )
                                                         }
@@ -1368,6 +1473,7 @@ const LpoForm = ({logged}) => {
                                                         onChange={(e) =>
                                                             handleFreeText(
                                                                 e,
+                                                                null,
                                                                 "license_title_label_2"
                                                             )
                                                         }
@@ -1417,7 +1523,6 @@ const LpoForm = ({logged}) => {
                                                         "vat"
                                                     )
                                                 }
-                                               
                                                 variant="outlined"
                                             />
                                         </Grid>
@@ -1533,7 +1638,7 @@ const LpoForm = ({logged}) => {
                                 maxRows={5}
                                 placeholder=""
                                 onChange={(e) =>
-                                    handleFreeText(e, "delivery_terms")
+                                    handleFreeText(e, null, "delivery_terms")
                                 }
                                 style={{
                                     width: "95%",
@@ -1580,7 +1685,7 @@ const LpoForm = ({logged}) => {
                                                 select
                                                 size="small"
                                                 label="Business Unit"
-                                                value={company ? company : ''}
+                                                value={company ? company : ""}
                                                 onChange={(e) =>
                                                     handleCompany(e)
                                                 }
@@ -1606,7 +1711,11 @@ const LpoForm = ({logged}) => {
                                             <TextField
                                                 disabled
                                                 size="small"
-                                                value={companyDefault.tax_no ? companyDefault.tax_no : ''}
+                                                value={
+                                                    companyDefault.tax_no
+                                                        ? companyDefault.tax_no
+                                                        : ""
+                                                }
                                                 label=""
                                             ></TextField>
                                         </Grid>
@@ -1617,7 +1726,9 @@ const LpoForm = ({logged}) => {
                                             <TextField
                                                 disabled
                                                 value={
-                                                    companyDefault.contact_person ? companyDefault.contact_person : ''
+                                                    companyDefault.contact_person
+                                                        ? companyDefault.contact_person
+                                                        : ""
                                                 }
                                                 size="small"
                                                 label=""
@@ -1629,7 +1740,11 @@ const LpoForm = ({logged}) => {
                                         <Grid item xs={12} md={8}>
                                             <TextField
                                                 disabled
-                                                value={companyDefault.address ? companyDefault.address : ''}
+                                                value={
+                                                    companyDefault.address
+                                                        ? companyDefault.address
+                                                        : ""
+                                                }
                                                 size="small"
                                                 label=""
                                             ></TextField>
@@ -1641,7 +1756,9 @@ const LpoForm = ({logged}) => {
                                             <TextField
                                                 disabled
                                                 value={
-                                                    companyDefault.contact_no ? companyDefault.contact_no : ''
+                                                    companyDefault.contact_no
+                                                        ? companyDefault.contact_no
+                                                        : ""
                                                 }
                                                 size="small"
                                                 label=""
@@ -1653,7 +1770,11 @@ const LpoForm = ({logged}) => {
                                         <Grid item xs={12} md={8}>
                                             <TextField
                                                 disabled
-                                                value={companyDefault.email ? companyDefault.email : ''}
+                                                value={
+                                                    companyDefault.email
+                                                        ? companyDefault.email
+                                                        : ""
+                                                }
                                                 size="small"
                                                 label=""
                                             ></TextField>
@@ -1693,7 +1814,7 @@ const LpoForm = ({logged}) => {
                                                 select
                                                 size="small"
                                                 label="Business Unit"
-                                                value={shipping ? shipping : ''}
+                                                value={shipping ? shipping : ""}
                                                 onChange={(e) =>
                                                     handleShippingCompany(e)
                                                 }
@@ -1721,7 +1842,11 @@ const LpoForm = ({logged}) => {
                                             <TextField
                                                 disabled
                                                 size="small"
-                                                value={shippingCompany.tax_no ? shippingCompany.tax_no : ''}
+                                                value={
+                                                    shippingCompany.tax_no
+                                                        ? shippingCompany.tax_no
+                                                        : ""
+                                                }
                                                 label=""
                                             ></TextField>
                                         </Grid>
@@ -1729,33 +1854,44 @@ const LpoForm = ({logged}) => {
                                             CONTACT PERSON*
                                         </Grid>
                                         <Grid item xs={12} md={8}>
-                                            <TextField
+                                            <Autocomplete
+                                                disablePortal
                                                 fullWidth
-                                                select
-                                                size="small"
-                                                label="Contact Person*"
-                                                value={persons}
-                                                onChange={(e) =>
-                                                    handleContactPerson(e)
+                                                sx={{ m: 0 }}
+                                                options={contactPersons}
+                                                getOptionLabel={(employees) =>
+                                                    employees.name
                                                 }
-                                                SelectProps={{
-                                                    native: true,
-                                                }}
-                                            >
-                                                <option value=""> - </option>
-                                                {contactPersons.map(
-                                                    (option) => (
-                                                        <option
+                                                size="small"
+                                                onChange={(e, value) =>
+                                                    handleContactPerson(
+                                                        e,
+                                                        value
+                                                    )
+                                                }
+                                                renderOption={(
+                                                    props,
+                                                    option
+                                                ) => {
+                                                    return (
+                                                        <li
+                                                            {...props}
                                                             key={option.id}
-                                                            value={option.id}
                                                         >
                                                             {
                                                                 option.contact_person
                                                             }
-                                                        </option>
-                                                    )
+                                                        </li>
+                                                    );
+                                                }}
+                                                renderInput={(params) => (
+                                                    <TextField
+                                                        {...params}
+                                                        label="Contact person"
+                                                        fullWidth
+                                                    />
                                                 )}
-                                            </TextField>
+                                            />
                                         </Grid>
                                         <Grid item xs={12} md={4}>
                                             ADDRESS
@@ -1763,7 +1899,11 @@ const LpoForm = ({logged}) => {
                                         <Grid item xs={12} md={8}>
                                             <TextField
                                                 disabled
-                                                value={shippingCompany.address ? shippingCompany.address : ''}
+                                                value={
+                                                    shippingCompany.address
+                                                        ? shippingCompany.address
+                                                        : ""
+                                                }
                                                 size="small"
                                                 label=""
                                             ></TextField>
@@ -1775,7 +1915,9 @@ const LpoForm = ({logged}) => {
                                             <TextField
                                                 disabled
                                                 value={
-                                                    shippingCompany.contact_no ? shippingCompany.contact_no : ''
+                                                    shippingCompany.contact_no
+                                                        ? shippingCompany.contact_no
+                                                        : ""
                                                 }
                                                 size="small"
                                                 label=""
@@ -1812,7 +1954,7 @@ const LpoForm = ({logged}) => {
                                 variant="outlined"
                                 className="full-width"
                                 onChange={(e) =>
-                                    handleFreeText(e, "remarks_optional")
+                                    handleFreeText(e, null, "remarks_optional")
                                 }
                             />
                         </Grid>
@@ -1830,7 +1972,11 @@ const LpoForm = ({logged}) => {
                                 size="small"
                                 variant="outlined"
                                 onChange={(e) =>
-                                    handleFreeText(e, "remarks_payment_terms")
+                                    handleFreeText(
+                                        e,
+                                        null,
+                                        "remarks_payment_terms"
+                                    )
                                 }
                             />
                         </Grid>
@@ -1853,7 +1999,7 @@ const LpoForm = ({logged}) => {
                             </Button>
                             APPROVAL SETUP
                         </Grid>
-                        <Grid item md={6} xs={12}>
+                        <Grid item md={12} xs={12}>
                             <TableContainer sx={{ maxHeight: 600 }}>
                                 <Table
                                     stickyHeader
@@ -1865,14 +2011,19 @@ const LpoForm = ({logged}) => {
                                             <TableCell>S/N</TableCell>
                                             <TableCell>Title</TableCell>
                                             <TableCell>Name</TableCell>
-                                            <TableCell></TableCell>
+                                            <TableCell>-</TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
                                         <TableRow>
                                             <TableCell>1</TableCell>
                                             <TableCell>Prepared By</TableCell>
-                                            <TableCell>{preparedBy ? preparedBy.name : ''}</TableCell>
+                                            <TableCell>
+                                                {preparedBy
+                                                    ? preparedBy.name
+                                                    : ""}
+                                            </TableCell>
+                                            <TableCell></TableCell>
                                         </TableRow>
                                         {approvalRows.map((row, index) => {
                                             return (
@@ -1892,7 +2043,8 @@ const LpoForm = ({logged}) => {
                                                         <TextField
                                                             select
                                                             size="small"
-                                                            label="Approval Type" 
+                                                            label="Approval Type"
+                                                            sx={{ m: 0 }}
                                                             value={
                                                                 row.approval_type
                                                             }
@@ -1927,7 +2079,12 @@ const LpoForm = ({logged}) => {
                                                             )}
                                                         </TextField>
                                                     </TableCell>
-                                                    <TableCell>
+                                                    <TableCell
+                                                        sx={{
+                                                            padding:
+                                                                "0 !important",
+                                                        }}
+                                                    >
                                                         <TextField
                                                             select
                                                             size="small"
@@ -1994,30 +2151,73 @@ const LpoForm = ({logged}) => {
 
                     <Grid container spacing={2} sx={{ py: 2 }}>
                         <Grid item md={12}>
-                             
                             <LoadingButton
-                                   
-                                    variant="contained"
-                                    disabled={fieldState}
-                                    color="info"
-                                    onClick={(e) => handleSubmitForm(e)}
-                                    loading={loading}
-                                >
-                                    SUBMIT FORM
-                                </LoadingButton>
+                                variant="contained"
+                                disabled={fieldState}
+                                color="info"
+                                onClick={(e) => handleSubmitForm(e)}
+                                loading={loading}
+                            >
+                                SUBMIT FORM
+                            </LoadingButton>
                         </Grid>
                         <Grid item md={12}>
-                            <small>Onced form has been submitted, it cannot be Edited.</small> <br/>
-                            <small>Be sure to check the <b>approvals</b> before submitting.</small>
+                            <small>
+                                Once form has been submitted, it cannot be
+                                Edited.
+                            </small>{" "}
+                            <br />
+                            <small>
+                                Be sure to check the <b>approvals</b> before
+                                submitting.
+                            </small>
                         </Grid>
                         <Grid item md={4}>
-                            <ul> 
-                                <li className={validate[0].supplier ? "active" : ""}>Supplier: {validate[0].supplier ? "Ok" : "-"}</li>
-                                <li className={validate[0].prf ? "active" : ""}>PRF: {validate[0].prf ? "Ok" : "-"}</li>
-                                <li className={validate[0].department ? "active" : ""}>Department: {validate[0].department ? "Ok" : "-"}</li>
-                                <li className={validate[0].net_amount ? "active" : ""}>Items: {validate[0].net_amount ? "Ok" : "-"}</li>
-                                <li className={validate[0].billing ? "active" : ""}>Billing/Shipping: {validate[0].billing ? "Ok" : "-"}</li>
-                                <li className={validate[0].contact_person ? "active" : ""}>Contact Person: {validate[0].contact_person ? "Ok" : "-"}</li> 
+                            <ul>
+                                <li
+                                    className={
+                                        validate[0].supplier ? "active" : ""
+                                    }
+                                >
+                                    Supplier:{" "}
+                                    {validate[0].supplier ? "Ok" : "-"}
+                                </li>
+                                <li className={validate[0].prf ? "active" : ""}>
+                                    PRF: {validate[0].prf ? "Ok" : "-"}
+                                </li>
+                                <li
+                                    className={
+                                        validate[0].department ? "active" : ""
+                                    }
+                                >
+                                    Department:{" "}
+                                    {validate[0].department ? "Ok" : "-"}
+                                </li>
+                                <li
+                                    className={
+                                        validate[0].net_amount ? "active" : ""
+                                    }
+                                >
+                                    Items: {validate[0].net_amount ? "Ok" : "-"}
+                                </li>
+                                <li
+                                    className={
+                                        validate[0].billing ? "active" : ""
+                                    }
+                                >
+                                    Billing/Shipping:{" "}
+                                    {validate[0].billing ? "Ok" : "-"}
+                                </li>
+                                <li
+                                    className={
+                                        validate[0].contact_person
+                                            ? "active"
+                                            : ""
+                                    }
+                                >
+                                    Contact Person:{" "}
+                                    {validate[0].contact_person ? "Ok" : "-"}
+                                </li>
                             </ul>
                         </Grid>
                     </Grid>

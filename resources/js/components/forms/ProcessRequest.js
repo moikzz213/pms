@@ -99,8 +99,7 @@ export default function ProcessRequest({id, logged}) {
         setStatus(type);
         let data = {id : id, type: type, user_id: logged.id};
         API.post('/v/request/update-status', data)
-        .then((response) => {
-            console.log(response);
+        .then((response) => { 
             setTimeout(() => {
                 newMessage = {
                     title: "success",
@@ -135,27 +134,28 @@ export default function ProcessRequest({id, logged}) {
                     noValidate
                     autoComplete="off"
                 >
-                    <Grid container spacing={2}>
+                    <Grid className="process-request" container spacing={2} sx={{mt:1}}>
                         <Grid container spacing={2} sx={{ padding: 2 }}>
-                            <Grid item xs={12} md={2}>
+                            <Grid item xs={2} md={2}>
                                 PRF No.
                             </Grid>
-                            <Grid item xs={12} md={4}>
+                            <Grid item xs={4} md={4}>
                                {data.prf_no}
                             </Grid>
                            
                             
-                            <Grid item xs={12} md={2}>
+                            <Grid item xs={2} md={2}>
                                 Urgency
                             </Grid>
-                            <Grid item xs={12} md={2}>
+                            <Grid item xs={4} md={2}>
                                 {data.urgency}
                             </Grid>
 
                             <Grid
                             item
                             md={2}
-                            className="btn-cancel"
+                            xs={12}
+                            className="btn-cancel no-print" 
                             sx={{ textAlign: "right" }}
                         > 
                          <small> Status: <span className="text-red font-weight-bold">{status}</span></small>
@@ -163,42 +163,42 @@ export default function ProcessRequest({id, logged}) {
                         </Grid> 
 
                             {/* new row */}
-                            <Grid item xs={12} md={2}>
+                            <Grid item xs={2} md={2}>
                                 Business Entity
                             </Grid>
-                            <Grid item xs={12} md={4}>
+                            <Grid item xs={4} md={4}>
                             {data.company}
                             </Grid>
-                            <Grid item xs={12} md={2}>
+                            <Grid item xs={2} md={2}>
                                 Date
                             </Grid>
-                            <Grid item xs={12} md={4}>
+                            <Grid item xs={4} md={4}>
                             {data.date}
                             </Grid>
                             {/* new row */}
-                            <Grid item xs={12} md={2}>
+                            <Grid item xs={2} md={2}>
                                 Requestor Name
                             </Grid>
-                            <Grid item xs={12} md={4}>
+                            <Grid item xs={4} md={4}>
                             {data.requestor}
                             </Grid>
-                            <Grid item xs={12} md={2}>
+                            <Grid item xs={2} md={2}>
                                 Time
                             </Grid>
-                            <Grid item xs={12} md={4}>
+                            <Grid item xs={4} md={4}>
                             {data.time}
                             </Grid>
                             {/* new row */}
-                            <Grid item xs={12} md={2}>
+                            <Grid item xs={2} md={2}>
                                 Designation
                             </Grid>
-                            <Grid item xs={12} md={4}>
+                            <Grid item xs={4} md={4}>
                             {data.designation}
                             </Grid>
-                            <Grid item xs={12} md={2}>
+                            <Grid item xs={2} md={2}>
                                 Branch/Location
                             </Grid>
-                            <Grid item xs={12} md={4}>
+                            <Grid item xs={4} md={4}>
                             {data.location}
                             </Grid>
                             {/* new row */}
@@ -215,27 +215,18 @@ export default function ProcessRequest({id, logged}) {
                                  })
                                 }
                             </Grid>
-                            <Grid item xs={12} md={4}></Grid>
+                            <Grid item xs={12} md={4}></Grid> 
 
-                            <Grid item xs={12} md={12}>
-                                <TextareaAutosize 
-                                    aria-label="minimum height"
-                                    minRows={10}
-                                    maxRows={30}
-                                    placeholder="Detailed request will be displayed here."
-                                    style={{
-                                        width: "100%",
-                                        border: "1px solid #cecece",
-                                        padding: 10,
-                                    }}
-                                    value={data.details}
-                                />
+                            <Grid className="request-desc" item xs={12} md={12}>
+                                 <Box className="inner-request" sx={{border: "1px solid #ccc", padding: "10px;", minHeight: "150px"}}  dangerouslySetInnerHTML={{__html: data.details}} >
+                                    
+                                 </Box>
                             </Grid>
                              { active ? 
                              <>
                                 {status == 'onprocess' ?
                                 <>
-                            <Grid item xs={12} md={6}>
+                            <Grid   className="no-print" item xs={12} md={6}>
                                 <Link to="/d/procurement-team/local-purchase-orders/create">
                                     <Button
                                         variant="contained"
@@ -257,8 +248,8 @@ export default function ProcessRequest({id, logged}) {
                                 </Link>
                             </Grid>
                             </> :  <>
-                            <Grid item xs={12} md={6}>Only <b>ON PROCESS</b> status can create LPO/PAF </Grid> </> }
-                            <Grid item xs={12} md={6}>
+                            <Grid   className="no-print" item xs={12} md={6}>Only <b>ON PROCESS</b> status can create LPO/PAF </Grid> </> }
+                            <Grid   className="no-print" item xs={12} md={6}>
                                 
                                 <LoadingButton
                                     className="btn-cancel"

@@ -37,7 +37,7 @@ class SupplierController extends Controller
         if($search !== '-'){
             $data = Supplier::where("title", "LIKE", "%".$search."%")->orWhere("tax_no", "LIKE", "%".$search."%")->orWhere("contact_person", "LIKE", "%".$search."%")->orWhere("email", "=", $search)->paginate(10);
         }else{
-            $data = Supplier::paginate(10); 
+            $data = Supplier::orderBy('title', 'ASC')->paginate(10); 
         }
         return response()->json([
             'item' => $data 

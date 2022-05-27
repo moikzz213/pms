@@ -9,14 +9,43 @@ import TextField from "@mui/material/TextField";
 import LoadingButton from "@mui/lab/LoadingButton";
 import Snackbar from "@mui/material/Snackbar";
 import MuiAlert from "@mui/material/Alert";
+import Autocomplete from "@mui/material/Autocomplete";
+import IconButton from "@mui/material/IconButton";
+import Button from "@mui/material/Button";
+import AddIcon from "@mui/icons-material/Add";
 import { useDropzone } from "react-dropzone";
+import Modal from "@mui/material/Modal";
+import { CKEditor } from "@ckeditor/ckeditor5-react";
+import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import API from "../../services/api.js";
 const Alert = React.forwardRef(function Alert(props, ref) {
     return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
+const style = {
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
+    width: 400,
+    bgcolor: "background.paper",
+    border: "2px solid #000",
+    boxShadow: 24,
+    pt: 2,
+    px: 4,
+    pb: 3,
+};
+ 
 export default function RequestForm({ logged }) {
     const navigate = useNavigate();
     const [open, setOpen] = useState(false);
+
+    const { vertical, horizontal } = {
+        vertical: "bottom",
+        horizontal: "center",
+    };
+
+    const [newLocation, setNewLocation] = useState("");
+    const [openModal, setOpenModal] = useState(false);
     const [fieldState, setFieldState] = useState(true);
     const [files, setFiles] = useState("");
     const [requestor, setRequestor] = useState([
@@ -36,15 +65,14 @@ export default function RequestForm({ logged }) {
     let minutes = defaultDate.getMinutes();
     let hours = defaultDate.getHours();
     let ampm = "PM";
-    if(minutes < 10){
-        minutes = "0"+minutes;
+    if (minutes < 10) {
+        minutes = "0" + minutes;
     }
-    if(hours < 12){
+    if (hours < 12) {
         ampm = "AM";
     }
 
-
-    let curTime = hours + ":" + minutes +" "+ampm;
+    let curTime = hours + ":" + minutes + " " + ampm;
     const [time, setTime] = useState(curTime);
 
     const [loading, setLoading] = useState(false);
@@ -72,30 +100,34 @@ export default function RequestForm({ logged }) {
         },
     ]);
 
-    //Dropzone 
-      
-    const onDrop = useCallback((acceptedFiles) => {  
-        setFiles(acceptedFiles);
-    }, [setFiles]); 
+    //Dropzone
 
-    const {
-        acceptedFiles, 
-        getRootProps,
-        getInputProps
-      } = useDropzone({
-        onDrop
-      });
-      
-    const acceptedFileItems = acceptedFiles.map(file => ( 
+    const onDrop = useCallback(
+        (acceptedFiles) => {
+            setFiles(acceptedFiles);
+        },
+        [setFiles]
+    );
+
+    const { acceptedFiles, getRootProps, getInputProps } = useDropzone({
+        onDrop,
+    });
+
+    const acceptedFileItems = acceptedFiles.map((file) => (
         <li key={file.path}>
-          {file.path} - {parseInt(file.size/ 1000)}  KB
+            {file.path} - {parseInt(file.size / 1000)} KB
         </li>
-      ));
+    ));
     //   End Drop Zone
 
-    const handleData = (e, type) => {
-        let value = e.target.value;
-
+    const handleData = (e, val, type) => {
+        let value = "";
+        if (val) {
+            value = val.value;
+        } else {
+            value = e.target.value;
+        }
+        
         let objAssign = Object.assign([], objData);
 
         let data = objAssign.map((o, i) => {
@@ -107,7 +139,7 @@ export default function RequestForm({ logged }) {
             } else if (type == "location") {
                 o.location_id = value;
             } else if (type == "details") {
-                o.details = value;
+                o.details = val;
             }
             if (o.urgency && o.company_id && o.location_id && o.details) {
                 setFieldState(false);
@@ -119,24 +151,39 @@ export default function RequestForm({ logged }) {
 
         setObjData(data);
     };
+    const handleAddLocation = () => {
+        setOpenModal(true);
+    };
 
     useEffect(() => {
         axios.get("/v/companies/fetch-non-paginate").then((response) => {
             let fetchItems = response.data.item;
             fetchItems = Object.assign([], fetchItems);
+            let newData = [];
+            fetchItems.map((o, i) => {
+                newData[i] = {
+                    label: o.title,
+                    value: o.id,
+                };
+            });
+            setCompany(newData);
+        });
 
-            setCompany(fetchItems);
+        axios.get(" /v/profile/fetch/" + logged.id).then((response) => {
+            setRequestor(response.data.item);
         });
 
         axios.get("/v/locations/fetch-non-paginate").then((response) => {
             let fetchItems = response.data.item;
             fetchItems = Object.assign([], fetchItems);
-
-            setLocation(fetchItems);
-        });
-
-        axios.get(" /v/profile/fetch/" + logged.id).then((response) => {
-            setRequestor(response.data.item);
+            let newData = [];
+            fetchItems.map((o, i) => {
+                newData[i] = {
+                    label: o.title,
+                    value: o.id,
+                };
+            });
+            setLocation(newData);
         });
     }, [logged]);
 
@@ -148,6 +195,80 @@ export default function RequestForm({ logged }) {
         setOpen(false);
     };
 
+    const handleCloseModal = (event, reason) => {
+        if (reason === "clickaway") {
+            return;
+        }
+        setNewLocation("");
+        setOpenModal(false);
+    };
+
+    const createLocation = (e) => {
+        setNewLocation(e.target.value);
+    };
+
+    const handleNewLocation = (e) => {
+        e.preventDefault();
+        setOpen(true);
+        if (!newLocation) {
+            newMessage = {
+                title: "error",
+                message: "Field is empty!",
+            };
+
+            setSeverity(newMessage);
+            return false;
+        }
+        let newMessage = {
+            title: "info",
+            message: "Please wait...",
+        };
+
+        setSeverity(newMessage);
+        let data = { data: [{ title: newLocation }] };
+
+        axios
+            .post("/v/locations/new", data)
+            .then((response) => {
+                setTimeout(() => {
+                    newMessage = {
+                        title: "success",
+                        message: "Data has been successfully added!",
+                    };
+
+                    setSeverity(newMessage);
+                }, 500);
+
+                setTimeout(() => {
+                    setNewLocation("");
+                    setOpenModal(false);
+                }, 1000);
+
+                setLocation([]);
+                axios
+                    .get("/v/locations/fetch-non-paginate")
+                    .then((response) => {
+                        let fetchItems = response.data.item;
+                        fetchItems = Object.assign([], fetchItems);
+                        let newData = [];
+                        fetchItems.map((o, i) => {
+                            newData[i] = {
+                                label: o.title,
+                                value: o.id,
+                            };
+                        });
+                        setLocation(newData);
+                    });
+            })
+            .catch((error) => {
+                newMessage = {
+                    title: "error",
+                    message: "Kindly refresh the page.",
+                };
+                setSeverity(newMessage);
+            });
+    };
+
     const submitForm = (e) => {
         e.preventDefault();
         setLoading(true);
@@ -156,23 +277,25 @@ export default function RequestForm({ logged }) {
             message: "Please wait...",
         };
         setSeverity(newMessage);
-        
+        let objAssign = Object.assign({}, objData); 
+       
+        let newDetails = objAssign[0].details.replaceAll('<td>', '<td style="border: 1px solid #cecece;font-size:12px;padding-left:10px;">');
+        newDetails = newDetails.replaceAll('<table>', '<table style="border-spacing:0">');
         const data = new FormData();
-        let objAssign = Object.assign({}, objData);
-        data.append('company_id', objAssign[0].company_id);
-        data.append('details', objAssign[0].details);
-        data.append('location_id', objAssign[0].location_id);
-        data.append('urgency', objAssign[0].urgency);
-        data.append('user_id', objAssign[0].user_id); 
-        
-        if(files){
-        files.forEach(file => {
-            data.append('images[]', file, file.name);
-        }); 
+       
+        data.append("company_id", objAssign[0].company_id);
+        data.append("details", newDetails);
+        data.append("location_id", objAssign[0].location_id);
+        data.append("urgency", objAssign[0].urgency);
+        data.append("user_id", objAssign[0].user_id);
+
+        if (files) {
+            files.forEach((file) => {
+                data.append("images[]", file, file.name);
+            });
         }
-      
-        API
-            .post("/v/request/new", data)
+
+        API.post("/v/request/new", data)
             .then((response) => {
                 setOpen(true);
                 setTimeout(() => {
@@ -186,9 +309,7 @@ export default function RequestForm({ logged }) {
 
                 setTimeout(() => {
                     // Route to Edit by id
-                    navigate(
-                        "/d/requests/id/" + response.data.id
-                    );
+                    navigate("/d/requests/id/" + response.data.id);
                 }, 1000);
             })
             .catch((error) => {
@@ -207,6 +328,7 @@ export default function RequestForm({ logged }) {
                 <Snackbar
                     open={open}
                     autoHideDuration={4000}
+                    anchorOrigin={{ vertical, horizontal }}
                     onClose={handleClose}
                 >
                     <Alert
@@ -217,7 +339,7 @@ export default function RequestForm({ logged }) {
                         {severity.message}
                     </Alert>
                 </Snackbar>
-              
+
                 <Box
                     component="form"
                     sx={{
@@ -239,7 +361,9 @@ export default function RequestForm({ logged }) {
                                     size="small"
                                     label="urgency"
                                     value={urgency}
-                                    onChange={(e) => handleData(e, "urgency")}
+                                    onChange={(e) =>
+                                        handleData(e, null, "urgency")
+                                    }
                                     SelectProps={{
                                         native: true,
                                     }}
@@ -257,26 +381,22 @@ export default function RequestForm({ logged }) {
                                 Business Entity
                             </Grid>
                             <Grid item xs={12} md={4}>
-                                <TextField
-                                    select
-                                    size="small"
-                                    label="Company"
+                                <Autocomplete
+                                    disablePortal
+                                    id="combo-box-demo"
+                                    options={company}
                                     value={company.id}
-                                    onChange={(e) => handleData(e, "company")}
-                                    SelectProps={{
-                                        native: true,
-                                    }}
-                                >
-                                    <option> - </option>
-                                    {company.map((option) => (
-                                        <option
-                                            key={option.id}
-                                            value={option.id}
-                                        >
-                                            {option.title}
-                                        </option>
-                                    ))}
-                                </TextField>
+                                    size="small"
+                                    onChange={(e, value) =>
+                                        handleData(e, value, "company")
+                                    }
+                                    renderInput={(params) => (
+                                        <TextField
+                                            {...params}
+                                            label="Company"
+                                        />
+                                    )}
+                                />
                             </Grid>
                             <Grid item xs={12} md={2}>
                                 Date
@@ -307,36 +427,51 @@ export default function RequestForm({ logged }) {
                             <Grid item xs={12} md={2}>
                                 Branch/Location
                             </Grid>
-                            <Grid item xs={12} md={4}>
-                                <TextField
-                                    select
+                            <Grid item xs={12} md={4} sx={{ display: "flex" }}>
+                                <Autocomplete
+                                    disablePortal
+                                    id="combo-box-demo"
+                                    options={location}
+                                    sx={{ width: "100%" }}
                                     size="small"
-                                    label="Location"
-                                    value={location.id}
-                                    onChange={(e) => handleData(e, "location")}
-                                    SelectProps={{
-                                        native: true,
+                                    onChange={(e, value) =>
+                                        handleData(e, value, "location")
+                                    }
+                                    renderInput={(params) => (
+                                        <TextField
+                                            {...params}
+                                            sx={{ width: "95% !important" }}
+                                            label="Location"
+                                        />
+                                    )}
+                                />
+                                <IconButton
+                                    onClick={(e) => handleAddLocation(e)}
+                                    size="small"
+                                    sx={{
+                                        backgroundColor: "#000",
+                                        color: "#fff",
+                                        width: "25px",
+                                        height: "20px",
+                                        margin: "auto 0",
                                     }}
                                 >
-                                    <option> - </option>
-                                    {location &&
-                                        location.map((option) => (
-                                            <option
-                                                key={option.id}
-                                                value={option.id}
-                                            >
-                                                {option.title}
-                                            </option>
-                                        ))}
-                                </TextField>
+                                    <AddIcon />
+                                </IconButton>
                             </Grid>
                             {/* new row */}
 
                             <Grid item xs={12} md={12} className="container">
                                 <div {...getRootProps()} className="dropzone">
                                     <input {...getInputProps()} />
-                                    <p>Drag 'n' drop some files here, or click to select files</p>
-                                    <em>(Only *.jpeg, *.jpg and *.png images will be accepted)</em>
+                                    <p>
+                                        Drag 'n' drop some files here, or click
+                                        to select files
+                                    </p>
+                                    <em>
+                                        (Only *.jpeg, *.jpg and *.png images
+                                        will be accepted)
+                                    </em>
                                 </div>
                                 <aside>
                                     <h4>Files</h4>
@@ -345,17 +480,30 @@ export default function RequestForm({ logged }) {
                             </Grid>
 
                             <Grid item xs={12} md={12}>
-                                <TextareaAutosize
-                                    onChange={(e) => handleData(e, "details")}
-                                    aria-label="minimum height"
-                                    minRows={6}
-                                    maxRows={10}
+                               
+                               
+
+                                <CKEditor
+                                    editor={ClassicEditor}
+                                   
                                     placeholder="Your detailed request here. (required)"
-                                    style={{
-                                        width: "100%",
-                                        border: "1px solid #cecece",
-                                        padding: 10,
+                                    onReady={(editor) => {
+                                        // You can store the "editor" and use when it is needed.
+                                        console.log(
+                                            "Editor is ready to use!",
+                                            editor
+                                        );
                                     }}
+                                    config={ {
+                                        removePlugins: [ 'Image', 'Link', 'CKFinder' ], 
+                                    } }
+                                   
+                                    onChange={(event, editor) => {
+                                        const data = editor.getData();
+                                         
+                                        handleData(event, data, "details");
+                                    }}
+                                    
                                 />
                             </Grid>
 
@@ -371,9 +519,31 @@ export default function RequestForm({ logged }) {
                             </Grid>
                         </Grid>
                     </Grid>
-                   
                 </Box>
             </Box>
+            <Modal
+                hideBackdrop
+                open={openModal}
+                onClose={handleCloseModal}
+                aria-labelledby="child-modal-title"
+                aria-describedby="child-modal-description"
+            >
+                <Box sx={{ ...style, width: 250 }}>
+                    <h4 className="text-center" id="child-modal-title" >ADD NEW LOCATION</h4>
+                    <TextField
+                        label=""
+                        onChange={(e) => createLocation(e)}
+                        size="small"
+                        variant="outlined"
+                    />
+                    <Box sx={{display:"flex", justifyContent: "space-between"}}>
+                    <Button color="secondary" onClick={handleCloseModal}>
+                        Cancel
+                    </Button>
+                    <Button onClick={handleNewLocation}>Submit</Button>
+                    </Box>
+                </Box>
+            </Modal>
         </Paper>
     );
 }

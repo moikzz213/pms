@@ -14,6 +14,7 @@ const Alert = React.forwardRef(function Alert(props, ref) {
 export default function Profile({ logged }) {
     let controller;
     const [open, setOpen] = useState(false);
+    const [user, setUser] = useState("");
     const [severity, setSeverity] = useState({
         title: "",
         message: "",
@@ -58,7 +59,7 @@ export default function Profile({ logged }) {
 
     function fetchUser() {
         let profile = { id: logged.id };
-
+        setUser(logged.id);
         axios.post("/v/users/profile-fetch", profile).then((response) => {
             let itemData = response.data.item;
             let newData = [
@@ -139,8 +140,8 @@ export default function Profile({ logged }) {
             message: "Please wait...",
         };
         setSeverity(newMessage);
-        let data = { password: passwordData[0].password, id: logged.id };
-
+        let data = { password: passwordData[0].password, id: user };
+        
         axios
             .post('/v/profile/change-password', data)
             .then((response) => {

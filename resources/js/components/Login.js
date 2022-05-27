@@ -28,7 +28,7 @@ export default function Login() {
         email: "",
         password: "",
     });
-
+   
     const [alertMessage, setAlertMessage] = useState({
         status: false,
         message: "Error please try again later",
@@ -36,7 +36,8 @@ export default function Login() {
 
     const [isLoading, setLoading] = useState(false);
 
-    const handleSubmit = () => {
+    const handleSubmit = (e) => {
+        e.preventDefault();
         setLoading(true);
         let loginCredentials = {
             email: loginDetails.email,
@@ -67,17 +68,20 @@ export default function Login() {
       });
        
     };
-
-    useEffect(() => {
-        is_logged.get("api/user")
-        .then((response) =>{
-            console.log(response.status );
-             if(response.status == 200){
-                navigate("/d/dashboard"); 
-             }
-        }).catch((err) => {
-            console.log(err);
-        });
+   
+    useEffect(() => { 
+        // let ls = localStorage.getItem('auth_token');
+        // if(ls){ 
+            is_logged.get("api/user")
+            .then((response) =>{
+                
+                if(response.status == 200){
+                    navigate("/d/dashboard"); 
+                }
+            }).catch((err) => {
+                console.log(err);
+            });
+       // } 
     }, []);
 
     return (
@@ -107,7 +111,7 @@ export default function Login() {
                         </Typography>
                         <Box
                             component="form"
-                            onSubmit={handleSubmit}
+                            onSubmit={(e) => handleSubmit(e)}
                             noValidate
                             sx={{ mt: 1 }}
                         >
@@ -166,7 +170,7 @@ export default function Login() {
                                     padding: "15px 0",
                                     borderRadius: 0,
                                 }}
-                                onClick={() => handleSubmit()}
+                                onClick={(e) => handleSubmit(e)}
                             >
                                 Login
                             </LoadingButton>
@@ -195,9 +199,9 @@ export default function Login() {
                             </Collapse>
                             <Grid container>
                                 <Grid item xs>
-                                    <Link href="#" variant="body2">
+                                    {/* <Link href="#" variant="body2">
                                         Forgot password?
-                                    </Link>
+                                    </Link> */}
                                 </Grid>
                             </Grid>
                         </Box>

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Log;
 use App\Models\Image;
+use App\Models\Payment_approval_form;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
@@ -40,6 +41,11 @@ class Requests extends Model
     public function location()
     {
         return $this->belongsTo(Location::class);
+    }
+
+    public function pafs()
+    {
+        return $this->belongsToMany(Payment_approval_form::class, 'requests_id');
     }
 
     public function images()

@@ -35,6 +35,8 @@ const listItems = ({ slug, page, page2 }) => {
         let token = localStorage.getItem('auth_token');
         axios.post("/v/users/logout/"+token).then((response) => { 
             if(response.data.success){
+                localStorage.setItem("auth_token","");
+                localStorage.setItem("auth_role","");
                 navigate("/login");
             }
         }); 

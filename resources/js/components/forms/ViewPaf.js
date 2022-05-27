@@ -22,7 +22,9 @@ const Alert = React.forwardRef(function Alert(props, ref) {
 function approvalLabelled(label){
     if(label == 'prepared_by'){
         return "Prepared By";
-    }else if(label == 'reviewed_by'){
+    }else if(label == 'requested_by'){
+        return "Requested By";
+     }else if(label == 'reviewed_by'){
        return "Reviewed By";
     }else if(label == 'verified_by'){
         return "Verified By";
@@ -56,7 +58,7 @@ const ViewPaf = ({ id, logged }) => {
 
         API.get("/v/payment-approval-form/fetch/" + id).then((response) => {
             let fetchItems = response.data.item;
-            console.log(fetchItems);
+            
             setItems(fetchItems);
             let img = "";
             if( fetchItems.company && (fetchItems.company.title).toLowerCase().includes("aboud group")){
@@ -71,7 +73,7 @@ const ViewPaf = ({ id, logged }) => {
                 img = "/logo/crystalbrook.png";
             }else if( fetchItems.company && (fetchItems.company.title).toLowerCase().includes("news")){
                 img = "/logo/orient.png";
-            }else if( fetchItems.company && (fetchItems.company.title).toLowerCase().includes("cars")){
+            }else if( fetchItems.company && (fetchItems.company.title).toLowerCase().includes("car trading")){
                 img = "/logo/gac.png";
             }else if( fetchItems.company && (fetchItems.company.title).toLowerCase().includes("gaelan")){
                 img = "/logo/gaelan.png";
@@ -83,6 +85,8 @@ const ViewPaf = ({ id, logged }) => {
                 img = "/logo/supermarket.png";
             }else if( fetchItems.company && (fetchItems.company.title).toLowerCase().includes("olive")){
                 img = "/logo/olive.png";
+            }else{
+                img = "/logo/gag.png";
             }
             
             setLogo(img);
@@ -115,7 +119,7 @@ const ViewPaf = ({ id, logged }) => {
             dataAssign[0].invoices =  e.target.value;
              
         }
-        console.log(dataAssign);
+       
         setInvoiceSubmit(dataAssign);
     }; 
 
@@ -196,7 +200,7 @@ const ViewPaf = ({ id, logged }) => {
         let data = {id : id, type: type, user_id: logged.id};
         API.post('/v/payment-approval-form/update-status', data)
         .then((response) => {
-            console.log(response);
+          
             setTimeout(() => {
                 newMessage = {
                     title: "success",
@@ -331,7 +335,7 @@ const ViewPaf = ({ id, logged }) => {
                                     </tr>
                                     <tr>
                                         <th>PURCHASE LIMIT</th>
-                                        <th>{items.purchase_limit}</th>
+                                        <th>{items.purchase_limit !== 0 ? items.purchase_limit : ""}</th>
                                     </tr>
                                     <tr>
                                         <th>DOCUMENT NO. (FOR ACCOUNTS)</th>
@@ -358,7 +362,7 @@ const ViewPaf = ({ id, logged }) => {
                                     </tr>
                                     <tr>
                                         <th>CASH/CARD LIMIT</th>
-                                        <th>{items.cash_card_limit}</th>
+                                        <th>{items.cash_card_limit !== 0 ? items.cash_card_limit : ""}</th>
                                     </tr>
                                     <tr>
                                         <th>DOCUMENT NO (FOR ACCOUNTS)</th>
@@ -433,14 +437,14 @@ const ViewPaf = ({ id, logged }) => {
                                                     <td className="text-center">
                                                         {index + 1}
                                                     </td>
-                                                    {index < items.paf_items.length-1 && ( 
-                                                    <td className="text-center" rowSpan={index < items.paf_items.length-1  ? items.paf_items.length : ""}>
-                                                      {items.supplier.title}
+                                                    {items.supplier_count < 2 && ( 
+                                                    <td className="text-center" rowSpan={items.supplier_count}>
+                                                      {row.supplier.title}
                                                     </td>
                                                     )}
-                                                     {index == items.paf_items.length-1 && items.paf_items.length == 1 &&( 
+                                                     {items.supplier_count > 1 &&( 
                                                     <td className="text-center" >
-                                                      {items.supplier.title}
+                                                      {row.supplier.title}
                                                     </td>
                                                     )}
                                                     <td className="text-center">

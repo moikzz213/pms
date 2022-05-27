@@ -89,7 +89,7 @@ Route::post('/v/suppliers/update', [SupplierController::class, 'update'])->name(
 Route::post('/v/suppliers/delete', [SupplierController::class, 'destroy'])->name('supplier.destroy');
 
 // Users
-
+Route::get('/v/fetch/hive-users', [UserController::class, 'fetchHiveUsers'])->name('fetch.hive.users');
 Route::get('/v/users/fetch-active-users', [UserController::class, 'fetchActiveUsers'])->name('user.fetch.active.non-paginate');
 Route::get('/v/users/fetch-all', [UserController::class, 'fetch'])->name('user.fetch.paginate');
 Route::get('/v/users/fetch/{id}', [UserController::class, 'show'])->name('user.show');

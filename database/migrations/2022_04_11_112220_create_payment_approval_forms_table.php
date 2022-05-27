@@ -16,7 +16,7 @@ class CreatePaymentApprovalFormsTable extends Migration
         Schema::create('payment_approval_forms', function (Blueprint $table) {
             $table->id();
             $table->string('relation', 15)->nullable();
-            $table->unsignedBigInteger('request_id')->nullable();
+           
             $table->string('invoices',250)->nullable();
             $table->date('invoice_date')->nullable();
             $table->string('paf_no', 50)->nullable();  
