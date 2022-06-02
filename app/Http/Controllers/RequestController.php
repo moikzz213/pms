@@ -111,7 +111,11 @@ class RequestController extends Controller
     // Procuremnt Filter Search function
     public function filterSearch(Request $request){ 
         if($request['data']){
-        $data = Requests::where($request['data'])->with("company","location","process_by", "profile")->paginate(10);
+            if(@$request['data']['process_by'] == 'unassign'){
+                $data = Requests::where('process_by', null)->with("company","location","process_by", "profile")->paginate(10);
+            }else{
+                $data = Requests::where($request['data'])->with("company","location","process_by", "profile")->paginate(10);
+            }
         }else{
             $data = Requests::with("company","location","process_by", "profile")->orderBy("updated_at", "desc")->paginate(10); 
         }
@@ -212,11 +216,11 @@ class RequestController extends Controller
             ]);
 
             //procurementgroup@gagroup.net
-            $emails = 'procurementgroup@gagroup.net';
+            $emails = 'jacob@gagroup.net';
             $details = array("prf_no" => $prfNo, 'data' => $request['details'], 'user_id' => $request['user_id']);
             $rabbitArray = array("details" => $details, "email" => $emails, "subject" => "New Request");  
             
-           RequestToProcurement::dispatch($rabbitArray); 
+            RequestToProcurement::dispatch($rabbitArray); 
              
             $msg = "New request has been created!"; 
           
@@ -300,6 +304,21 @@ class RequestController extends Controller
             'status' => true,
             'message' => $msg
         ], 200); 
+    }
+
+    public function editData(Request $request){
+        $data = Requests::where('id', '=', $request['id'])->first(); 
+        $item = array("details" => $request['details']);
+        $data->update($item);  
+       
+        $arrDetail = array( "details" => $request['details'],
+            "created_at"    => Carbon::now()
+        );
+        $data->logs()->create([
+            'user_id' => $request['user_id'],
+            'log_type' => 'update',
+            'details' => json_encode($arrDetail)
+        ]);
     }
 
     public function showFile($path)

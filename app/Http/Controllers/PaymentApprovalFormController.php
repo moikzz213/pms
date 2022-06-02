@@ -32,7 +32,7 @@ class PaymentApprovalFormController extends Controller
      */
     public function fetch()
     {
-        $data = Payment_approval_form::with("paf_items.supplier","requests","process_by", "lpos", "company")->orderBy("updated_at", "desc")->paginate(10); 
+        $data = Payment_approval_form::with( "process_by", "lpos", "company")->orderBy("updated_at", "desc")->paginate(10); 
         
         return response()->json([
             'item' => $data 
@@ -43,9 +43,9 @@ class PaymentApprovalFormController extends Controller
         if($search !== '-'){
             $data = Payment_approval_form::where("paf_no", "LIKE", "%".$search."%")->orWhereHas('lpos', function ($q) use ($search){
                 $q->where("lpo_no", "LIKE", "%".$search."%");  
-            })->with("paf_items.supplier","requests","process_by", "lpos", "company")->paginate(10);
+            })->with(  "process_by", "lpos", "company")->paginate(10);
         }else{
-            $data = Payment_approval_form::with("paf_items.supplier","requests","process_by", "lpos", "company")->orderBy("updated_at", "desc")->paginate(10); 
+            $data = Payment_approval_form::with(  "process_by", "lpos", "company")->orderBy("updated_at", "desc")->paginate(10); 
         }
         return response()->json([
             'item' => $data 
@@ -55,9 +55,24 @@ class PaymentApprovalFormController extends Controller
     public function filterSearch(Request $request){ 
        
         if($request['data']){
-            $data = Payment_approval_form::where($request['data'])->with("paf_items.supplier","requests","process_by", "lpos", "company")->orderBy("updated_at", "desc")->paginate(10);
+            $searchSupplier = false;
+            $search = '';
+            if(@$request['data']['supplier_id']){
+                $searchSupplier = true;
+                $search = $request['data']['supplier_id'];
+            }
+            if($searchSupplier){
+                $data = Payment_approval_form::where($request['data'])->orWhereHas(
+                    'paf_items.supplier', function ($q) use ($search){
+                        $q->where("supplier_id", "=",  $search);  
+                    }
+                )->with( "process_by", "lpos", "company")->orderBy("updated_at", "desc")->paginate(10);
+            }else{
+
+                $data = Payment_approval_form::where($request['data'])->with( "process_by", "lpos", "company")->orderBy("updated_at", "desc")->paginate(10);
+            }
         }else{
-            $data = Payment_approval_form::with("paf_items.supplier","requests","process_by", "lpos", "company")->orderBy("updated_at", "desc")->paginate(10); 
+            $data = Payment_approval_form::with(  "process_by", "lpos", "company")->orderBy("updated_at", "desc")->paginate(10); 
         }
 
         return response()->json([
@@ -137,7 +152,9 @@ class PaymentApprovalFormController extends Controller
      */
     public function show(Request $request)
     {
-        $data = Payment_approval_form::where('id', '=', $request->id)->with("paf_items.supplier","requests","process_by", "company", 'paf_approvals.users.profile', 'paf_items', "images")->first(); 
+        $data = Payment_approval_form::where('id', '=', $request->id)->with(["paf_items.supplier","requests","process_by", "company", 'paf_approvals.users.profile', 'paf_items', "images", "paf_approvals"  => function($query){
+            $query->orderBy("orders", "ASC");
+        }])->first(); 
 
         return response()->json([
             'item' => $data 

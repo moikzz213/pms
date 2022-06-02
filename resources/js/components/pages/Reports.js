@@ -27,8 +27,8 @@ const paf_columns = [
     { id: "invoice_date", label: "INV. DATE", minWidth: 20 },
     { id: "supplier_invoice_num", label: "INV NO", minWidth: 20 },
     { id: "amount", label: "INV AMNT", minWidth: 20 },
-    { id: "item", label: "ITEM", minWidth: 20 }, 
-    { id: "department", label: "CATEGORY", minWidth: 20 }, 
+    { id: "item", label: "ITEM", minWidth: 20 },
+    { id: "department", label: "CATEGORY", minWidth: 20 },
     { id: "qty", label: "QTY", minWidth: 20 },
     { id: "unit_price", label: "UNIT PRICE", minWidth: 20 },
     { id: "vat", label: "VAT 5%", minWidth: 20 },
@@ -88,6 +88,7 @@ const Reports = () => {
     let dtDate = new Date(today).toLocaleDateString();
 
     const [reportYear, setReportYear] = useState(new Date().getFullYear());
+    const [assignYear, setAssignYear] = useState(new Date().getFullYear());
     const [fromDate, setFromDate] = useState(new Date(dtDate));
     const [toDate, setToDate] = useState(new Date());
     const [vtype, setVtype] = useState("prf");
@@ -128,7 +129,7 @@ const Reports = () => {
 
     const [reportData, setReportData] = useState([]);
     const [reportStatusData, setReportStatusData] = useState([]);
-
+    const [reportMonthlyData, setReportMonthlyData] = useState([]);
     function dataWithRelations(data) {
         let newData = [];
         let fData = [];
@@ -300,12 +301,12 @@ const Reports = () => {
                         supplier_invoice_num: o.supplier_invoice_num,
                         amount: o.amount,
                         item: o.description,
-                        department: o.lpo.department.title, 
+                        department: o.lpo.department.title,
                         qty: o.qty,
                         unit_price: o.unit_price,
                         vat: o.vat,
                         total: o.total_amount,
-                        supplier: o.paf.supplier.title,
+                        supplier: o.supplier ? o.supplier.title : "",
                         location: o.location,
                         company: o.paf.company.title,
                         rname: o.paf.process_by.name,
@@ -314,25 +315,21 @@ const Reports = () => {
                     };
                 }
                 fData[i] = {
-                   
-                    
                     PAFDate: new Date(o.created_at).toLocaleDateString(),
                     PAFNo: o.paf.paf_no,
                     Month: date.toLocaleString("en-us", { month: "long" }),
-                    LPODate: new Date(
-                        o.lpo.created_at
-                    ).toLocaleDateString(),
+                    LPODate: new Date(o.lpo.created_at).toLocaleDateString(),
                     LPONo: o.lpo.lpo_no,
                     InvDate: o.invoice_date,
                     InvNo: o.supplier_invoice_num,
                     InvAmnt: o.total_amount,
                     Item: o.description,
-                    Department: o.lpo.department.title, 
+                    Department: o.lpo.department.title,
                     Qty: o.qty,
                     UnitPrice: o.unit_price,
                     VAT: o.vat,
                     Total: o.total_amount,
-                    Supplier: o.paf.supplier.title,
+                    Supplier: o.supplier ? o.supplier.title : "",
                     Location: o.location,
                     Company: o.paf.company.title,
                     ProcessBy: o.paf.process_by.name,
@@ -424,6 +421,18 @@ const Reports = () => {
             if (response.data) {
                 let fetchItems = response.data.item;
                 setReportStatusData(fetchItems);
+            }
+        });
+    };
+
+    const handleProcessedReport = (e) => {
+        let search = { year: assignYear };
+        setReportMonthlyData([]);
+        API.post("/v/report/monthly/counts", search).then((response) => {
+            if (response.data) {
+                let fetchItems = response.data.item;
+                console.log(fetchItems);
+                setReportMonthlyData(fetchItems);
             }
         });
     };
@@ -637,7 +646,10 @@ const Reports = () => {
                 </Box>
             </Stack>
             <Box>
-                <small>Showing maximum records of 100 only. </small>{" "}
+                <small>
+                    Showing maximum records of 100 only. Download to view all
+                    data.{" "}
+                </small>
                 <small style={{ float: "right", marginRight: "20px" }}>
                     {"Total Record(s): " + totalData}
                 </small>
@@ -705,7 +717,7 @@ const Reports = () => {
                 variant="contained"
                 onClick={(e) => handleStatusReport(e)}
             >
-                Show Data
+                Filter by
             </Button>
             <TextField
                 sx={{ m: 1, width: 120 }}
@@ -721,13 +733,11 @@ const Reports = () => {
                 <option value={currentYear}> {currentYear} </option>
                 <option value={year1}> {year1} </option>
                 <option value={year2}> {year2} </option>
-                <option value={year3}> {year3} </option>
-                <option value={year4}> {year4} </option>
             </TextField>
 
             <Paper sx={{ width: "100%", overflow: "hidden" }}>
                 <TableContainer sx={{ maxHeight: 620 }}>
-                    <Table stickyHeader aria-label="sticky table">
+                    <Table stickyHeader aria-label="sticky table" className="dense-table">
                         <TableHead>
                             <TableRow>
                                 {statusReport.map((column) => (
@@ -779,6 +789,105 @@ const Reports = () => {
                                 })}
                             {!reportStatusData ||
                                 (reportStatusData.length == 0 && (
+                                    <TableRow key="norecord">
+                                        <TableCell key="no-record" colSpan="6">
+                                            No record found.
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
+            </Paper>
+            <br />
+            <Button
+                size="small"
+                sx={{ verticalAlign: "bottom", mb: 2 }}
+                variant="contained"
+                color="secondary"
+                onClick={(e) => handleProcessedReport(e)}
+            >
+                Filter by
+            </Button>
+            <TextField
+                sx={{ m: 1, width: 120 }}
+                select
+                size="small"
+                label="Year"
+                value={assignYear}
+                onChange={(e) => setAssignYear(e.target.value)}
+                SelectProps={{
+                    native: true,
+                }}
+            >
+                <option value={currentYear}> {currentYear} </option>
+                <option value={year1}> {year1} </option>
+                <option value={year2}> {year2} </option>
+            </TextField>
+
+            <Paper sx={{ width: "100%", overflow: "hidden" }}>
+                <TableContainer sx={{ maxHeight: 820 }}>
+                    <Table stickyHeader aria-label="sticky table" className="dense-table">
+                        <TableHead>
+                            <TableRow>
+                                <TableCell key="month">MONTH</TableCell>
+                                {processBy.map((column) => (
+                                    <TableCell
+                                        key={column.id}
+                                        align={column.align}
+                                        id={column.id}
+                                        style={{ minWidth: column.minWidth }}
+                                    >
+                                        {column.name}
+                                    </TableCell>
+                                ))}
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {reportMonthlyData &&
+                                reportMonthlyData.map((row, index) => {
+                                    return (
+                                        <TableRow
+                                            hover
+                                            role="checkbox"
+                                            tabIndex={-1}
+                                            key={row.month}
+                                        >
+                                            <TableCell key={row.month}>
+                                                {row.month}
+                                            </TableCell>
+                                            {processBy.map((column) => {
+                                                let value = "-";
+                                                return (
+                                                    <TableCell
+                                                        key={
+                                                            row.month +
+                                                            column.id +
+                                                            index
+                                                        }
+                                                    >
+                                                        {row.data.map((r2) => {
+                                                            r2.id == column.id
+                                                                ? (value =
+                                                                      r2.count)
+                                                                : (value = "");
+
+                                                            return (
+                                                                <span>
+                                                                    {value !== 0
+                                                                        ? value
+                                                                        : "-"}
+                                                                </span>
+                                                            );
+                                                        })}
+                                                    </TableCell>
+                                                );
+                                            })}
+                                        </TableRow>
+                                    );
+                                })}
+                            {!setReportMonthlyData ||
+                                (setReportMonthlyData.length == 0 && (
                                     <TableRow key="norecord">
                                         <TableCell key="no-record" colSpan="6">
                                             No record found.

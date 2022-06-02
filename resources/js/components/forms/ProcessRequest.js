@@ -203,7 +203,7 @@ export default function ProcessRequest({id, logged}) {
                             </Grid>
                             {/* new row */}
 
-                            <Grid item xs={12} md={2}>
+                            <Grid item xs={12} md={12}>
                             <strong>Attachment(s): </strong>
                             {image.map((row, index) => {
                                      return(
@@ -296,12 +296,14 @@ export default function ProcessRequest({id, logged}) {
                                 <br/><br/>
                                 <small style={{color: "red"}}>Procurement Team needs to manually closed the request.</small> <br/>
                                 <small>Once the request has been <b>cancelled/closed</b> it will no longer be updated.</small> <br/>
-                                <small>Only the requestor can re-open the request if it has been cancelled.</small>
+                                <small>Only the requestor can re-open the request if it has been cancelled.</small><br/>
+                                <small><b>ONHOLD/PENDING STATUS</b> enable requestor to edit their request</small>
                             </Grid>
                              </>
                              : <Grid item xs={12} md={6}>
                                 <small>Once the request has been <b>cancelled/closed</b> it will no longer be updated.</small> <br/>
-                                <small>Only the requestor can re-open the request if it has been cancelled.</small>
+                                <small>Only the requestor can re-open the request if it has been cancelled.</small><br/>
+                                <small><b>ONHOLD/PENDING STATUS</b> enable requestor to edit their request</small>
                              </Grid>  }
                         </Grid>
                     </Grid>

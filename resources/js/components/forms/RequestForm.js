@@ -4,7 +4,7 @@ import axios from "axios";
 import Paper from "@mui/material/Paper";
 import Box from "@mui/material/Box";
 import Grid from "@mui/material/Grid";
-import TextareaAutosize from "@mui/base/TextareaAutosize";
+
 import TextField from "@mui/material/TextField";
 import LoadingButton from "@mui/lab/LoadingButton";
 import Snackbar from "@mui/material/Snackbar";
@@ -76,7 +76,7 @@ export default function RequestForm({ logged }) {
     const [time, setTime] = useState(curTime);
 
     const [loading, setLoading] = useState(false);
-    const [urgency, setUrgency] = useState();
+    const [urgency, setUrgency] = useState(3);
     const [location, setLocation] = useState([
         {
             id: null,
@@ -94,7 +94,7 @@ export default function RequestForm({ logged }) {
     const [objData, setObjData] = useState([
         {
             company_id: "",
-            urgency: "",
+            urgency: 3,
             location_id: "",
             details: "",
         },
@@ -103,7 +103,7 @@ export default function RequestForm({ logged }) {
     //Dropzone
 
     const onDrop = useCallback(
-        (acceptedFiles) => {
+        (acceptedFiles, fuck) => { 
             setFiles(acceptedFiles);
         },
         [setFiles]
@@ -111,6 +111,7 @@ export default function RequestForm({ logged }) {
 
     const { acceptedFiles, getRootProps, getInputProps } = useDropzone({
         onDrop,
+        accept: 'image/jpeg, image/png, application/pdf'
     });
 
     const acceptedFileItems = acceptedFiles.map((file) => (
@@ -128,6 +129,7 @@ export default function RequestForm({ logged }) {
             value = e.target.value;
         }
         
+        
         let objAssign = Object.assign([], objData);
 
         let data = objAssign.map((o, i) => {
@@ -136,6 +138,7 @@ export default function RequestForm({ logged }) {
                 o.company_id = value;
             } else if (type == "urgency") {
                 o.urgency = value;
+                setUrgency(value)
             } else if (type == "location") {
                 o.location_id = value;
             } else if (type == "details") {
@@ -368,10 +371,10 @@ export default function RequestForm({ logged }) {
                                         native: true,
                                     }}
                                 >
-                                    <option value=""> - </option>
-                                    <option value="1"> 1 </option>
-                                    <option value="2"> 2 </option>
-                                    <option value="3"> 3 </option>
+                                    
+                                    <option value="1"> 1. High </option>
+                                    <option value="2"> 2. Medium </option>
+                                    <option value="3"> 3. Normal </option>
                                 </TextField>
                             </Grid>
                         </Grid>
@@ -465,11 +468,11 @@ export default function RequestForm({ logged }) {
                                 <div {...getRootProps()} className="dropzone">
                                     <input {...getInputProps()} />
                                     <p>
-                                        Drag 'n' drop some files here, or click
-                                        to select files
+                                        <h3>Drag 'n' drop some files here, or click
+                                        to select files</h3>
                                     </p>
                                     <em>
-                                        (Only *.jpeg, *.jpg and *.png images
+                                        (Only *.jpeg, *.jpg, *.png images &amp; *.pdf
                                         will be accepted)
                                     </em>
                                 </div>

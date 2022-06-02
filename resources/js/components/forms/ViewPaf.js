@@ -40,6 +40,10 @@ const ViewPaf = ({ id, logged }) => {
         title: "",
         message: "",
     });
+    const { vertical, horizontal } = {
+        vertical: "bottom",
+        horizontal: "center",
+    };
     const [loading, setLoading] = useState(false);
     const handleClose = (event, reason) => {
         if (reason === "clickaway") {
@@ -67,6 +71,10 @@ const ViewPaf = ({ id, logged }) => {
                 img = "/logo/gallega.png";
             }else if( fetchItems.company && (fetchItems.company.title).toLowerCase().includes("buygro")){
                 img = "/logo/buygro.png";
+            }else if( fetchItems.company && (fetchItems.company.title).toLowerCase().includes("trade platform")){
+                img = "/logo/buygro.png";
+            }else if( fetchItems.company && (fetchItems.company.title).toLowerCase().includes("auto platform")){
+                img = "/logo/autotrade.png";
             }else if( fetchItems.company && (fetchItems.company.title).toLowerCase().includes("catering")){
                 img = "/logo/catering.png";
             }else if( fetchItems.company && (fetchItems.company.title).toLowerCase().includes("crystal")){
@@ -217,6 +225,7 @@ const ViewPaf = ({ id, logged }) => {
             <Snackbar
                     open={open}
                     autoHideDuration={4000}
+                    anchorOrigin={{ vertical, horizontal }}
                     onClose={handleClose}
                 >
                     <Alert
@@ -319,7 +328,7 @@ const ViewPaf = ({ id, logged }) => {
                                 </tbody>
                             </table>
                         </Grid>
-                        <Grid item md={6} sx={{ paddingTop: "0 !important" }}>
+                        <Grid item md={6} sx={{ paddingTop: "0 !important", maxHeight:95 }}>
                             <table
                                 className="normal-table table-small"
                                 cellSpacing="0"
@@ -344,7 +353,7 @@ const ViewPaf = ({ id, logged }) => {
                                 </tbody>
                             </table>
                         </Grid>
-                        <Grid item md={6} sx={{ paddingTop: "0!important" }}>
+                        <Grid item md={6} sx={{ paddingTop: "0!important", maxHeight:95 }}>
                             <table
                                 className="normal-table table-small"
                                 cellSpacing="0"
@@ -373,7 +382,7 @@ const ViewPaf = ({ id, logged }) => {
                         </Grid>
                     </Grid>
                     {/* Table - Items */}
-                    <Grid container spacing={2} sx={{ py: 3 }}>
+                    <Grid container spacing={2} sx={{ py: 3, my:"0 !important" }}>
                         <Grid item md={12} sm={12} xs={12}>
                             <table
                                 className="normal-table table-small"
@@ -383,11 +392,11 @@ const ViewPaf = ({ id, logged }) => {
                                     <tr>
                                         <th
                                             className="text-center"
-                                            style={{ width: 50 }}
+                                            style={{ width: 35 }}
                                         >
                                             SR #
                                         </th>
-                                        <th className="text-center">
+                                        <th className="text-center" style={{ width: 100 }}>
                                             SUPPLIER NAME
                                         </th>
                                         <th className="text-center">
@@ -413,7 +422,7 @@ const ViewPaf = ({ id, logged }) => {
                                         </th>
                                         <th
                                             className="text-center"
-                                            style={{ width: 70 }}
+                                            style={{ width: 50 }}
                                         >
                                             UNIT PRICE
                                         </th>
@@ -423,9 +432,9 @@ const ViewPaf = ({ id, logged }) => {
                                         <th className="text-center">VAT 5%</th>
                                         <th
                                             className="text-center"
-                                            style={{ width: 150 }}
+                                            style={{ width: 55 }}
                                         >
-                                            TOTAL AMOUNT IN {items.currency}
+                                            TOTAL AMOUNT({items.currency})
                                         </th>
                                     </tr>
                                 </thead>
@@ -437,16 +446,18 @@ const ViewPaf = ({ id, logged }) => {
                                                     <td className="text-center">
                                                         {index + 1}
                                                     </td>
-                                                    {items.supplier_count < 2 && ( 
-                                                    <td className="text-center" rowSpan={items.supplier_count}>
-                                                      {row.supplier.title}
+                                                    {items.supplier_count < 2 &&   index == 0 && ( 
+                                                    <td className="text-center" rowSpan={index < items.paf_items.length  ? items.paf_items.length : ""}>
+                                                      {row.supplier ? row.supplier.title : ""}
                                                     </td>
                                                     )}
-                                                     {items.supplier_count > 1 &&( 
+                                                      
+                                                     {items.supplier_count > 1 && ( 
                                                     <td className="text-center" >
-                                                      {row.supplier.title}
+                                                      {row.supplier ? row.supplier.title : ""}
                                                     </td>
-                                                    )}
+                                                    )} 
+
                                                     <td className="text-center">
                                                         {row.location}
                                                     </td>
@@ -456,7 +467,7 @@ const ViewPaf = ({ id, logged }) => {
                                                     <td className="text-center">
                                                         {row.description}
                                                     </td>
-                                                    <td className="text-right">
+                                                    <td className="text-center">
                                                     {new Date(
                                                             row.invoice_date
                                                         ).toLocaleDateString()}
@@ -467,7 +478,7 @@ const ViewPaf = ({ id, logged }) => {
                                                         {(row.amount).toFixed(2)}
                                                     </td>
                                                     <td className="text-center">{row.vat}</td>
-                                                    <td className="text-center">{row.total_amount ? (row.total_amount).toFixed(2) : '0.00'}</td>
+                                                    <td className="text-right">{row.total_amount ? (row.total_amount).toFixed(2) : '0.00'}</td>
                                                 </tr>
                                             );
                                         })}
@@ -478,7 +489,7 @@ const ViewPaf = ({ id, logged }) => {
                     </Grid>
 
                     {/* Remarks - Net Amount */}
-                    <Grid container spacing={2} sx={{ pb: 3 }}>
+                    <Grid container spacing={2} sx={{ pb: "2px", pt: 0,mt:0, maxHeight: 125 }}>
                         <Grid item md={12} xs={12}>
                             <table
                                 className="normal-table table-small"
@@ -486,7 +497,7 @@ const ViewPaf = ({ id, logged }) => {
                             >
                                 <tbody>
                                     <tr>
-                                        <td width="70%" style={{verticalAlign:"top"}}>{items.remarks_general}</td>
+                                        <td width="70%" style={{verticalAlign:"top"}}><pre>{items.remarks_general}</pre></td>
                                         <td style={{ padding: 0, margin: 0 }}>
                                             <table width="100%" cellSpacing="0">
                                                 <tbody>
@@ -572,7 +583,7 @@ const ViewPaf = ({ id, logged }) => {
                     </Grid>
 
                     {/* Remarks */}
-                    <Grid container spacing={2} sx={{ pb: 3 }}>
+                    <Grid container spacing={2} sx={{ pb: "2px", maxHeight: 95}}>
                         <Grid item xs={12} md={12}>
                             <table
                                 className="normal-table table-small"
@@ -601,7 +612,9 @@ const ViewPaf = ({ id, logged }) => {
                     <Box
                         className="budget-area"
                         sx={{
-                            mb: 2,
+                            py: 0,
+                            mt:0,
+                            mb: "2px",
                             backgroundColor: "#e7e7e7",
                             textAlign: "center",
                         }}
@@ -637,7 +650,7 @@ const ViewPaf = ({ id, logged }) => {
                                         mt: 1,
                                         width: "auto",
                                         minWidth: "11%",
-                                        maxWidth: "130px"
+                                        maxWidth: "160px"
                                     }}
                                     key={row.id}
                                 >
@@ -646,7 +659,7 @@ const ViewPaf = ({ id, logged }) => {
                                     ></Box>
                                     <br />
                                     <small>{row.type}</small> <br />
-                                    <small>{row.name}</small>
+                                    <span className="approval-name">{row.name.toLowerCase()} </span>
                                     <br />
                                     <small>{row.designation}</small>
                                 </Grid>

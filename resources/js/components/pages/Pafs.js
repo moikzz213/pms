@@ -22,12 +22,9 @@ import Autocomplete from "@mui/material/Autocomplete";
 const columns = [
     { id: "status", label: "STATUS", minWidth: 20 },
     { id: "paf_no", label: "PAF NO.", minWidth: 30 },
-    { id: "lpo_no", label: "LPO NO.", minWidth: 30 },
-    { id: "invoice_no", label: "INV NO.", minWidth: 30 },
-    { id: "invoice_date", label: "INV Date", minWidth: 30 },
-    { id: "net_amount", label: "INV AMNT(AED)", minWidth: 30 },
-    { id: "company", label: "Business Unit", minWidth: 50 },
-    { id: "supplier", label: "Supplier", minWidth: 50 },
+    { id: "lpo_no", label: "LPO/PRF NO.", minWidth: 30 }, 
+    { id: "net_amount", label: "NET AMNT(AED)", minWidth: 30 },
+    { id: "company", label: "Business Unit", minWidth: 50 }, 
     { id: "process_by", label: "PROCESSED BY", minWidth: 50 },
     { id: "created_at", label: "Date", minWidth: 20 },
 ]; 
@@ -75,8 +72,7 @@ const Pafs = () => {
             status: "",
             lpo_no: "",
             paf_no: "",
-            company: "",
-            supplier: "",
+            company: "", 
             process_by: "", 
             created_at: "",
         },
@@ -122,7 +118,7 @@ const Pafs = () => {
                 lpo_no: lpo,
                 paf_no: o.paf_no,
                 net_amount: o.net_amount,
-                supplier: o.supplier ? o.supplier.title : "",
+                
                 company:o.company ? o.company.title : "",
                 process_by: o.process_by ? o.process_by.name : "",
                 created_at: new Date(o.created_at).toLocaleDateString(),
@@ -367,6 +363,7 @@ const Pafs = () => {
                             p: "2px 4px",
                             display: "flex",
                             alignItems: "center",
+                            borderLeft: "1px solid #ccc"
                         }}
                     >
                         <TextField

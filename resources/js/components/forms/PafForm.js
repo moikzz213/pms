@@ -13,6 +13,7 @@ import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import TextareaAutosize from "@mui/base/TextareaAutosize";
 import IconButton from "@mui/material/IconButton";
+import Autocomplete from "@mui/material/Autocomplete";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AdapterDateFns from "@mui/lab/AdapterDateFns";
 import LocalizationProvider from "@mui/lab/LocalizationProvider";
@@ -77,6 +78,11 @@ const PafForm = ({ logged }) => {
         title: "",
         message: "",
     });
+
+    const { vertical, horizontal } = {
+        vertical: "bottom",
+        horizontal: "center",
+    };
 
     const [loading, setLoading] = useState(false);
     const handleClose = (event, reason) => {
@@ -190,7 +196,7 @@ const PafForm = ({ logged }) => {
             net_amount: 0,
             remarks_general: "",
             amount_in_words: "",
-            approval_limit_payment: "",
+            approval_limit_payment: "Up to AED 50,000 by Finance Manager, above AED 50,000 to AED 200,000 by Finance Director & all above by CEO & CFO Jointly.",
             remarks_finance: "",
             status: "onprocess",
         },
@@ -244,9 +250,16 @@ const PafForm = ({ logged }) => {
             selected.map((o, i) => {
                 fff[i] = mapFilterData(prfList, o);
             });
+            
             setItemPRF(fff); 
-        }
 
+            if (selected.length == 1) { 
+                let dataAssign = Object.assign([], objData); 
+                dataAssign[0].company_id = fff[0].company_id; 
+                setObjData(dataAssign);
+            }
+        }
+        
         setPrfs(
             // On autofill we get a stringified value.
             typeof selected === "string" ? selected.split(",") : selected
@@ -282,7 +295,7 @@ const PafForm = ({ logged }) => {
 
             if (selected.length == 1) {
                 let supp = mapFilterData(lpoList, selected);
-                console.log(supp);
+               
                 supplier = supp.supplier_id;
                 company = supp.billing_details_id;
                 setSupplier([supplier]);
@@ -329,15 +342,15 @@ const PafForm = ({ logged }) => {
         setApprovalRows(tempRows);
     };
 
-    const handleApproveEmployee = (event, index) => {
-        let selected = event.target.value;
-
+    const handleApproveEmployee = (event, index, val) => {
+        let selected = val;
+        
         let tempRows = approvalRows.map((o, i) => {
             if (i == index) {
                 o.user_id = selected;
             }
             return o;
-        });
+        });  
         setApprovalRows(tempRows);
 
         let validatedData = validate.map((o, i) => {
@@ -679,21 +692,26 @@ const PafForm = ({ logged }) => {
 
         newData = Object.assign({}, newData);
         let newTablerow = Object.assign([], tableRows);
-        let newItems = newTablerow.map((o, i) => {
+        let newItems = newTablerow.map((o, i) => { 
             delete o["row"];
             return o;
         });
 
-        let prepend_prepared_by = {
+        let prepend_prepared_by = [{
             approval_type: "prepared_by",
             user_id: preparedBy.user_id,
-        };
-        approvalRows.unshift(prepend_prepared_by);
-
+        }];
+        //approvalRows.unshift(prepend_prepared_by);
+        console.log(prepend_prepared_by);
+       
+        
         let newApproval = approvalRows.map((o, i) => {
+            o['user_id'] = o.user_id.id
             delete o["row"];
             return o;
         });
+
+        newApproval = [...prepend_prepared_by, ...newApproval];
 
         let dataSubmit = [
             {
@@ -708,7 +726,7 @@ const PafForm = ({ logged }) => {
         
         API.post("/v/payment-approval-form/new", dataSubmit)
             .then((response) => {
-                console.log(response.data);
+               
                 setOpen(true);
                 setTimeout(() => {
                     newMessage = {
@@ -721,10 +739,11 @@ const PafForm = ({ logged }) => {
 
                 setTimeout(() => {
                     // Route to Edit by id
-                    navigate(
-                        "/d/procurement-team/payment-approval-forms/id/" +
-                            response.data.id
-                    );
+                    // navigate(
+                    //     "/d/procurement-team/payment-approval-forms/id/" +
+                    //         response.data.id
+                    // );
+                    window.location.href =    "/d/procurement-team/payment-approval-forms/id/" +  response.data.id;
                 }, 1000);
             })
             .catch((error) => {
@@ -740,14 +759,12 @@ const PafForm = ({ logged }) => {
 
     const handleRelation = (e) => {
         setRelation(e.target.value);
-        setSupplier("");
-        if (e.target.value == "prf") {
-            setLpo("");
-            setPrfs([]);
+        setSupplier([]);
+        if (e.target.value == "prf") { 
+            setLpo([]);
             setItemLPO([]);
         } else {
-            setPrfs("");
-            setLpo([]);
+            setPrfs([]); 
             setItemPRF([]);
         }
 
@@ -811,6 +828,7 @@ const PafForm = ({ logged }) => {
                 <Snackbar
                     open={open}
                     autoHideDuration={4000}
+                    anchorOrigin={{ vertical, horizontal }}
                     onClose={handleClose}
                 >
                     <Alert
@@ -1153,15 +1171,15 @@ const PafForm = ({ logged }) => {
                             >
                                 <TableHead>
                                     <TableRow>
-                                        <TableCell>LPO/PRF</TableCell>
+                                        <TableCell>LPO/PRF*</TableCell>
                                         <TableCell>LOCATION</TableCell>
-                                        <TableCell>SUPPLIER</TableCell>
+                                        <TableCell>SUPPLIER*</TableCell>
                                         <TableCell>SUPPLIER INVOICE#</TableCell>
                                         <TableCell>DESCRIPTION</TableCell>
                                         <TableCell>S/N</TableCell>
                                         <TableCell>INVOICE DATE</TableCell>
-                                        <TableCell>QTY</TableCell>
-                                        <TableCell>UNIT PRICE</TableCell>
+                                        <TableCell>QTY*</TableCell>
+                                        <TableCell>UNIT PRICE*</TableCell>
                                         <TableCell>TOTAL AMOUNT</TableCell>
                                         <TableCell>{vatLabel}% VAT</TableCell>
                                         <TableCell>
@@ -1255,7 +1273,7 @@ const PafForm = ({ logged }) => {
                                                     <TextField
                                                         select
                                                         size="small"
-                                                        label="Supplier"
+                                                        label="Supplier*"
                                                         onChange={(e) =>
                                                             handleItemData(
                                                                 e,
@@ -1777,42 +1795,56 @@ const PafForm = ({ logged }) => {
                                                         </TextField>
                                                     </TableCell>
                                                     <TableCell>
-                                                        <TextField
-                                                            select
-                                                            size="small"
-                                                            label="Approval"
-                                                            name="employee"
+                                                    <Autocomplete
+                                                            disablePortal
+                                                            fullWidth
+                                                            sx={{ m: 0 }}
+                                                            options={
+                                                                employees
+                                                            }
+                                                            getOptionLabel={(
+                                                                contact
+                                                            ) =>
+                                                                contact
+                                                                    ? contact.name
+                                                                    : ""
+                                                            }
                                                             value={row.user_id}
-                                                            onChange={(e) =>
-                                                                handleApproveEmployee(
+                                                            size="small"
+                                                            onChange={( e, val ) =>
+                                                            handleApproveEmployee(
                                                                     e,
-                                                                    index
+                                                                    index,
+                                                                    val
                                                                 )
                                                             }
-                                                            SelectProps={{
-                                                                native: true,
-                                                            }}
-                                                        >
-                                                            <option value="">
-                                                                -
-                                                            </option>
-                                                            {employees.map(
-                                                                (option) => (
-                                                                    <option
+                                                            renderOption={(
+                                                                props,
+                                                                option
+                                                            ) => {
+                                                                return (
+                                                                    <li
+                                                                        {...props}
                                                                         key={
-                                                                            option.id
-                                                                        }
-                                                                        value={
                                                                             option.id
                                                                         }
                                                                     >
                                                                         {
                                                                             option.name
                                                                         }
-                                                                    </option>
-                                                                )
+                                                                    </li>
+                                                                );
+                                                            }}
+                                                            renderInput={(
+                                                                params
+                                                            ) => (
+                                                                <TextField
+                                                                    {...params}
+                                                                    label="Approval*"
+                                                                    fullWidth
+                                                                />
                                                             )}
-                                                        </TextField>
+                                                        />
                                                     </TableCell>
                                                     <TableCell
                                                         sx={{

@@ -110,6 +110,7 @@ Route::get('/v/profile/procurements/profile_users', [ProfileController::class, '
 
 // Request
 Route::post('/v/request/update-status', [RequestController::class, 'updateStatus'])->name('request.update.status');
+Route::post('/v/request/edit-data', [RequestController::class, 'editData'])->name('request.edit.data');
 Route::post('/v/request/new', [RequestController::class, 'store'])->name('request.new');
 Route::get('/v/request/fetch/{id}', [RequestController::class, 'show'])->name('request.show');
 Route::get('/v/request/fetch-all/{token}', [RequestController::class, 'fetch'])->name('request.fetch.paginate');
@@ -153,3 +154,5 @@ Route::post('/v/report/prf', [RequestController::class, 'reportTable'])->name('r
 Route::post('/v/report/lpo', [LocalPurchaseOrderController::class, 'reportTable'])->name('report.lpo.table');
 Route::post('/v/report/paf', [PaymentApprovalFormController::class, 'reportTable'])->name('report.paf.table');
 Route::post('/v/report/statuses/counts', [UserController::class, 'fetchProcurement'])->name('report.statuses.counts');
+
+Route::post('/v/report/monthly/counts', [UserController::class, 'fetchProcurementMonthly'])->name('report.monthly.counts');

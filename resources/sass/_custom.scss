@@ -14,6 +14,7 @@ tr.flagged:hover{  background-color: #2e2c2c !important; }
 .text-uppercase { text-transform: uppercase;}
 .mt-0 { margin-top: 0;}
 .mb-0 { margin-bottom: 0}
+.mb-2{ margin-bottom: 2px !important;}
 .dense-table td{ padding: 10px 15px; font-size: 12px; }
 .report-table th,.report-table td{ padding:10px 8px; font-size:9px !important; vertical-align: top;}
 .report-page select, .report-page option { font-size:10px;}
@@ -28,7 +29,7 @@ table tr button.remove{ display: none; color: red;}
 table tr:hover button.remove{ display: inline-flex;}
 table.normal-table td, table.normal-table th { border: 0.1px solid rgb(174, 173, 173); text-align: left; font-size:12px; padding: 2px 5px; }
 table.normal-table{ width: 100%;}
-.logo{ min-width: 300px; max-width: 350px;}
+.logo{ min-width: 200px; max-width: 350px;}
 .paf-logo{ min-width: 120px; max-width: 150px;}
 .request-desc table{ width: 100%; border-spacing: 0;}
 .request-desc table td{ border: 1px solid #cecece; padding:2px 5px; margin: 0;}
@@ -50,13 +51,16 @@ table.normal-table{ width: 100%;}
 .row-data .action-btn{ display: none;}
 .row-data:hover .action-btn{ display: block; text-align: right;}
 .row-data:hover .td-action-btn { width: 80px; }
-.dropzone{ background: #efefef; padding:30px; text-align: center; border: 1px solid #dfdfdf;}
+.dropzone{ background: #f3f3f3; padding:30px; text-align: center; border: 1px solid #cecece;}
 .underlined { text-decoration: underline;}
 .font-weight-bold { font-weight: bold; text-transform: uppercase;}
 .justify-content-left{ justify-content: left !important;}
 .request-desc .inner-request{overflow-x: scroll;}
-.css-1ct6ytl-MuiButtonBase-root-MuiMenuItem-root.Mui-selected { background-color: #c6a92d !important; color: #fff !important;}
+.css-1ct6ytl-MuiButtonBase-root-MuiMenuItem-root.Mui-selected, li .Mui-selected{ background-color: #c6a92d !important; color: #fff !important;}
+pre { margin: 0;}
+.approval-name{ text-transform: capitalize;}
 @media print{
+   
     * { overflow: auto !important; float: none !important; overflow: visible !important;}
      .main-container{  margin:0 !important; padding:0 !important;  }
      .main-container .MuiPaper-root{ box-shadow: none; }
@@ -69,17 +73,21 @@ table.normal-table{ width: 100%;}
         -webkit-print-color-adjust: exact; 
         font-size:11px !important;
       } 
-    
-   .MuiGrid-container, .MuiGrid-item, div{ padding-bottom: 5px !important; padding-top: 0 !important; margin-top:0 !important; margin-bottom:0 !important;}
+      .parent-container{ margin-top:30px !important;}
+      .paf-table{ margin-top: 10px !important}
+    .payment-container{ max-height: 102px !important;}
+   .MuiGrid-container, .MuiGrid-item, div, table{ padding-bottom: 5px !important; padding-top: 0 !important; margin-top:-2px !important; margin-bottom:0 !important;}
+   .budget-area{ margin-bottom: 0 !important; border-bottom: 1px solid #000 !important;}
    table{ width: 100% !important;}
-    .delivery-term{ min-height: 150px !important; max-height: 167px !important;}
+    .delivery-term{ min-height: 92px !important; max-height: 93px !important;}
     body {
         min-width: 992px !important; 
        
     } 
     pre {
-        border: 1px solid #adb5bd;
-        page-break-inside: avoid
+        border: 0;
+        page-break-inside: avoid;
+        margin:0;
     }
     thead {
         display: table-header-group
@@ -106,7 +114,7 @@ table.normal-table{ width: 100%;}
     }
     h4,h5,h6{ font-size: 11px !important;}
     
-    .budget-area{ margin-bottom: 0 !important;}
+   
     .table-paf-no { margin-bottom: 5px !important; margin-top: auto !important; }
     .paf-description{ width: 30%;}
     .process-request{ margin: 30px 20px !important;}

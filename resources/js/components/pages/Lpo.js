@@ -367,6 +367,7 @@ const Lpo = () => {
                             p: "2px 4px",
                             display: "flex",
                             alignItems: "center",
+                            borderLeft: "1px solid #ccc"
                         }}
                     >
                         <TextField

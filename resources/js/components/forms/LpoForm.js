@@ -94,6 +94,11 @@ const LpoForm = ({ logged }) => {
         message: "",
     });
 
+    const { vertical, horizontal } = {
+        vertical: "bottom",
+        horizontal: "center",
+    };
+
     const [loading, setLoading] = useState(false);
     const [preparedBy, setPreparedBy] = useState({});
 
@@ -128,7 +133,7 @@ const LpoForm = ({ logged }) => {
             id: "reviewed_by",
             title: "Reviewed By",
         },
-        
+
         {
             id: "verified_by",
             title: "Verified By",
@@ -479,22 +484,21 @@ const LpoForm = ({ logged }) => {
         setApprovalRows(tempRows);
     };
 
-    const handleApproveEmployee = (e, index) => {
-        let selected = e.target.value;
-
+    const handleApproveEmployee = (e, index, val) => {
+        let selected = val;
+        
         let tempRows = approvalRows.map((o, i) => {
             if (i == index) {
                 o.user_id = selected;
             }
             return o;
-        });
-
+        });  
         setApprovalRows(tempRows);
     };
 
     const handleFreeText = (e, val, type) => {
         let value = e.target.value;
-      
+
         let dataAssign = Object.assign([], objData);
         let newData = dataAssign.map((o, i) => {
             if (type == "remarks_general") {
@@ -817,8 +821,9 @@ const LpoForm = ({ logged }) => {
             title: "info",
             message: "Please wait...",
         };
-        setSeverity(newMessage);
-
+        setSeverity(newMessage); 
+        
+        
         let dataAssign = Object.assign([], objData);
         let newData = dataAssign.map((o, i) => {
             o.supplier_id = supplier ? supplier : "";
@@ -844,17 +849,21 @@ const LpoForm = ({ logged }) => {
             return o;
         });
 
-        let prepend_prepared_by = {
+        let prepend_prepared_by = [{
             approval_type: "prepared_by",
             user_id: preparedBy.user_id,
-        };
-        approvalRows.unshift(prepend_prepared_by);
-
-        let newApproval = approvalRows.map((o, i) => {
+        }];
+         
+        //approvalRows.unshift(prepend_prepared_by);
+       
+        let  newApproval = approvalRows.map((o, i) => {
+            o['user_id'] = o.user_id.id
             delete o["row"];
             return o;
         });
 
+        newApproval = [...prepend_prepared_by, ...newApproval];
+        console.log(newApproval);
         let dataSubmit = [
             {
                 details: newData,
@@ -880,10 +889,8 @@ const LpoForm = ({ logged }) => {
 
                 setTimeout(() => {
                     // Route to Edit by id
-                    navigate(
-                        "/d/procurement-team/local-purchase-orders/id/" +
-                            response.data.id
-                    );
+                   
+                    window.location.href =   "/d/procurement-team/local-purchase-orders/id/" +  response.data.id;
                 }, 1000);
             })
             .catch((error) => {
@@ -903,6 +910,7 @@ const LpoForm = ({ logged }) => {
                 <Snackbar
                     open={open}
                     autoHideDuration={4000}
+                    anchorOrigin={{ vertical, horizontal }}
                     onClose={handleClose}
                 >
                     <Alert
@@ -1150,7 +1158,9 @@ const LpoForm = ({ logged }) => {
                                 fullWidth
                                 sx={{ m: 0 }}
                                 options={department}
-                                getOptionLabel={(employees) => employees.title}
+                                getOptionLabel={(department) =>
+                                    department.title
+                                }
                                 size="small"
                                 onChange={(e, value) =>
                                     handleFreeText(e, value, "department")
@@ -1180,8 +1190,8 @@ const LpoForm = ({ logged }) => {
                             >
                                 <TableHead>
                                     <TableRow>
-                                        <TableCell>Category</TableCell>
-                                        <TableCell>Item</TableCell>
+                                        <TableCell>Category*</TableCell>
+                                        <TableCell>Item*</TableCell>
                                         <TableCell>Specification</TableCell>
                                         <TableCell>Qty</TableCell>
                                         <TableCell>UOM</TableCell>
@@ -1208,7 +1218,7 @@ const LpoForm = ({ logged }) => {
                                                         }}
                                                         select
                                                         size="small"
-                                                        label="Category"
+                                                        label="Category*"
                                                         name="category"
                                                         value={row.category_id}
                                                         onChange={(e) =>
@@ -1245,7 +1255,7 @@ const LpoForm = ({ logged }) => {
                                                 </TableCell>
                                                 <TableCell>
                                                     <TextField
-                                                        label="Item"
+                                                        label="Item*"
                                                         size="small"
                                                         name="item"
                                                         variant="outlined"
@@ -1859,8 +1869,8 @@ const LpoForm = ({ logged }) => {
                                                 fullWidth
                                                 sx={{ m: 0 }}
                                                 options={contactPersons}
-                                                getOptionLabel={(employees) =>
-                                                    employees.name
+                                                getOptionLabel={(contact) =>
+                                                    contact.name
                                                 }
                                                 size="small"
                                                 onChange={(e, value) =>
@@ -2085,42 +2095,56 @@ const LpoForm = ({ logged }) => {
                                                                 "0 !important",
                                                         }}
                                                     >
-                                                        <TextField
-                                                            select
-                                                            size="small"
-                                                            label="Approval"
-                                                            name="employee"
+                                                        <Autocomplete
+                                                            disablePortal
+                                                            fullWidth
+                                                            sx={{ m: 0 }}
+                                                            options={
+                                                                contactPersons
+                                                            }
+                                                            getOptionLabel={(
+                                                                contact
+                                                            ) =>
+                                                                contact
+                                                                    ? contact.name
+                                                                    : ""
+                                                            }
                                                             value={row.user_id}
-                                                            onChange={(e) =>
-                                                                handleApproveEmployee(
+                                                            size="small"
+                                                            onChange={( e, val ) =>
+                                                            handleApproveEmployee(
                                                                     e,
-                                                                    index
+                                                                    index,
+                                                                    val
                                                                 )
                                                             }
-                                                            SelectProps={{
-                                                                native: true,
-                                                            }}
-                                                        >
-                                                            <option value="">
-                                                                -
-                                                            </option>
-                                                            {employees.map(
-                                                                (option) => (
-                                                                    <option
+                                                            renderOption={(
+                                                                props,
+                                                                option
+                                                            ) => {
+                                                                return (
+                                                                    <li
+                                                                        {...props}
                                                                         key={
-                                                                            option.id
-                                                                        }
-                                                                        value={
                                                                             option.id
                                                                         }
                                                                     >
                                                                         {
                                                                             option.name
                                                                         }
-                                                                    </option>
-                                                                )
+                                                                    </li>
+                                                                );
+                                                            }}
+                                                            renderInput={(
+                                                                params
+                                                            ) => (
+                                                                <TextField
+                                                                    {...params}
+                                                                    label="Approval*"
+                                                                    fullWidth
+                                                                />
                                                             )}
-                                                        </TextField>
+                                                        />
                                                     </TableCell>
                                                     <TableCell
                                                         sx={{

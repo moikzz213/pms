@@ -247,8 +247,14 @@ const Procurement = ({logged}) => {
             if (response.data) {
                 let fetchItems = response.data.item;
                 fetchItems = Object.assign([], fetchItems);
-                
-                setProcessBy(fetchItems);
+                let unSigned = [{
+                    id: "unassign",
+                    name: "Unassign",
+                    user_id: "unassign"
+                }];
+                let mergeData = [...fetchItems, ...unSigned];
+               
+                setProcessBy(mergeData);
             }
         });
 
@@ -353,6 +359,7 @@ const Procurement = ({logged}) => {
                                     onChange={(e,value) => handleData(e,value, "processby")}
                                     renderOption={(props, option) => {
                                         return (
+                                       
                                           <li {...props} key={option.user_id}>
                                             {option.name}
                                           </li>

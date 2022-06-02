@@ -133,7 +133,10 @@ class LocalPurchaseOrderController extends Controller
      */
     public function show(Request $request)
     {
-        $data = Local_purchase_order::where('id', '=', $request->id)->with("supplier","requests", "location","process_by", 'billing', 'contact_person.profile', 'lpo_approvals.users.profile', 'lpo_items')->first(); 
+        $data = Local_purchase_order::where('id', '=', $request->id)->with(["supplier","requests", "location","process_by", 'billing', 'contact_person.profile', 'lpo_items', 'lpo_approvals.users.profile', 
+        'lpo_approvals' => function($query){
+            $query->orderBy("orders", "ASC");
+        }])->first(); 
 
         return response()->json([
             'item' => $data 

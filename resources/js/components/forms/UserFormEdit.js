@@ -14,6 +14,10 @@ const Alert = React.forwardRef(function Alert(props, ref) {
 });
 export default function UserFormEdit({ id, logged }) {
     let controller;
+    const { vertical, horizontal } = {
+        vertical: "bottom",
+        horizontal: "center",
+    };
     const [open, setOpen] = useState(false);
     const [severity, setSeverity] = useState({
         title: "",
@@ -192,6 +196,7 @@ export default function UserFormEdit({ id, logged }) {
                 <Snackbar
                     open={open}
                     autoHideDuration={4000}
+                    anchorOrigin={{ vertical, horizontal }}
                     onClose={handleClose}
                 >
                     <Alert

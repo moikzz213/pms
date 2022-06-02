@@ -17,6 +17,7 @@ class CreateLocalPurchaseOrderApprovalsTable extends Migration
             $table->id();
             $table->unsignedBigInteger('local_purchase_order_id');
             $table->unsignedBigInteger('user_id'); 
+            $table->unsignedInteger('orders'); 
             $table->string('approval_type', 80); 
             $table->timestamps();
         });

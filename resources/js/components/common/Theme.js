@@ -22,6 +22,10 @@ const mdTheme = createTheme({
             main: "red",
             contrastText: "#fff",
         },
+        black: {
+            main: "#000",
+            contrastText: "#fff",
+        },
         orange: {
             main: "orange",
             contrastText: "#fff",

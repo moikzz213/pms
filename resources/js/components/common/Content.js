@@ -92,7 +92,7 @@ function renderElement(logged){
   }else if(slug == 'payment-approval-forms' && allow){
     return  <Paf/>;
   }else if(procSlug1 == 'requests' && procSlug2 == 'id'){
-    return  <ViewRequest id={slug}/>;
+    return  <ViewRequest id={slug} logged={logged}/>;
   }else if(procSlug1 == 'request' && procSlug2 == 'id' && allow){
     return  <ProcessRequest logged={logged} id={slug}/>;
   }else if(procSlug1 == 'local-purchase-orders' && procSlug2 == 'id' && allow){

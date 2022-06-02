@@ -4,12 +4,16 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Profile;
+use App\Models\Requests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use App\Models\Local_purchase_order;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
+use App\Models\Payment_approval_form;
 use Laravel\Sanctum\PersonalAccessToken;
+
 class UserController extends Controller
 {
     public function __construct()
@@ -93,17 +97,18 @@ class UserController extends Controller
 
     public function fetchActiveUsers()
     {
-        $data = User::where("status", "=", "active")->where('id', '!=', 1)->with('profile.company', 'profile.department')->get(); 
+        $data = User::where("status", "=", "active")->where('id', '!=', 1)->whereHas('profile', function($q){
+            $q->orderBy("name", "ASC");
+        })->with('profile.company', 'profile.department')->orderBy("email","ASC")->get(); 
         
         return response()->json([
             'item' => $data 
         ], 200); 
-    } 
+    }  
 
     // For Reports - Status Counts
     public function fetchProcurement(Request $request)
-    {
-        //->where('created_at','LIKE', '%'.$year.'%')
+    { 
         $year = $request['year'];
         $data = User::where('role', '=', "procurement")->whereHas('requests', function($query) use ($year) {
             $query->whereYear('created_at', $year);
@@ -146,9 +151,44 @@ class UserController extends Controller
         ], 200); 
     }
 
+     // For Reports - Monthly Counts
+     public function fetchProcurementMonthly(Request $request)
+     { 
+         $year = $request['year'];
+       
+         $data = User::where('role', '=', "procurement")->get();
+         $newData = array();
+         if($data){
+
+            $monthsArray = array( 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+             
+            foreach ($monthsArray as $k => $x) { 
+                $date = Carbon::createFromFormat('!m', $x); 
+               
+                $monthName = $date->format('M');
+                $newData[$k]['month'] = $monthName; 
+               
+                foreach($data AS $kk => $v){ 
+
+                    $totalCount = Requests::where('process_by', $v->id)->whereYear('created_at',"=", $year)->whereMonth('created_at', "=",$x)->count();   
+                    $totalCount += Local_purchase_order::where('user_id', $v->id)->whereYear('created_at',"=", $year)->whereMonth('created_at',"=", $x)->count();   
+                    $totalCount +=  Payment_approval_form::where('user_id', $v->id)->whereYear('created_at',"=", $year)->whereMonth('created_at',"=", $x)->count();  
+                   
+                    $newData[$k]['data'][$kk]['id'] = $v->id;
+                    $newData[$k]['data'][$kk]['count'] = $totalCount;
+                    
+                } 
+            }
+         } 
+        
+         return response()->json([ 
+             'item' => $newData 
+         ], 200); 
+     }
+
     public function search($search){
         if($search !== '-'){
-            $data = User::where('email', "LIKE", "%".$search."%")->orWhereHas('profile', function ($q) use ($search){
+            $data = User::where('id', '!=', 1)->where('email', "LIKE", "%".$search."%")->orWhereHas('profile', function ($q) use ($search){
                 $q->where("name", "LIKE", "%".$search."%"); 
                 $q->orWhere("designation", "LIKE", "%".$search."%");
             })->orWhereHas('profile.company', function ($q) use ($search){
