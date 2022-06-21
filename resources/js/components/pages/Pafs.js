@@ -26,22 +26,39 @@ const columns = [
     { id: "net_amount", label: "NET AMNT(AED)", minWidth: 30 },
     { id: "company", label: "Business Unit", minWidth: 50 }, 
     { id: "process_by", label: "PROCESSED BY", minWidth: 50 },
-    { id: "created_at", label: "Date", minWidth: 20 },
+    { id: "created_at", label: "D.Created", minWidth: 20 },
 ]; 
 
 const Pafs = () => { 
 
     const navigate = useNavigate();
-    const [page, setPage] = useState(1);
+    var queryParams = new URLSearchParams(window.location.search);
+    const params = new Proxy(new URLSearchParams(window.location.search), {
+        get: (searchParams, prop) => searchParams.get(prop),
+    });
+    // Get the value of "some_key" in eg "https://example.com/?some_key=some_value"
+    let qpage = params.page; // "some_value"
+    if(!qpage){
+        qpage = 1;
+    }
+    const [page, setPage] = useState(parseInt(qpage));
     const [lastPage, setlastPage] = useState(0);
     const [totalPage, settotalPage] = useState(0);
     const [toPage, settoPage] = useState(0);
     const [fromPage, setfromPage] = useState(0);
+    const [isSearch, setIsSearch ]= useState(false);
     const arrowPage = (n) => {
         let p = page + n;
         if (p > 0 && p <= lastPage) {
             setPage(p);
         }
+
+       
+        // Set new or modify existing parameter value. 
+        queryParams.set("page",  p);
+      
+        // Replace current querystring with the new one.
+        history.replaceState(null, null, "?"+queryParams.toString());
     };
     const [company, setCompany] = useState([
         {
@@ -78,11 +95,15 @@ const Pafs = () => {
         },
     ]);
 
-    function fetchRequests() {
-        API.get("/v/payment-approval-form/fetch/?page=" + page)
+    function fetchRequests(ss = "") {
+        let pg = page;
+        if(queryParams.get('page')){
+            pg = queryParams.get('page');
+        }
+        API.get("/v/payment-approval-form/fetch/?page=" + pg+ss)
             .then((response) => {
                 let fetchItems = response.data.item;
-                console.log(fetchItems.data);
+               
                 dataWithRelations(fetchItems.data);
 
                 setPage(fetchItems.current_page);
@@ -98,32 +119,39 @@ const Pafs = () => {
 
     function dataWithRelations(data) {
         let newData = [];
-        console.log(data);
+        
         data.map((o, i) => {
             let lpo = "";
-            if( o.lpos ){
+          
+            if( o.lpos.length > 0 ){
                 o.lpos.map((oo,ii) => {
                     lpo += oo.lpo_no;
                     if(ii < o.lpos.length -1){
                     lpo += ", ";
                     }
                 });
-            }else if(o.request_id){
-                lpo = o.requests.prf_no
+            }else if(o.prfs && o.prfs.length > 0){
+                o.prfs.map((oo,ii) => {
+                    lpo += oo.prf_no;
+                    if(ii < o.prfs.length -1){
+                        lpo += ", ";
+                    }
+                }); 
+                 
             }
-
             newData[i] = {
                 id: o.id,
                 status: o.status,
                 lpo_no: lpo,
                 paf_no: o.paf_no,
-                net_amount: o.net_amount,
-                
+                net_amount: o.net_amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","), 
                 company:o.company ? o.company.title : "",
                 process_by: o.process_by ? o.process_by.name : "",
                 created_at: new Date(o.created_at).toLocaleDateString(),
             };
+
         });
+       
 
         setPafData(newData);
     }
@@ -158,12 +186,32 @@ const Pafs = () => {
         
         if(type == "company"){
             objAssign[0].company_id = value
+
+            if(value == undefined || value == null || value == "-"){ 
+                queryParams.delete('company_id');
+                history.replaceState(null, null, "?" + queryParams.toString());
+            }
         }else if(type == "status"){
             objAssign[0].status = value
+
+            if(value == undefined || value == null || value == "-"){ 
+                queryParams.delete('status');
+                history.replaceState(null, null, "?" + queryParams.toString());
+            }
         }else if(type == "supplier"){
             objAssign[0].supplier_id = value
+
+            if(value == undefined || value == null || value == "-"){ 
+                queryParams.delete('supplier_id');
+                history.replaceState(null, null, "?" + queryParams.toString());
+            }
         }else if(type == "processby"){
             objAssign[0].user_id = value
+
+            if(value == undefined || value == null || value == "-"){ 
+                queryParams.delete('user_id');
+                history.replaceState(null, null, "?" + queryParams.toString());
+            }
         }
 
         setFilterSearch(objAssign);
@@ -172,27 +220,25 @@ const Pafs = () => {
     const searchSubmit = (e) =>{
         e.preventDefault();
         let search = filterSearch[0];
-        Object.keys(search).forEach(key => {
-            if (search[key] === '' || search[key] === '-') {
-              delete search[key];
-            }
-          }); 
-        
-         
-        search = { data: search };
-        API.post("/v/payment-approval-form/filter/search", search).then((response) => {
-            if (response.data) {
-                let fetchItems = response.data.item;
-
-                dataWithRelations(fetchItems.data);
-
-                setPage(fetchItems.current_page);
-                setlastPage(fetchItems.last_page);
-                settotalPage(fetchItems.total);
-                settoPage(fetchItems.to);
-                setfromPage(fetchItems.from);
+        Object.keys(search).forEach((key) => {
+            if (search[key] === undefined || search[key] === "" || search[key] === "-") {
+                delete search[key];
             }
         });
+
+        let ssssss = Object.assign([], search);
+        queryParams.set("page", 1);
+        let stringObj = "";
+       
+        Object.keys(ssssss).forEach((key) => {
+            stringObj += "&" + key + "=" + ssssss[key];
+            queryParams.set(key, ssssss[key]);
+        }); 
+
+        history.replaceState(null, null, "?" + queryParams.toString());
+        
+
+        fetchRequests(stringObj);
     };
 
     const viewDetails = (e, v) => {
@@ -202,7 +248,30 @@ const Pafs = () => {
     };
 
     useEffect(() => {
-        fetchRequests();
+        let cID = params.company_id;
+        let cStatus = params.status;
+        let cProcess = params.supplier_id;
+        let cUser = params.user_id;
+        let czID = "";
+        let czStatus = "";
+        let czProcess = "";
+        let czUser = "";
+        if (cID) {
+            czID = "&company_id=" + cID;
+        }
+        if (cStatus) {
+            czStatus = "&status=" + cStatus;
+        }
+        if (cProcess) {
+            czProcess = "&supplier_id=" + cProcess;
+        }
+        if (cUser) {
+            czUser = "&user_id=" + cUser;
+        }
+        let defaultQueryString = czID + czStatus + czProcess + czUser;
+        if(!isSearch){
+            fetchRequests(defaultQueryString);
+        }
         return () => {
             setPafData([]);
           };
@@ -233,13 +302,24 @@ const Pafs = () => {
     const handleChangePage = (selectedPage, n) => {
         let p = parseInt(selectedPage);
         p = p + n;
-        setPage(p);
+        setPage(p); 
+        // Set new or modify existing parameter value. 
+        queryParams.set("page",  p);
+      
+        // Replace current querystring with the new one.
+        history.replaceState(null, null, "?"+queryParams.toString());
     };
 
     const handleSearch = (e) => {
         if (e.target.value.length > 3) {
+            setIsSearch(true);
+            setPage(1);
+            queryParams.set("page", 1);  
+            history.replaceState(null, null, "?" + queryParams.toString()); 
+
             axiosFunction("/v/payment-approval-form/search/" + e.target.value);
         } else if (e.target.value.length == 0) {
+            setIsSearch(false);
             axiosFunction("/v/payment-approval-form/search/-");
         }
     };
@@ -287,7 +367,7 @@ const Pafs = () => {
                             )}
                         /> 
 
-                        <Autocomplete
+                        {/* <Autocomplete
                             disablePortal
                             sx={{ m: 1 }}
                             fullWidth
@@ -311,7 +391,7 @@ const Pafs = () => {
                                     fullWidth
                                 />
                             )}
-                        /> 
+                        />  */}
                         <Autocomplete
                             disablePortal
                             sx={{ m: 1 }}
@@ -385,7 +465,7 @@ const Pafs = () => {
                 </Box>
             </Stack>
             <Paper sx={{ width: "100%", overflow: "hidden" }}>
-                <TableContainer sx={{ maxHeight: 620 }}>
+                <TableContainer>
                     <Table
                         stickyHeader
                         aria-label="sticky table"
@@ -411,7 +491,7 @@ const Pafs = () => {
                                         hover
                                         role="checkbox"
                                         tabIndex={-1}
-                                        key={row.paf_no}
+                                        key={row.id}
                                     >
                                         {columns.map((column) => {
                                             const value = row[column.id];

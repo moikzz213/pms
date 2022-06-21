@@ -10,7 +10,8 @@ import MuiAlert from "@mui/material/Alert";
 import EditIcon from "@mui/icons-material/Edit";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
-
+import TextField from "@mui/material/TextField";
+import Autocomplete from "@mui/material/Autocomplete";
 const Alert = React.forwardRef(function Alert(props, ref) {
     return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
@@ -39,9 +40,11 @@ export default function RequestForm({ id, logged }) {
 
                 let details = {
                     urgency: responseData.urgency,
-                    company: responseData.company.title,
+                    company: responseData.company,
+
                     details: responseData.details,
                     location: responseData.location.title,
+                    subject: responseData.subject,
                     prf_no: responseData.prf_no,
                     date: date,
                     time: curTime,
@@ -49,7 +52,12 @@ export default function RequestForm({ id, logged }) {
                     designation: responseData.profile.designation,
                 };
                 setData(details);
-
+                setSpecs([{
+                    details: responseData.details
+                }]);
+                setNewCompany(responseData.company.id);
+                setNewLocation(responseData.location.id);
+                setEditSubject(responseData.subject);
                 setImage(responseData.images);
             }
         });
@@ -63,6 +71,9 @@ export default function RequestForm({ id, logged }) {
     const [isEdit, setIsEdit] = useState(false);
     const [status, setStatus] = useState("");
     const [specs, setSpecs] = useState([]);
+    const [editSubject, setEditSubject] = useState("");
+    const [newCompany, setNewCompany] = useState("");
+    const [newLocation, setNewLocation] = useState("");
     const [severity, setSeverity] = useState({
         title: "",
         message: "",
@@ -75,6 +86,7 @@ export default function RequestForm({ id, logged }) {
 
         setOpen(false);
     };
+    const [location, setLocation] = useState([]);
 
     const [data, setData] = useState({
         company: "",
@@ -87,9 +99,41 @@ export default function RequestForm({ id, logged }) {
         designation: "",
     });
 
+    const [company, setCompany] = useState([]);
+
     const [image, setImage] = useState([]);
     useEffect(() => {
         fetchRequest();
+
+        API.get("/v/companies/fetch-non-paginate").then((response) => {
+            let fetchItems = response.data.item;
+            fetchItems = Object.assign([], fetchItems);
+            let newData = [];
+            fetchItems.map((o, i) => {
+                newData[i] = {
+                    label: o.title,
+                    title: o.title,
+                    id: o.id,
+                    value: o.id,
+                };
+            });
+            setCompany(newData);
+        });
+
+        API
+        .get("/v/locations/fetch-non-paginate")
+        .then((response) => {
+            let fetchItems = response.data.item;
+            fetchItems = Object.assign([], fetchItems);
+            let newData = [];
+            fetchItems.map((o, i) => {
+                newData[i] = {
+                    label: o.title,
+                    value: o.id,
+                };
+            });
+            setLocation(newData);
+        });
     }, [logged]); 
     
     const handleData = (e, value) => {
@@ -99,13 +143,28 @@ export default function RequestForm({ id, logged }) {
     }
     const editRequest = (e) => {
         setIsEdit(true);
+        fetchRequest();
     };
 
     const cancelEdit = (e) => {
         setIsEdit(false);
         setSpecs([])
+        setEditSubject("");
     };
 
+    const handleCompany = (e,val, type) => { 
+        if(type == "company"){
+
+            setNewCompany(val.value);
+        }else{
+            setNewLocation(val.value);
+        }
+    }
+
+    const handleSubject = (e)=> {
+        console.log(e.target.value);
+        setEditSubject(e.target.value);
+    }
     const saveEdit = (e) => {
          
         let newDetails = specs[0].details.replaceAll('<td>', '<td style="border: 1px solid #cecece;font-size:12px;padding-left:10px;">');
@@ -118,8 +177,9 @@ export default function RequestForm({ id, logged }) {
         };
 
         setSeverity(newMessage);
-        let data = { details: newDetails, id: id, user_id: logged.id};
-
+        let data = { details: newDetails, subject: editSubject, company: newCompany, location: newLocation,  id: id, user_id: logged.id};
+         
+       
         API
             .post('/v/request/edit-data', data)
             .then((response) => {
@@ -199,24 +259,25 @@ export default function RequestForm({ id, logged }) {
                     autoComplete="off"
                 >
                     <Grid container spacing={2}>
-                        <Grid container spacing={2} sx={{ padding: 2 }}>
-                            <Grid item xs={12} md={2}>
+                        <Grid container spacing={2} sx={{ padding: 2, pt:"25px !important" }}>
+                            <Grid item xs={2} md={2}>
                                 PRF No.
                             </Grid>
-                            <Grid item xs={12} md={4}>
+                            <Grid item xs={4} md={4}>
                                 {data.prf_no}
                             </Grid>
 
-                            <Grid item xs={12} md={2}>
+                            <Grid item xs={2} md={2}>
                                 Urgency
                             </Grid>
-                            <Grid item xs={12} md={2}>
+                            <Grid item xs={4} md={2}>
                                 {data.urgency}
                             </Grid>
 
                             <Grid
                                 item
                                 md={2}
+                                xs={12}
                                 className="btn-cancel"
                                 sx={{ textAlign: "right" }}
                             >
@@ -267,7 +328,7 @@ export default function RequestForm({ id, logged }) {
                                             >
                                                 CANCEL REQUEST
                                             </LoadingButton>
-                                        ) : status == "cancelled" ? (
+                                        ) : status == "cancelled" && logged.role == 'admin' ? (
                                             <>
                                                 <LoadingButton
                                                     className="btn-info"
@@ -311,43 +372,84 @@ export default function RequestForm({ id, logged }) {
                             </Grid>
 
                             {/* new row */}
-                            <Grid item xs={12} md={2}>
+                            <Grid item xs={2} md={2}>
                                 Business Entity
                             </Grid>
-                            <Grid item xs={12} md={4}>
-                                {data.company}
+                            <Grid item xs={4} md={4}>
+                                {!isEdit &&
+                                <>
+                                {data.company.title}
+                                    </>}
+                                {isEdit &&
+                                 <Autocomplete
+                                 disablePortal 
+                                 options={company} 
+                                 size="small" 
+                                 onChange={(e, value) =>
+                                    handleCompany(e, value, "company")
+                                }
+                                 renderInput={(params) => (
+                                     <TextField
+                                         {...params}
+                                         label="Company*"
+                                     />
+                                 )}
+                             />
+                             }
                             </Grid>
-                            <Grid item xs={12} md={2}>
+                            <Grid item xs={2} md={2}>
                                 Date
                             </Grid>
-                            <Grid item xs={12} md={4}>
+                            <Grid item xs={4} md={4}>
                                 {data.date}
                             </Grid>
                             {/* new row */}
-                            <Grid item xs={12} md={2}>
+                            <Grid item xs={2} md={2}>
                                 Requestor Name
                             </Grid>
-                            <Grid item xs={12} md={4}>
+                            <Grid item xs={4} md={4}>
                                 {data.requestor}
                             </Grid>
-                            <Grid item xs={12} md={2}>
+                            <Grid item xs={2} md={2}>
                                 Time
                             </Grid>
-                            <Grid item xs={12} md={4}>
+                            <Grid item xs={4} md={4}>
                                 {data.time}
                             </Grid>
                             {/* new row */}
-                            <Grid item xs={12} md={2}>
+                            <Grid item xs={2} md={2}>
                                 Designation
                             </Grid>
-                            <Grid item xs={12} md={4}>
+                            <Grid item xs={4} md={4}>
                                 {data.designation}
                             </Grid>
-                            <Grid item xs={12} md={2}>
+                            <Grid item xs={2} md={2}>
                                 Branch/Location
                             </Grid>
-                            <Grid item xs={12} md={4}>
+                            <Grid item xs={4} md={4}>
+                                {!isEdit &&
+                                <> 
                                 {data.location}
+                                </>}
+
+                                {isEdit && 
+                                <Autocomplete
+                                disablePortal
+                                id="combo-box-demo"
+                                options={location}
+                                sx={{ width: "100%" }}
+                                size="small"
+                                onChange={(e, value) =>
+                                    handleCompany(e, value, "location")
+                                }
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        sx={{ width: "95% !important" }}
+                                        label="Location*"
+                                    />
+                                )}
+                            />}
                             </Grid>
                             {/* new row */}
 
@@ -372,7 +474,12 @@ export default function RequestForm({ id, logged }) {
                             <Grid item xs={12} md={4}></Grid>
 
                             <Grid className="request-desc" item xs={12} md={12}>
+                               
+                              
+                                 
                                 {!isEdit && 
+                                <>
+                                  <h3>{data.subject}</h3>
                                 <Box
                                     sx={{
                                         border: "1px solid #ccc",
@@ -383,8 +490,20 @@ export default function RequestForm({ id, logged }) {
                                         __html: data.details,
                                     }}
                                 ></Box>
+                                </>
                                 }
                                 {isEdit &&
+                                <>
+                                <TextField
+                                fullWidth 
+                                value={editSubject || ""}
+                                sx={{marginLeft: "0 !important", width: "100% !important"}}
+                                size="small"
+                                label="Subject*" 
+                                onChange={(e) =>
+                                    handleSubject(e)
+                                } 
+                            > </TextField>
                                      <CKEditor
                                      editor={ClassicEditor}
                                      data={data.details}
@@ -407,6 +526,7 @@ export default function RequestForm({ id, logged }) {
                                      }}
                                      
                                  />
+                                 </>
                                 }
                             </Grid>
                             <Grid item xs={12} md={12}>

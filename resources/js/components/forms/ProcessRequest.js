@@ -74,6 +74,7 @@ export default function ProcessRequest({id, logged}) {
                         details: responseData.details,
                         location: responseData.location.title,
                         prf_no: responseData.prf_no,
+                        subject: responseData.subject,
                         date: date,
                         time: curTime,
                         requestor: responseData.profile.name,
@@ -218,10 +219,12 @@ export default function ProcessRequest({id, logged}) {
                             <Grid item xs={12} md={4}></Grid> 
 
                             <Grid className="request-desc" item xs={12} md={12}>
+                                <h3>{data.subject}</h3>
                                  <Box className="inner-request" sx={{border: "1px solid #ccc", padding: "10px;", minHeight: "150px"}}  dangerouslySetInnerHTML={{__html: data.details}} >
                                     
                                  </Box>
                             </Grid>
+                         
                              { active ? 
                              <>
                                 {status == 'onprocess' ?
@@ -296,15 +299,36 @@ export default function ProcessRequest({id, logged}) {
                                 <br/><br/>
                                 <small style={{color: "red"}}>Procurement Team needs to manually closed the request.</small> <br/>
                                 <small>Once the request has been <b>cancelled/closed</b> it will no longer be updated.</small> <br/>
-                                <small>Only the requestor can re-open the request if it has been cancelled.</small><br/>
+                                
                                 <small><b>ONHOLD/PENDING STATUS</b> enable requestor to edit their request</small>
                             </Grid>
                              </>
-                             : <Grid item xs={12} md={6}>
+                             : 
+                             <>
+                             <Grid item xs={12} md={6}>
                                 <small>Once the request has been <b>cancelled/closed</b> it will no longer be updated.</small> <br/>
-                                <small>Only the requestor can re-open the request if it has been cancelled.</small><br/>
+                                 
                                 <small><b>ONHOLD/PENDING STATUS</b> enable requestor to edit their request</small>
-                             </Grid>  }
+                             </Grid>  
+                             <Grid item xs={12} md={6}>
+                             {status == 'cancelled' && logged.role == 'admin' &&
+                          
+                                 <LoadingButton
+                                   className="btn-info"
+                                   color="primary"
+                                   size="small"
+                                   variant="contained"
+                                   onClick={(e) => changeStatus(e, "onhold")}
+                                   loading={loading}
+                                   sx={{ mx:2 }}
+                                >
+                                    onHold
+                                </LoadingButton>
+                           
+                            }
+                             </Grid>  
+                               </> 
+                             }
                         </Grid>
                     </Grid>
                 </Box>

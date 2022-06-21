@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Requests;
 use App\Models\Supplier;
 use App\Models\Local_purchase_order;
 use App\Models\Payment_approval_form;
@@ -21,6 +22,11 @@ class Payment_approval_form_item extends Model
     public function lpo()
     {
         return $this->belongsTo(Local_purchase_order::class, 'local_purchase_order_id');
+    }
+
+    public function requests()
+    {
+        return $this->belongsTo(Requests::class, 'local_purchase_order_id');
     }
 
     public function supplier()

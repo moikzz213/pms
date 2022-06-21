@@ -143,15 +143,17 @@ export default function RequestForm({ logged }) {
                 o.location_id = value;
             } else if (type == "details") {
                 o.details = val;
+            }else if (type == "subject") {
+                o.subject = value;
             }
-            if (o.urgency && o.company_id && o.location_id && o.details) {
+            if (o.urgency && o.company_id && o.location_id && o.details && o.subject) {
                 setFieldState(false);
             } else {
                 setFieldState(true);
             }
             return o;
         });
-
+       
         setObjData(data);
     };
     const handleAddLocation = () => {
@@ -291,6 +293,7 @@ export default function RequestForm({ logged }) {
         data.append("location_id", objAssign[0].location_id);
         data.append("urgency", objAssign[0].urgency);
         data.append("user_id", objAssign[0].user_id);
+        data.append("subject", objAssign[0].subject);
 
         if (files) {
             files.forEach((file) => {
@@ -356,13 +359,13 @@ export default function RequestForm({ logged }) {
                     <Grid container spacing={2} sx={{ py: 3 }}>
                         <Grid container spacing={2} sx={{ padding: 2 }}>
                             <Grid item xs={12} md={2}>
-                                Urgency?
+                                Urgency?*
                             </Grid>
                             <Grid item xs={12} md={4}>
                                 <TextField
                                     select
                                     size="small"
-                                    label="urgency"
+                                    label="urgency*"
                                     value={urgency}
                                     onChange={(e) =>
                                         handleData(e, null, "urgency")
@@ -381,14 +384,12 @@ export default function RequestForm({ logged }) {
                         <Grid container spacing={2} sx={{ padding: "0 16px" }}>
                             {/* new row */}
                             <Grid item xs={12} md={2}>
-                                Business Entity
+                                Business Entity*
                             </Grid>
                             <Grid item xs={12} md={4}>
                                 <Autocomplete
-                                    disablePortal
-                                    id="combo-box-demo"
-                                    options={company}
-                                    value={company.id}
+                                    disablePortal 
+                                    options={company} 
                                     size="small"
                                     onChange={(e, value) =>
                                         handleData(e, value, "company")
@@ -396,7 +397,7 @@ export default function RequestForm({ logged }) {
                                     renderInput={(params) => (
                                         <TextField
                                             {...params}
-                                            label="Company"
+                                            label="Company*"
                                         />
                                     )}
                                 />
@@ -428,7 +429,7 @@ export default function RequestForm({ logged }) {
                                 {requestor ? requestor.designation : ""}
                             </Grid>
                             <Grid item xs={12} md={2}>
-                                Branch/Location
+                                Branch/Location*
                             </Grid>
                             <Grid item xs={12} md={4} sx={{ display: "flex" }}>
                                 <Autocomplete
@@ -444,7 +445,7 @@ export default function RequestForm({ logged }) {
                                         <TextField
                                             {...params}
                                             sx={{ width: "95% !important" }}
-                                            label="Location"
+                                            label="Location*"
                                         />
                                     )}
                                 />
@@ -467,10 +468,10 @@ export default function RequestForm({ logged }) {
                             <Grid item xs={12} md={12} className="container">
                                 <div {...getRootProps()} className="dropzone">
                                     <input {...getInputProps()} />
-                                    <p>
-                                        <h3>Drag 'n' drop some files here, or click
-                                        to select files</h3>
-                                    </p>
+                                    
+                                    <h3>Drag 'n' drop some files here, or click
+                                    to select files</h3>
+                                     
                                     <em>
                                         (Only *.jpeg, *.jpg, *.png images &amp; *.pdf
                                         will be accepted)
@@ -483,7 +484,15 @@ export default function RequestForm({ logged }) {
                             </Grid>
 
                             <Grid item xs={12} md={12}>
-                               
+                            <TextField
+                                fullWidth 
+                                sx={{marginLeft: "0 !important", width: "100% !important"}}
+                                size="small"
+                                label="Subject*" 
+                                onChange={(e) =>
+                                    handleData(e, null, "subject")
+                                } 
+                            > </TextField>
                                
 
                                 <CKEditor

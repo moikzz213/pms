@@ -18,6 +18,7 @@ class CreateLocalPurchaseOrdersTable extends Migration
             $table->unsignedBigInteger('supplier_id')->nullable();
             $table->unsignedBigInteger('contact_person')->nullable(); // user id 
             $table->string('lpo_no', 50)->nullable();
+            $table->string('currency', 10)->default("aed")->nullable();
             $table->string('prf_extension', 20)->nullable();
             $table->unsignedBigInteger('request_id')->nullable();
             $table->string('supplier_ref_num', 50)->nullable();
@@ -35,6 +36,7 @@ class CreateLocalPurchaseOrdersTable extends Migration
             $table->float('total_amount', 10)->nullable();
             $table->float('discount', 10)->nullable();
             $table->float('vat', 5)->nullable();
+            $table->float('vat_custom', 10)->default(5)->nullable();
             $table->string('license_title_label_1', 50)->nullable();
             $table->string('license_title_label_2', 50)->nullable();
             $table->float('license_title_value_1',10)->nullable();

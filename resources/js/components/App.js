@@ -8,7 +8,7 @@ export default function MediaCard() {
       <Routes>
         <Route  exact  path="/"  element={<Login />} />
         <Route  exact  path="/login"  element={<Login />} />
-        <Route  path="/d/:slug"  element={<Theme />} /> 
+        <Route  path="/d/:slug"  element={<Theme />} />    
         <Route  path="/d/:slug/:slug2"  element={<Theme />} /> 
         <Route  path="/d/:slug/:slug2/:slug3"  element={<Theme />} /> 
         <Route  path="/d/:slug/:slug2/:slug3/:id"  element={<Theme />} /> 

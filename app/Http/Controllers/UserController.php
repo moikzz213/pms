@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Jobs\UserResetPassword;
 use App\Models\Profile;
 use App\Models\Requests;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -359,6 +361,45 @@ class UserController extends Controller
             dd($e);
             $success = false;
             $msg = "Error: Failed to update the data!";
+            $responseCode = 500;
+        }
+
+        return response()->json([
+            'success' => $success,
+            'msg' => $msg
+        ], $responseCode);
+    }
+
+    public function reset_link_password(Request $request)
+    {
+        
+        $success = true;
+        $responseCode = 200;
+        $id = ''; 
+        $password = Str::random(8);
+        $newData = array( 
+            "password" =>  Hash::make($password)     
+        ); 
+        
+      
+        DB::beginTransaction();
+        // do all your updates here
+        try { 
+            $data = User::where('id', '=', $request->id)->first(); 
+             
+            $data->update($newData);   
+           
+            $rabbitArray = array("password" => $password, "email" => $data['email'], "subject" => "Procurement - Reset Password");  
+            
+            UserResetPassword::dispatch($rabbitArray); 
+            $msg = "New Password has been sent to the User's Email"; 
+            DB::commit();
+            
+        } catch (\Exception $e) {
+            DB::rollback();
+             
+            $success = false;
+            $msg = "Error: Failed to reset/send the password!";
             $responseCode = 500;
         }
 

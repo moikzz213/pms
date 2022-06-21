@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+//import { useNavigate } from "react-router-dom";
 import Paper from "@mui/material/Paper";
 import Box from "@mui/material/Box";
 import Grid from "@mui/material/Grid";
@@ -33,10 +33,11 @@ import Select from "@mui/material/Select";
 import API from "../../services/api.js";
 import Snackbar from "@mui/material/Snackbar";
 import MuiAlert from "@mui/material/Alert";
-
+ 
 const Alert = React.forwardRef(function Alert(props, ref) {
     return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
+ 
 function getStyles(name, lpo, theme) {
     return {
         fontWeight:
@@ -67,10 +68,22 @@ function mapFilterData(array, selected) {
     });
 
     return supp[0];
+} 
+
+var num = "zero one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen".split(" ");
+var tens = "twenty thirty forty fifty sixty seventy eighty ninety".split(" ");
+
+function number2words(n){
+    if (n < 20) return num[n];
+    var digit = n%10;
+    if (n < 100) return tens[~~(n/10)-2] + (digit? " " + num[digit]: " ");
+    if (n < 1000) return num[~~(n/100)] +" hundred " + (n%100 == 0? " ": number2words(n%100));
+    if (n < 1000000) return number2words(~~(n/1000)) +" thousand " + (n%1000 == 0? " ": number2words(n%1000));
+     return number2words(~~(n/1000000)) + " million " + (n%1000000 != 0? " " + number2words(n%1000000): "");
 }
 
 const PafForm = ({ logged }) => {
-    const navigate = useNavigate();
+   // const navigate = useNavigate();
     const theme = useTheme();
     const [open, setOpen] = useState(false);
     const [fieldState, setFieldState] = useState(true);
@@ -93,13 +106,15 @@ const PafForm = ({ logged }) => {
         setOpen(false);
     };
 
-    const defaultVat = 0.05; // 5% VAT
-    const vatLabel = 5;
+    //const defaultVat = 0.05; // 5% VAT
     // PAF HERE
     const [relation, setRelation] = useState("lpo");
     const [currency, setCurrency] = useState("AED");
     // End PAF
-
+    
+    const vatLabel = 5;
+    const [customVAT, setCustomVAT] = useState(5);
+    const [discountTitle, setDiscountTitle] = useState("Discount");
     const [dateValue, setDateValue] = useState(new Date().toLocaleDateString());
     const [preparedBy, setPreparedBy] = useState({ name: "", user_id: "" });
     const [supplierList, setSuppliers] = useState([]);
@@ -115,7 +130,8 @@ const PafForm = ({ logged }) => {
             approval: "",
             lpo: "",
         },
-    ]);
+    ]); 
+
 
     const [approvalLabelled, setApprovalLabelled] = useState([
         {
@@ -144,7 +160,7 @@ const PafForm = ({ logged }) => {
             location: "",
             supplier_invoice_num: "",
             description: "",
-            invoice_date: new Date().toLocaleDateString(),
+            invoice_date: null,
             qty: 1,
             unit_price: 0,
             amount: 0,
@@ -152,7 +168,7 @@ const PafForm = ({ logged }) => {
             total_amount: 0,
         },
     ]);
-
+    
     const [approvalRows, setApprovalRows] = useState([
         {
             row: 0,
@@ -174,12 +190,14 @@ const PafForm = ({ logged }) => {
 
     const [prfs, setPrfs] = useState([]);
     const [lpo, setLpo] = useState([]);
+    
     // Data to be submit
     const [objData, setObjData] = useState([
         {
             currency_rate: 1,
             currency: "aed",
             relation: "lpo", 
+            vat_custom: 5,
             user_id: "",
             department_head: "Saleh Al Chalabi",
             department_name: "Procurement",
@@ -237,8 +255,9 @@ const PafForm = ({ logged }) => {
         
     };
 
-    const handlePrf = (event) => {
-        let selected = event.target.value;
+    const handlePrf = (event, val) => {
+         
+        let selected = val;
         let checkedData = false; 
  
         if (selected.length <= 0) {
@@ -248,7 +267,7 @@ const PafForm = ({ logged }) => {
             checkedData = true;
             let fff = [];
             selected.map((o, i) => {
-                fff[i] = mapFilterData(prfList, o);
+                fff[i] = mapFilterData(prfList, o.id);
             });
             
             setItemPRF(fff); 
@@ -260,10 +279,7 @@ const PafForm = ({ logged }) => {
             }
         }
         
-        setPrfs(
-            // On autofill we get a stringified value.
-            typeof selected === "string" ? selected.split(",") : selected
-        );
+        setPrfs( selected );
 
         let validatedData = validate.map((o, i) => { 
             o.prf_lpo = checkedData; 
@@ -277,8 +293,9 @@ const PafForm = ({ logged }) => {
          
     };
 
-    const handleLpo = (event) => {
-        let selected = event.target.value;
+    const handleLpo = (event, val) => {
+        let selected = val;
+        
         let supplier = "";
         let company = "";
         let checkedData = false;
@@ -289,12 +306,12 @@ const PafForm = ({ logged }) => {
             checkedData = true;
             let fff = [];
             selected.map((o, i) => {
-                fff[i] = mapFilterData(lpoList, o);
+                fff[i] = mapFilterData(lpoList, o.id);
             });
             setItemLPO(fff);
 
             if (selected.length == 1) {
-                let supp = mapFilterData(lpoList, selected);
+                let supp = mapFilterData(lpoList, selected[0].id);
                
                 supplier = supp.supplier_id;
                 company = supp.billing_details_id;
@@ -312,10 +329,7 @@ const PafForm = ({ logged }) => {
             }
         }
 
-        setLpo(
-            // On autofill we get a stringified value.
-            typeof selected === "string" ? selected.split(",") : selected
-        );
+        setLpo(selected);
 
         let validatedData = validate.map((o, i) => {
             o.supplier = checkedData;
@@ -368,12 +382,12 @@ const PafForm = ({ logged }) => {
     const handleDateRow = (value, index) => {
         let tempRows = tableRows.map((o, i) => {
             if (i == index) {
-                o.invoice_date = new Date(value).toLocaleDateString();
+                o.invoice_date = value ? new Date(value).toLocaleDateString() : null;
             }
 
             return o;
         });
-
+        console.log(tempRows);
         setTableRows(tempRows);
     };
 
@@ -407,8 +421,34 @@ const PafForm = ({ logged }) => {
         let dataAssign = Object.assign([], objData);
         dataAssign[0].currency_rate = newRate;
         dataAssign[0].net_amount = newNetAmount;
+        let netAmountz = newNetAmount.toFixed(2);
+        let cents = netAmountz.toString().split(".");
+        let amountWords = number2words(cents[0]);
+        let withCents = "";
+        
+        if(cents.length > 1){
+           let addZero = "";
+            if(cents[1].length == 1){
+                addZero = cents[1]+"0";
+            }else{
+                  addZero = String(cents[1]);
+                if(addZero.charAt(0) === '0'){
+                    
+                    addZero.substring(1);
+                }
+                
+            } 
+          
+            withCents = number2words(Number(addZero));
+             
+            withCents = " And "+withCents;
+        }
+        dataAssign[0].amount_in_words = amountWords + withCents; 
+
         setObjData(dataAssign);
         setNetAmount(newNetAmount.toFixed(2));
+
+     
     };
 
     const handleAddRow = () => {
@@ -418,7 +458,7 @@ const PafForm = ({ logged }) => {
             location: "",
             supplier_invoice_num: "",
             supplier_id: "",
-            invoice_date: new Date().toLocaleDateString(),
+            invoice_date: null,
             description: "",
             qty: 1,
             unit_price: 0,
@@ -538,7 +578,7 @@ const PafForm = ({ logged }) => {
         if (e != "removedrow") {
             value = e.target.value;
         }
-
+        let checkVAT = parseFloat(customVAT)/100;
         let netAmountz = 0;
         let curDiscount = 0;
         let totalVat = 0;
@@ -552,7 +592,7 @@ const PafForm = ({ logged }) => {
                 o.amount = (value * amount).toFixed(2);
                 o.qty = value;
                 o.total_amount = (
-                    parseFloat(o.amount) + parseFloat(defaultVat)
+                    parseFloat(o.amount) + parseFloat(checkVAT)
                 ).toFixed(2);
             } else if (i == index && type == "price") {
                 let qty = o.qty;
@@ -562,7 +602,7 @@ const PafForm = ({ logged }) => {
                 }
 
                 let totalAmountz = value * qty;
-                let getVat = totalAmountz * defaultVat;
+                let getVat = totalAmountz * checkVAT;
                 o.amount = totalAmountz.toFixed(2);
 
                 o.vat = getVat.toFixed(2);
@@ -611,11 +651,12 @@ const PafForm = ({ logged }) => {
             netAmountz = 0;
         }
 
-        setNetAmount(netAmountz.toFixed(2));
+        setNetAmount(netAmountz.toFixed(2));  
+
         setTableRows(tempRows);
         let dataAssign = Object.assign([], objData);
 
-        if (currency == "usd") {
+        if (currency !== "aed") {
             handleCurrencyRate(
                 null,
                 objData[0].currency_rate,
@@ -637,13 +678,42 @@ const PafForm = ({ logged }) => {
 
         setValidate(validatedData);
 
-        dataAssign[0].discount = curDiscount;
+        dataAssign[0].discount = curDiscount; 
 
         dataAssign[0].total_amount = totalAmnt;
         dataAssign[0].total_vat = totalVat;
+        
+        
+        let cents = netAmountz.toString().split(".");
+        let amountWords = number2words(cents[0]);
+        let withCents = "";
+       
+        if(cents.length > 1){
+           let addZero = "";
+            if(cents[1].length == 1){
+                addZero = cents[1]+"0";
+            }else{
+                  addZero = String(cents[1]);
+                if(addZero.charAt(0) === '0'){
+                    
+                    addZero.substring(1);
+                }
+                
+            }
+            
+          
+            withCents = number2words(Number(addZero));
+             
+            withCents = " And "+withCents;
+        }
+        dataAssign[0].amount_in_words = amountWords + withCents; 
+       
         setObjData(dataAssign);
-    };
+    }; 
 
+    const handleDiscountTitle = (e) => {
+        setDiscountTitle(e.target.value);
+    }
     const handleRemoveRow = (index) => {
         let rows = tableRows;
         rows.splice(index, 1);
@@ -672,6 +742,11 @@ const PafForm = ({ logged }) => {
         setObjData(dataAssign);
     };
 
+    const handleCustomVat = (e) => { 
+        
+        setCustomVAT(e.target.value);
+    }
+
     const handleSubmitForm = (e) => {
         e.preventDefault();
         setLoading(true);
@@ -687,6 +762,8 @@ const PafForm = ({ logged }) => {
         let newData = dataAssign.map((o, i) => {
             o.status = "onprocess";
             o.supplier_count = suppCount.length;
+            o.vat_custom = customVAT;
+            o.discount_title = discountTitle;
             return o;
         });
 
@@ -700,9 +777,7 @@ const PafForm = ({ logged }) => {
         let prepend_prepared_by = [{
             approval_type: "prepared_by",
             user_id: preparedBy.user_id,
-        }];
-        //approvalRows.unshift(prepend_prepared_by);
-        console.log(prepend_prepared_by);
+        }]; 
        
         
         let newApproval = approvalRows.map((o, i) => {
@@ -713,10 +788,20 @@ const PafForm = ({ logged }) => {
 
         newApproval = [...prepend_prepared_by, ...newApproval];
 
+        let newLPO = [];
+        lpo.map((o,i) => {
+            newLPO[i] = o.id;
+        });
+
+        let newPRF = [];
+        prfs.map((o,i) => {
+            newPRF[i] = o.id;
+        });
+
         let dataSubmit = [
             {
-                lpo: lpo,
-                prfs: prfs,
+                lpo: newLPO,
+                prfs: newPRF,
                 details: newData,
                 items: newItems,
                 approvals: newApproval,
@@ -859,13 +944,15 @@ const PafForm = ({ logged }) => {
                         }}
                     >
                         <Grid item xs={12} md={12}>
-                            <small style={{ color: "red" }}>
-                                RELATION: IF THERE IS LPO, SELECT LPO. OTHERWISE
-                                SELECT PRF.
-                                <br />
-                                PRF/LPO NO: ONLY ONPROCESS STATUS WILL BE SHOWN
-                                ON DROPDOWN SELECTION!
+                            <small> RELATION: </small> 
+                            <small className="text-warning">
+                                IF THERE IS LPO, SELECT LPO. OTHERWISE
+                                SELECT PRF. 
                             </small>
+                            <br/>
+                            <small>PRF/LPO NO:</small>
+                            <small className="text-warning"> ONLY ONPROCESS STATUS WILL BE SHOWN
+                                ON DROPDOWN SELECTION!</small>
                         </Grid>
                         <Grid item xs={12} md={2}>
                             SELECT RELATION (LPO/PRF)*
@@ -891,39 +978,34 @@ const PafForm = ({ logged }) => {
                                 <Grid item xs={12} md={2}>
                                     PRF NO.*
                                 </Grid>
-                                <Grid item xs={12} md={4}> 
-                                    <FormControl
-                                        fullWidth
-                                        sx={{ width: "90%", ml: "9px" }}
-                                    >
-                                        <InputLabel sx={{ top: "-6px" }}>
-                                            PRF No.
-                                        </InputLabel>
-                                        <Select
+                                <Grid item xs={12} md={4}>  
+
+                                    <Autocomplete
+                                            disablePortal
+                                            fullWidth
                                             multiple
+                                            options={prfList}
+                                            disableClearable
+                                            getOptionLabel={(data) => data.prf_no || ""}
                                             size="small"
-                                            value={prfs}
-                                            onChange={(e) => handlePrf(e)}
-                                            input={
-                                                <OutlinedInput label="PRF No." />
+                                            onChange={(e, value) =>
+                                                handlePrf(e, value)
                                             }
-                                            MenuProps={MenuProps}
-                                        >
-                                            {prfList.map((option) => (
-                                                <MenuItem
-                                                    key={option.id}
-                                                    value={option.id}
-                                                    style={getStyles(
-                                                        option,
-                                                        prfs,
-                                                        theme
-                                                    )}
-                                                >
-                                                    {option.prf_no}
-                                                </MenuItem>
-                                            ))}
-                                        </Select>
-                                    </FormControl>
+                                            renderOption={(props, option) => {
+                                                return (
+                                                    <li {...props} key={option.id}>
+                                                        {option.prf_no}
+                                                    </li>
+                                                );
+                                            }}
+                                            renderInput={(params) => (
+                                                <TextField
+                                                    {...params}
+                                                    label="PRF No*"
+                                                    fullWidth
+                                                />
+                                            )}
+                                        />
                                 </Grid>
                             </>
                         )}
@@ -933,38 +1015,33 @@ const PafForm = ({ logged }) => {
                                     LPO NO.*
                                 </Grid>
                                 <Grid item xs={12} md={4}>
-                                    <FormControl
-                                        fullWidth
-                                        sx={{ width: "90%", ml: "9px" }}
-                                    >
-                                        <InputLabel sx={{ top: "-6px" }}>
-                                            LPO No.
-                                        </InputLabel>
-                                        <Select
+                                    
+                                    <Autocomplete
+                                            disablePortal
+                                            fullWidth
                                             multiple
-                                            size="small"
-                                            value={lpo}
-                                            onChange={(e) => handleLpo(e)}
-                                            input={
-                                                <OutlinedInput label="LPO No." />
+                                            options={lpoList}
+                                            disableClearable
+                                            getOptionLabel={(data) => data.lpo_no || ""}
+                                            size="small" 
+                                            onChange={(e, value) =>
+                                                handleLpo(e, value)
                                             }
-                                            MenuProps={MenuProps}
-                                        >
-                                            {lpoList.map((option) => (
-                                                <MenuItem
-                                                    key={option.id}
-                                                    value={option.id}
-                                                    style={getStyles(
-                                                        option,
-                                                        lpo,
-                                                        theme
-                                                    )}
-                                                >
-                                                    {option.lpo_no}
-                                                </MenuItem>
-                                            ))}
-                                        </Select>
-                                    </FormControl>
+                                            renderOption={(props, option) => {
+                                                return (
+                                                    <li {...props} key={option.id}>
+                                                        {option.lpo_no}
+                                                    </li>
+                                                );
+                                            }}
+                                            renderInput={(params) => (
+                                                <TextField
+                                                    {...params}
+                                                    label="LPO No*"
+                                                    fullWidth
+                                                />
+                                            )}
+                                        />
                                 </Grid>
                             </>
                         )}
@@ -1160,10 +1237,33 @@ const PafForm = ({ logged }) => {
                                 }}
                             >
                                 <option value="aed"> AED </option>
+                                <option value="aud"> AUD </option>
+                                <option value="bhd"> BHD </option>
+                                <option value="egp"> EGP </option>
+                                <option value="eur"> EUR </option>
+                                <option value="gbp"> GBP </option>
+                                <option value="jod"> JOD </option>
+                                <option value="lira"> LIRA </option>
                                 <option value="usd"> USD </option>
                             </TextField>
+                            <TextField 
+                                size="small"
+                                label="% VAT"
+                                value={customVAT}
+                                onChange={(e) => handleCustomVat(e)}
+                                sx={{
+                                    width: "90px !important;",
+                                    marginTop: "0 !important",
+                                    marginLeft: "20px !important",
+                                }}
+                                
+                            > 
+                            </TextField>
+                            <br/>
+                        <small className="text-warning">NOTE: SETUP THE VAT PERCENTAGE FIRST BEFORE UPDATING THE UNIT PRICE. 
+                        <br/>DEFAULT VAT: {vatLabel}% </small>  
                         </Grid>
-                        <TableContainer sx={{ maxHeight: 600 }}>
+                        <TableContainer>
                             <Table
                                 stickyHeader
                                 aria-label="a dense table"
@@ -1181,7 +1281,7 @@ const PafForm = ({ logged }) => {
                                         <TableCell>QTY*</TableCell>
                                         <TableCell>UNIT PRICE*</TableCell>
                                         <TableCell>TOTAL AMOUNT</TableCell>
-                                        <TableCell>{vatLabel}% VAT</TableCell>
+                                        <TableCell>{customVAT}% VAT</TableCell>
                                         <TableCell>
                                             TOTAL AMOUNT ({currency})
                                         </TableCell>
@@ -1327,18 +1427,25 @@ const PafForm = ({ logged }) => {
                                                 <TableCell
                                                     sx={{ px: "0 !important" }}
                                                 >
-                                                    <TextField
-                                                        label="Description"
-                                                        size="small"
-                                                        variant="outlined"
-                                                        onChange={(e) =>
-                                                            handleItemData(
-                                                                e,
-                                                                index,
-                                                                "description"
-                                                            )
-                                                        }
-                                                    />
+                                                  
+                                                 <TextareaAutosize
+                                                aria-label="minimum height"
+                                                minRows={2}
+                                                maxRows={15}
+                                                placeholder="Description"
+                                                onChange={(e) =>
+                                                    handleItemData(
+                                                        e,
+                                                        index,
+                                                        "description"
+                                                    )
+                                                }
+                                                style={{
+                                                    width: "100%",
+                                                    border: "1px solid #cecece",
+                                                    padding: 10,
+                                                }}
+                                            />
                                                 </TableCell>
                                                 <TableCell
                                                     sx={{ px: "0 !important" }}
@@ -1369,10 +1476,9 @@ const PafForm = ({ logged }) => {
                                                             label="Date"
                                                             size="small"
                                                             variant="outlined"
-                                                            inputFormat="MM/dd/yyyy"
-                                                            value={
-                                                                row.invoice_date
-                                                            }
+                                                            value={row.invoice_date || null}
+                                                            inputFormat="MM/dd/yyyy" 
+                                                            clearable
                                                             onChange={(e) =>
                                                                 handleDateRow(
                                                                     e,
@@ -1573,7 +1679,16 @@ const PafForm = ({ logged }) => {
                                             />
                                         </Grid>
                                         <Grid item xs={12} md={4}>
-                                            Discount
+                                        <TextField
+                                                label="Discount"
+                                                value={discountTitle}
+                                                size="small"
+                                                variant="outlined"
+                                                margin="dense"
+                                                onChange={(e) =>
+                                                    handleDiscountTitle( e )
+                                                }
+                                            />
                                         </Grid>
                                         <Grid item xs={12} md={8}>
                                             <TextField
@@ -1592,10 +1707,11 @@ const PafForm = ({ logged }) => {
                                             />
                                         </Grid>
 
-                                        {currency == "usd" && (
+                                        {(currency == "usd" || currency == "aud" || currency == "bhd"
+                                        || currency == "jod" || currency == "egp" || currency == "lira" || currency == "eur" || currency == "gbp") && (
                                             <>
                                                 <Grid item xs={4} md={4}>
-                                                    USD TO AED
+                                                    <span className="text-uppercase">{currency}</span> TO AED
                                                 </Grid>
                                                 <Grid item xs={8} md={8}>
                                                     <TextField
@@ -1614,6 +1730,7 @@ const PafForm = ({ logged }) => {
                                                 </Grid>
                                             </>
                                         )}
+                                       
                                         <Grid item xs={12} md={4}>
                                             Net Amount
                                         </Grid>
@@ -1640,7 +1757,8 @@ const PafForm = ({ logged }) => {
                             <TextField
                                 size="small"
                                 variant="outlined"
-                                className="full-width"
+                                value={objData[0].amount_in_words || ""}
+                                className="full-width amount-words"
                                 onChange={(e) =>
                                     handleObjData(e, "amount_words")
                                 }
@@ -1809,7 +1927,7 @@ const PafForm = ({ logged }) => {
                                                                     ? contact.name
                                                                     : ""
                                                             }
-                                                            value={row.user_id}
+                                                            value={row.user_id || ""}
                                                             size="small"
                                                             onChange={( e, val ) =>
                                                             handleApproveEmployee(

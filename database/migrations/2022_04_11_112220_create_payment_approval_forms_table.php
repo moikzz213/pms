@@ -38,6 +38,7 @@ class CreatePaymentApprovalFormsTable extends Migration
             $table->text('remarks_finance')->nullable();
             $table->unsignedInteger('budgeted')->nullable();
             $table->float('discount', 10)->nullable();
+            $table->string('discount_title')->default("Discount")->nullable(); 
             $table->float('currency_rate', 10)->default(1);
             $table->float('total_amount', 10)->nullable();
             $table->float('net_amount', 10)->nullable();

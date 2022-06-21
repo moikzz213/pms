@@ -26,22 +26,41 @@ const columns = [
     { id: "prf_no", label: "PRF NO.", minWidth: 30 },
     { id: "company", label: "Business Unit", minWidth: 50 },
     { id: "supplier", label: "Supplier", minWidth: 50 },
+    { id: "net_amount", label: "Amount", minWidth: 50 },
     { id: "process_by", label: "PROCESSED BY", minWidth: 50 },
-    { id: "created_at", label: "Date", minWidth: 20 },
+    { id: "created_at", label: "D.Created", minWidth: 20 },
 ];
 
 const Lpo = () => {
     const navigate = useNavigate();
-    const [page, setPage] = useState(1);
+    var queryParams = new URLSearchParams(window.location.search);
+    const params = new Proxy(new URLSearchParams(window.location.search), {
+        get: (searchParams, prop) => searchParams.get(prop),
+    });
+    // Get the value of "some_key" in eg "https://example.com/?some_key=some_value"
+    let qpage = params.page; // "some_value"
+    if(!qpage){
+        qpage = 1;
+    }
+
+    const [page, setPage] = useState(parseInt(qpage));
     const [lastPage, setlastPage] = useState(0);
     const [totalPage, settotalPage] = useState(0);
     const [toPage, settoPage] = useState(0);
     const [fromPage, setfromPage] = useState(0);
+    const [isSearch, setIsSearch ]= useState(false);
     const arrowPage = (n) => {
         let p = page + n;
         if (p > 0 && p <= lastPage) {
             setPage(p);
         }
+
+        
+        // Set new or modify existing parameter value. 
+        queryParams.set("page",  p);
+      
+        // Replace current querystring with the new one.
+        history.replaceState(null, null, "?"+queryParams.toString());
     };
     const [company, setCompany] = useState([
         {
@@ -74,16 +93,21 @@ const Lpo = () => {
             prf_no: "",
             company: "",
             supplier: "",
+            net_amount: 0.00,
             process_by: "",
             created_at: "",
         },
     ]);
 
-    function fetchRequests() {
-        API.get("/v/local-purchase-order/fetch/?page=" + page)
+    function fetchRequests(ss = "") {
+        let pg = page;
+        if(queryParams.get('page')){
+            pg = queryParams.get('page');
+        }
+        API.get("/v/local-purchase-order/fetch/?page=" + pg+ss)
             .then((response) => {
                 let fetchItems = response.data.item;
-                console.log(fetchItems.data);
+                
                 dataWithRelations(fetchItems.data);
 
                 setPage(fetchItems.current_page);
@@ -99,7 +123,7 @@ const Lpo = () => {
 
     function dataWithRelations(data) {
         let newData = [];
-        console.log(data);
+        
         data.map((o, i) => {
             let prf = o.requests.prf_no;
             if (o.prf_extension) {
@@ -113,6 +137,7 @@ const Lpo = () => {
                 prf_no: prf,
                 supplier: o.supplier ? o.supplier.title : "",
                 company: o.company,
+                net_amount: o.net_amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","),
                 process_by: o.process_by ? o.process_by.name : "",
                 created_at: new Date(o.created_at).toLocaleDateString(),
             };
@@ -146,18 +171,37 @@ const Lpo = () => {
         } else {
             value = e.target.value;
         }
-
+      
         let objAssign = Object.assign([], filterSearch);
 
         if (type == "company") {
-            console.log(val);
-            objAssign[0].company = val.title;
+            
+            objAssign[0].company_id = val.id;
+            if(value == undefined || value == null || value == "-" || value == 0){ 
+                queryParams.delete('company_id');
+                history.replaceState(null, null, "?" + queryParams.toString());
+            }
         } else if (type == "status") {
             objAssign[0].status = value;
+
+            if(value == undefined || value == null || value == "-"){ 
+                queryParams.delete('status');
+                history.replaceState(null, null, "?" + queryParams.toString());
+            }
         } else if (type == "supplier") {
             objAssign[0].supplier_id = value;
+
+            if(value == undefined || value == null || value == "-"){ 
+                queryParams.delete('supplier_id');
+                history.replaceState(null, null, "?" + queryParams.toString());
+            }
         } else if (type == "processby") {
             objAssign[0].user_id = value;
+
+            if(value == undefined || value == null || value == "-"){ 
+                queryParams.delete('user_id');
+                history.replaceState(null, null, "?" + queryParams.toString());
+            }
         }
 
         setFilterSearch(objAssign);
@@ -166,29 +210,28 @@ const Lpo = () => {
     const searchSubmit = (e) => {
         e.preventDefault();
         setLpoData([]);
+        
         let search = filterSearch[0];
+        
         Object.keys(search).forEach((key) => {
-            if (search[key] === "" || search[key] === "-") {
+            if (search[key] === undefined || search[key] === "" || search[key] === "-") {
                 delete search[key];
             }
         });
 
-        search = { data: search };
-        API.post("/v/local-purchase-order/filter/search", search).then(
-            (response) => {
-                if (response.data) {
-                    let fetchItems = response.data.item;
+        let ssssss = Object.assign([], search);
+        queryParams.set("page", 1);
+        let stringObj = "";
+       
+        Object.keys(ssssss).forEach((key) => {
+            stringObj += "&" + key + "=" + ssssss[key];
+            queryParams.set(key, ssssss[key]);
+        }); 
 
-                    dataWithRelations(fetchItems.data);
+        history.replaceState(null, null, "?" + queryParams.toString());
+        
 
-                    setPage(fetchItems.current_page);
-                    setlastPage(fetchItems.last_page);
-                    settotalPage(fetchItems.total);
-                    settoPage(fetchItems.to);
-                    setfromPage(fetchItems.from);
-                }
-            }
-        );
+        fetchRequests(stringObj);
     };
 
     const viewDetails = (e, v) => {
@@ -198,7 +241,30 @@ const Lpo = () => {
     };
 
     useEffect(() => {
-        fetchRequests();
+        let cID = params.company_id;
+        let cStatus = params.status;
+        let cProcess = params.user_id;
+        let cUser = params.supplier_id;
+        let czID = "";
+        let czStatus = "";
+        let czProcess = "";
+        let czUser = "";
+        if (cID) {
+            czID = "&company_id=" + cID;
+        }
+        if (cStatus) {
+            czStatus = "&status=" + cStatus;
+        }
+        if (cProcess) {
+            czProcess = "&user_id=" + cProcess;
+        }
+        if (cUser) {
+            czUser = "&supplier_id=" + cUser;
+        }
+        let defaultQueryString = czID + czStatus + czProcess + czUser;
+        if(!isSearch){
+            fetchRequests(defaultQueryString);
+        }
         return () => {
             setLpoData([]);
         };
@@ -235,12 +301,25 @@ const Lpo = () => {
         let p = parseInt(selectedPage);
         p = p + n;
         setPage(p);
+        
+        // Set new or modify existing parameter value. 
+        queryParams.set("page",  p);
+      
+        // Replace current querystring with the new one.
+        history.replaceState(null, null, "?"+queryParams.toString());
     };
 
     const handleSearch = (e) => {
-        if (e.target.value.length > 3) {
+        if (e.target.value.length > 3) { 
+            setIsSearch(true);
+            setPage(1);
+            queryParams.set("page", 1);  
+            history.replaceState(null, null, "?" + queryParams.toString()); 
+                
             axiosFunction("/v/local-purchase-order/search/" + e.target.value);
+            
         } else if (e.target.value.length == 0) {
+            setIsSearch(false);
             axiosFunction("/v/local-purchase-order/search/-");
         }
     };
@@ -266,8 +345,7 @@ const Lpo = () => {
                         <Box sx={{ my: "auto" }}> Filter by:</Box>
                         <Autocomplete
                             disablePortal
-                            fullWidth
-                            disableClearable
+                            fullWidth 
                             sx={{ m: 1 }}
                             options={company}
                             getOptionLabel={(company) => company.title}
@@ -389,7 +467,7 @@ const Lpo = () => {
                 </Box>
             </Stack>
             <Paper sx={{ width: "100%", overflow: "hidden" }}>
-                <TableContainer sx={{ maxHeight: 620 }}>
+                <TableContainer >
                     <Table
                         stickyHeader
                         aria-label="sticky table"

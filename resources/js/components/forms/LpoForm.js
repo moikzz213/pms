@@ -83,10 +83,11 @@ function mapFilterData(array, selected) {
 }
 
 const LpoForm = ({ logged }) => {
-    const navigate = useNavigate();
+   // const navigate = useNavigate();
     const defaultVat = 0.05; // 5% VAT
     const vatLabel = 5;
 
+    const [customVAT, setCustomVAT] = useState(5);
     const [open, setOpen] = useState(false);
     const [fieldState, setFieldState] = useState(true);
     const [severity, setSeverity] = useState({
@@ -274,7 +275,9 @@ const LpoForm = ({ logged }) => {
     const [prfs, setPrfs] = useState("");
     const [enableLicense, setEnableLicense] = useState(false);
     // Data to be submit
-    const [objData, setObjData] = useState([{}]);
+    const [objData, setObjData] = useState([{
+        currency: "aed"
+    }]);
     const [validate, setValidate] = useState([
         {
             supplier: "",
@@ -302,7 +305,7 @@ const LpoForm = ({ logged }) => {
 
         let validatedData = validate.map((o, i) => {
             o.supplier = checkedData;
-            console.log(o);
+           
             if (
                 o.supplier &&
                 o.prf &&
@@ -416,15 +419,16 @@ const LpoForm = ({ logged }) => {
         setValidate(validatedData);
     };
 
-    const handlePrf = (event) => {
-        let selected = event.target.value;
+    const handlePrf = (event,val) => {
+        let selected = val.id;
+       
         let checkedData = false;
         if (!selected) {
             setPrfDetails(funcSetPRF());
         } else {
             let supp = mapFilterData(prfList, selected);
             checkedData = true;
-            console.log(supp);
+          
             setPrfDetails(supp);
             handleShippingCompany(supp.company_id, "direct");
             handleCompany(supp.company_id, "direct");
@@ -521,6 +525,8 @@ const LpoForm = ({ logged }) => {
                 o.prf_extension = value;
             } else if (type == "department") {
                 o.department_id = val ? val.id : "";
+            }else if (type == "currency") {
+                o.currency = value;
             }
 
             return o;
@@ -623,9 +629,15 @@ const LpoForm = ({ logged }) => {
         setApprovalRows([...approvalRows, newItem]);
     };
 
+    const handleCustomVat = (e) => { 
+        
+        setCustomVAT(e.target.value);
+    }
+
     const calculateAmount = (e, index, type) => {
         let value = 0;
         let totalMonth = 0;
+        let checkVAT = parseFloat(customVAT)/100;
         let checkedLicense = false;
         let is_license = 0;
         let checkedData = false;
@@ -728,7 +740,7 @@ const LpoForm = ({ logged }) => {
         if (type == "vat") {
             totalVat = value;
         } else {
-            totalVat = totalAmount * defaultVat;
+            totalVat = totalAmount * checkVAT;
         }
 
         totalVat = Math.round(totalVat * 100) / 100;
@@ -779,7 +791,7 @@ const LpoForm = ({ logged }) => {
     };
 
     const handleLicense = (e) => {
-        console.log(e.target.checked);
+        
         setEnableLicense(e.target.checked);
         if (!e.target.checked) {
             setLicenseMonth(0);
@@ -817,6 +829,7 @@ const LpoForm = ({ logged }) => {
     const handleSubmitForm = (e) => {
         e.preventDefault();
         setLoading(true);
+        setOpen(true);
         let newMessage = {
             title: "info",
             message: "Please wait...",
@@ -833,6 +846,7 @@ const LpoForm = ({ logged }) => {
             o.company_id = prfDetails ? prfDetails.company_id : "";
             o.status = "onprocess";
             o.payment_mode = paymode;
+            o.vat_custom = customVAT;
             o.payment_terms = payterms;
             o.contact_person = persons;
             o.billing_details_id = company;
@@ -863,7 +877,7 @@ const LpoForm = ({ logged }) => {
         });
 
         newApproval = [...prepend_prepared_by, ...newApproval];
-        console.log(newApproval);
+        
         let dataSubmit = [
             {
                 details: newData,
@@ -875,9 +889,8 @@ const LpoForm = ({ logged }) => {
             },
         ];
         API.post("/v/local-purchase-order/new", dataSubmit)
-            .then((response) => {
-                console.log(response.data);
-                setOpen(true);
+            .then((response) => { 
+                
                 setTimeout(() => {
                     newMessage = {
                         title: "success",
@@ -1084,25 +1097,34 @@ const LpoForm = ({ logged }) => {
                             PRF NO. *
                         </Grid>
                         <Grid item xs={12} md={4} sx={{ display: "flex" }}>
-                            <TextField
-                                select
-                                size="small"
-                                label="PRF No*"
+                           
+                            <Autocomplete
+                                disablePortal
                                 sx={{ width: "60% !important" }}
-                                value={prfs}
-                                multiple
-                                onChange={(e) => handlePrf(e)}
-                                SelectProps={{
-                                    native: true,
+                                options={prfList}
+                                disableClearable
+                                getOptionLabel={(data) => data.prf_no || ""}
+                                size="small"
+                                onChange={(e, value) =>
+                                    handlePrf(e, value)
+                                }
+                                renderOption={(props, option) => {
+                                    return (
+                                        <li {...props} key={option.id}>
+                                            {option.prf_no}
+                                        </li>
+                                    );
                                 }}
-                            >
-                                <option value=""> - </option>
-                                {prfList.map((option) => (
-                                    <option key={option.id} value={option.id}>
-                                        {option.prf_no}
-                                    </option>
-                                ))}
-                            </TextField>
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        label="PRF No*"
+                                        fullWidth
+                                    />
+                                )}
+                            />
+
+
                             <TextField
                                 label="PRF Ext.(Optional)"
                                 size="small"
@@ -1152,6 +1174,40 @@ const LpoForm = ({ logged }) => {
                                 ADD
                             </Button>
                         </Grid>
+                        <Grid item md={4} sx={{display: "flex"}}>
+                        <TextField
+                                select
+                                size="small"
+                                label="Currency" 
+                                onChange={(e) =>  handleFreeText(e, null, "currency")} 
+                                SelectProps={{
+                                    native: true,
+                                }}
+                            >
+                                <option value="aed"> AED </option>
+                                <option value="aud"> AUD </option>
+                                <option value="bhd"> BHD </option>
+                                <option value="egp"> EGP </option>
+                                <option value="eur"> EUR </option>
+                                <option value="gbp"> GBP </option>
+                                <option value="jod"> JOD </option>
+                                <option value="lira"> LIRA </option>
+                                <option value="usd"> USD </option>
+                            </TextField>
+                            <TextField 
+                                size="small"
+                                label="% VAT"
+                                value={customVAT}
+                                onChange={(e) => handleCustomVat(e)}
+                                sx={{
+                                    width: "90px !important;",
+                                    marginTop: "8px !important",
+                                    marginLeft: "20px !important",
+                                }}
+                                
+                            > 
+                            </TextField>
+                        </Grid>
                         <Grid item md={3}>
                             <Autocomplete
                                 disablePortal
@@ -1159,7 +1215,7 @@ const LpoForm = ({ logged }) => {
                                 sx={{ m: 0 }}
                                 options={department}
                                 getOptionLabel={(department) =>
-                                    department.title
+                                    department.title || ""
                                 }
                                 size="small"
                                 onChange={(e, value) =>
@@ -1180,9 +1236,13 @@ const LpoForm = ({ logged }) => {
                                     />
                                 )}
                             />
+                            
                         </Grid>
-                        <Grid item md={8}></Grid>
-                        <TableContainer sx={{ maxHeight: 600 }}>
+                       
+                        <Grid item md={12}>  
+                        <small className="text-warning">NOTE: SETUP THE VAT PERCENTAGE FIRST BEFORE UPDATING THE UNIT PRICE. 
+                        <br/>DEFAULT VAT: {vatLabel}% </small>  </Grid>
+                        <TableContainer >
                             <Table
                                 stickyHeader
                                 aria-label="a dense table"
@@ -1520,7 +1580,7 @@ const LpoForm = ({ logged }) => {
                                             />
                                         </Grid>
                                         <Grid item xs={12} md={6}>
-                                            {vatLabel}% VAT
+                                            {customVAT}% VAT
                                         </Grid>
                                         <Grid item xs={12} md={6}>
                                             <TextField
@@ -1870,7 +1930,7 @@ const LpoForm = ({ logged }) => {
                                                 sx={{ m: 0 }}
                                                 options={contactPersons}
                                                 getOptionLabel={(contact) =>
-                                                    contact.name
+                                                    contact.name || ""
                                                 }
                                                 size="small"
                                                 onChange={(e, value) =>
@@ -2010,7 +2070,7 @@ const LpoForm = ({ logged }) => {
                             APPROVAL SETUP
                         </Grid>
                         <Grid item md={12} xs={12}>
-                            <TableContainer sx={{ maxHeight: 600 }}>
+                            <TableContainer>
                                 <Table
                                     stickyHeader
                                     aria-label="a dense table"
@@ -2056,7 +2116,7 @@ const LpoForm = ({ logged }) => {
                                                             label="Approval Type"
                                                             sx={{ m: 0 }}
                                                             value={
-                                                                row.approval_type
+                                                                row.approval_type || ""
                                                             }
                                                             onChange={(e) =>
                                                                 handleApproveType(
@@ -2109,7 +2169,7 @@ const LpoForm = ({ logged }) => {
                                                                     ? contact.name
                                                                     : ""
                                                             }
-                                                            value={row.user_id}
+                                                            value={row.user_id || ""}
                                                             size="small"
                                                             onChange={( e, val ) =>
                                                             handleApproveEmployee(

@@ -17,6 +17,7 @@ class CreatePaymentApprovalFormApprovalsTable extends Migration
             $table->id();
             $table->unsignedBigInteger('payment_approval_form_id');
             $table->unsignedBigInteger('user_id'); 
+            $table->unsignedInteger('orders'); 
             $table->string('approval_type', 50); 
             $table->timestamps();
         });

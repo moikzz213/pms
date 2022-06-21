@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Image;
 use App\Models\Requests;
+use App\Jobs\CancelRequest;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -22,14 +23,32 @@ class RequestController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function fetch($token)
-    { 
+    public function fetch(Request $request, $token)
+    {  
         $token = PersonalAccessToken::findToken($token);
         $user = $token->tokenable;
         
         $id = $user->id;
-        $data = Requests::where('user_id',"=",$id)->with("company","location","process_by", "profile")->orderBy("updated_at", "desc")->paginate(10); 
-       
+        
+        $searchData = array();
+        if(@$request['company_id']){
+            $searchData = array_merge($searchData, array('company_id' => $request['company_id']));
+        }
+        if(@$request['status']){
+            $searchData = array_merge($searchData,array('status' => $request['status']));
+        }
+        if(@$request['process_by']){
+            $searchData =  array_merge($searchData,array('process_by' => $request['process_by']));
+        }
+        if(@$request['user_id']){
+            $searchData =  array_merge($searchData,array('user_id' => $request['user_id']));
+        }
+
+        if($id == 304){
+            $data = Requests::where($searchData)->where('user_id',"=",$id)->orWhere('user_id',"=", 258)->orWhere('user_id',"=", 261)->orWhere('user_id',"=", 82)->orWhere('user_id',"=", 19)->with("company","location","process_by", "profile")->orderBy("updated_at", "desc")->paginate(10); 
+        }else{
+            $data = Requests::where($searchData)->where('user_id',"=",$id)->with("company","location","process_by", "profile")->orderBy("updated_at", "desc")->paginate(10); 
+        }
         return response()->json([
             'item' => $data 
         ], 200); 
@@ -45,9 +64,28 @@ class RequestController extends Controller
         ], 200); 
     } 
 
-    public function requests_procurements()
+    public function requests_procurements(Request $request)
     {  
-        $data = Requests::with("company","location","process_by", "profile")->orderBy("updated_at", "desc")->paginate(10); 
+         
+        $searchData = array();
+        if($request['process_by'] == 'unassign'){
+            $searchData = 'process_by';
+        }else{
+            if(@$request['company_id']){
+                $searchData = array_merge($searchData, array('company_id' => $request['company_id']));
+            }
+            if(@$request['status']){
+                $searchData = array_merge($searchData,array('status' => $request['status']));
+            }
+            if(@$request['process_by']){
+                $searchData =  array_merge($searchData,array('process_by' => $request['process_by']));
+            }
+            if(@$request['user_id']){
+                $searchData =  array_merge($searchData,array('user_id' => $request['user_id']));
+            }
+        }
+
+        $data = Requests::where($searchData)->with("company","location","process_by", "profile")->orderBy("updated_at", "desc")->paginate(10); 
         
         return response()->json([
             'item' => $data 
@@ -61,7 +99,19 @@ class RequestController extends Controller
         }
         $user = $token->tokenable;
        
-        if($user->role == 'normal'){
+        if($user->id == 304){
+            // jeff - 258
+            // jerico - 261
+            // arnel - 82
+            // abe - 19
+            $id = $user->id;
+            $data = Requests::where('user_id', "=",$id)->orWhere('user_id',"=", 258)->orWhere('user_id',"=", 261)->orWhere('user_id',"=", 82)->orWhere('user_id',"=", 19)->with("company","location","process_by", "profile")->orderBy("updated_at", "desc")->take(10)->get();
+            $pending =  Requests::where(['user_id' => $id])->where("status", "=", "pending")->get(); 
+            $processed = Requests::where(['user_id' => $id])->where("status", "=", "onprocess")->get(); 
+            $newRequest =  Requests::where('user_id', "=", $id)->whereDate( "created_at" , Carbon::today())->get(); 
+            $closed =  Requests::where(['user_id' => $id, "status" => "closed"])->get(); 
+            $totalRequest = Requests::where(['user_id' => $id])->orWhere('user_id',"=", 258)->orWhere('user_id',"=", 261)->orWhere('user_id',"=", 82)->orWhere('user_id',"=", 19)->where("status", "!=", "cancelled")->get(); 
+        }elseif($user->role == 'normal'){
             $id = $user->id;
             $data = Requests::where('user_id',"=",$id)->with("company","location","process_by", "profile")->orderBy("updated_at", "desc")->take(10)->get();
             $pending = Requests::where(['user_id' => $id, "status" => "pending"])->get(); 
@@ -95,7 +145,7 @@ class RequestController extends Controller
 
     public function search($search){
         if($search !== '-'){
-            $data = Requests::where("prf_no", "LIKE", "%".$search."%")->orWhere("status", "LIKE", "%".$search."%")->orWhereHas('profile', function ($q) use ($search){
+            $data = Requests::where("subject", "LIKE", "%".$search."%")->orWhere("prf_no", "LIKE", "%".$search."%")->orWhere("status", "LIKE", "%".$search."%")->orWhereHas('profile', function ($q) use ($search){
                 $q->where("name", "LIKE", "%".$search."%");  
             })->orWhereHas('company', function ($q) use ($search){
                 $q->where("title", "LIKE", "%".$search."%");  
@@ -125,6 +175,21 @@ class RequestController extends Controller
         ], 200); 
     }
 
+    public function requestorFilterStatus(Request $request){ 
+        if($request['data']){ 
+            $data = Requests::where($request['data'])->with("company","location","process_by", "profile")->paginate(10);
+          
+        }else{
+            $data = Requests::with("company","location","process_by", "profile")->orderBy("updated_at", "desc")->paginate(10); 
+        }
+
+        return response()->json([
+            'item' => $data 
+        ], 200); 
+    }
+
+    
+
     /**
      * Store a newly created resource in storage.
      *
@@ -147,6 +212,7 @@ class RequestController extends Controller
                 "urgency" =>  $request['urgency'],
                 "company_id" => $request['company_id'],
                 "location_id" => $request['location_id'],
+                "subject" => $request['subject'],
                 "status" => "pending",
                 "details" => $request['details'],
                 "user_id"  => $request['user_id'],
@@ -205,6 +271,7 @@ class RequestController extends Controller
                 "location_id" => $request['location_id'],
                 "status" => "pending",
                 "details" => $request['details'],
+                "subject" => $request['subject'],
                 "user_id"  => $request['user_id'],
                 "prf_no" => $prfNo,
                 "created_at"    => Carbon::now()
@@ -220,7 +287,7 @@ class RequestController extends Controller
             $details = array("prf_no" => $prfNo, 'data' => $request['details'], 'user_id' => $request['user_id']);
             $rabbitArray = array("details" => $details, "email" => $emails, "subject" => "New Request");  
             
-            RequestToProcurement::dispatch($rabbitArray); 
+           // RequestToProcurement::dispatch($rabbitArray); 
              
             $msg = "New request has been created!"; 
           
@@ -261,8 +328,18 @@ class RequestController extends Controller
         
         $data = Requests::where('id', '=', $request['id'])->first(); 
 
+        
         $item = array("status" => $request['type']);
         $data->update($item); 
+
+        if($request['type'] == 'cancelled'){
+             //procurementgroup@gagroup.net
+             $emails = 'jacob@gagroup.net';
+             $rabbitArray = array("details" => $data, "email" => $emails, "subject" => "Request Cancelled");  
+             
+             CancelRequest::dispatch($rabbitArray);  
+             
+        }
 
         $data->logs()->create([
             'user_id' => $request['user_id'],
@@ -308,7 +385,7 @@ class RequestController extends Controller
 
     public function editData(Request $request){
         $data = Requests::where('id', '=', $request['id'])->first(); 
-        $item = array("details" => $request['details']);
+        $item = array("details" => $request['details'], 'subject' => $request['subject'], 'company_id' => $request['company'], 'location_id' => $request['location']);
         $data->update($item);  
        
         $arrDetail = array( "details" => $request['details'],

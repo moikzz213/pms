@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import TextField from "@mui/material/TextField";
 import Stack from "@mui/material/Stack";
+import Grid from "@mui/material/Grid";
 import Box from "@mui/material/Box";
 import Table from "@mui/material/Table";
 import TableHead from "@mui/material/TableHead";
@@ -8,6 +9,7 @@ import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableRow from "@mui/material/TableRow";
+import Autocomplete from "@mui/material/Autocomplete";
 import Paper from "@mui/material/Paper";
 import IconButton from "@mui/material/IconButton";
 import SearchIcon from "@mui/icons-material/Search";
@@ -79,26 +81,44 @@ const request_columns = [
 
 const Reports = () => {
     let currentYear = new Date().getFullYear();
+    
+    let months = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sept",
+        "Oct",
+        "Nov",
+        "Dec",
+    ];
     let year1 = currentYear - 1;
     let year2 = currentYear - 2;
     let year3 = currentYear - 3;
     let year4 = currentYear - 4;
     let today = new Date();
+
     today.setDate(today.getDate() - 15);
     let dtDate = new Date(today).toLocaleDateString();
 
     const [reportYear, setReportYear] = useState(new Date().getFullYear());
     const [assignYear, setAssignYear] = useState(new Date().getFullYear());
+    const [businessYear, setBusinessYear] = useState(new Date().getFullYear());
+    const [businessMonth, setBusinessMonth] = useState(
+        new Date().getMonth()+1
+    );
+
     const [fromDate, setFromDate] = useState(new Date(dtDate));
     const [toDate, setToDate] = useState(new Date());
     const [vtype, setVtype] = useState("prf");
     const [totalData, setTotalData] = useState(0);
-    const [company, setCompany] = useState([
-        {
-            id: null,
-            title: "",
-        },
-    ]);
+    const [company, setCompany] = useState([]);
+    const [department, setDepartment] = useState([]);
+    const [deptList, setDeptList] = useState([]);
     const [supplier, setSupplier] = useState([
         {
             id: null,
@@ -130,6 +150,7 @@ const Reports = () => {
     const [reportData, setReportData] = useState([]);
     const [reportStatusData, setReportStatusData] = useState([]);
     const [reportMonthlyData, setReportMonthlyData] = useState([]);
+    const [reportMonthlyPerBusiness, setReportMonthlyPerBusiness] = useState([]);
     function dataWithRelations(data) {
         let newData = [];
         let fData = [];
@@ -141,6 +162,7 @@ const Reports = () => {
 
             if (vtype == "prf") {
                 let date = new Date(o.created_at);
+                let fdate = new Date(o.created_at);
                 let udate = new Date(o.updated_at);
                 let ddate = new Date(
                     date.setTime(date.getTime() + dterms * 86400000)
@@ -163,7 +185,7 @@ const Reports = () => {
                         process_by: o.process_by ? o.process_by.name : "",
                         request_by: o.profile.name,
                         location: o.location ? o.location.title : "",
-                        month: date.toLocaleString("en-us", { month: "long" }),
+                        month: fdate.toLocaleString("en-us", { month: "long" }),
                         details: o.details.replace(/(<([^>]+)>)/gi, " / "),
                         due_term: dterms,
                         cstatus: flagged,
@@ -174,7 +196,7 @@ const Reports = () => {
 
                 fData[i] = {
                     PRFNo: o.prf_no,
-                    Month: date.toLocaleString("en-us", { month: "long" }),
+                    Month: fdate.toLocaleString("en-us", { month: "long" }),
                     RQSTDATE: new Date(o.created_at).toLocaleDateString(),
                     Company: o.company ? o.company.title : "",
                     Description: o.details.replace(/(<([^>]+)>)/gi, " / "),
@@ -193,6 +215,7 @@ const Reports = () => {
                 }
 
                 let date = new Date(o.lpo.requests.created_at);
+                let fdate = new Date(o.lpo.requests.created_at);
                 let udate = new Date(o.lpo.updated_at);
                 let ddate = new Date(
                     date.setTime(date.getTime() + dterms * 86400000)
@@ -213,7 +236,7 @@ const Reports = () => {
                             o.lpo.requests.created_at
                         ).toLocaleDateString(),
                         prf_no: prf,
-                        month: date.toLocaleString("en-us", { month: "long" }),
+                        month: fdate.toLocaleString("en-us", { month: "long" }),
                         created_at: new Date(
                             o.lpo.created_at
                         ).toLocaleDateString(),
@@ -227,7 +250,7 @@ const Reports = () => {
                         qty: o.qty,
                         unit_price: o.unit_price,
                         vat: o.vat,
-                        total: o.lpo.total_amount,
+                        total: o.qty * o.unit_price,
                         supplier: o.lpo.supplier ? o.lpo.supplier.title : "",
                         location: o.lpo.requests
                             ? o.lpo.requests.location.title
@@ -248,7 +271,7 @@ const Reports = () => {
                         o.lpo.requests.created_at
                     ).toLocaleDateString(),
                     PRFNo: prf,
-                    Month: date.toLocaleString("en-us", { month: "long" }),
+                    Month: fdate.toLocaleString("en-us", { month: "long" }),
                     LPODate: new Date(o.lpo.created_at).toLocaleDateString(),
                     LPONo: o.lpo.lpo_no,
                     Item: o.item,
@@ -258,7 +281,7 @@ const Reports = () => {
                     Qty: o.qty,
                     UnitPrice: o.unit_price,
                     VAT: o.vat,
-                    Total: o.lpo.total_amount,
+                    Total: o.qty * o.unit_price,
                     Supplier: o.lpo.supplier ? o.lpo.supplier.title : "",
                     Location: o.lpo.requests
                         ? o.lpo.requests.location.title
@@ -274,6 +297,7 @@ const Reports = () => {
                 };
             } else if (vtype == "paf") {
                 let date = new Date(o.created_at);
+                let fdate = new Date(o.created_at);
                 let udate = new Date(o.updated_at);
                 let ddate = new Date(
                     date.setTime(date.getTime() + dterms * 86400000)
@@ -292,23 +316,35 @@ const Reports = () => {
                         cstatus: flagged,
                         created_at: new Date(o.created_at).toLocaleDateString(),
                         paf_no: o.paf.paf_no,
-                        month: date.toLocaleString("en-us", { month: "long" }),
-                        lpo_date: new Date(
-                            o.lpo.created_at
-                        ).toLocaleDateString(),
-                        lpo_no: o.lpo.lpo_no,
+                        month: fdate.toLocaleString("en-us", { month: "long" }),
+                        lpo_date: o.lpo
+                            ? new Date(o.lpo.created_at).toLocaleDateString()
+                            : o.requests
+                            ? new Date(
+                                  o.requests.created_at
+                              ).toLocaleDateString()
+                            : "",
+                        lpo_no: o.lpo
+                            ? o.lpo.lpo_no
+                            : o.requests
+                            ? o.requests.prf_no
+                            : "",
                         invoice_date: o.invoice_date,
                         supplier_invoice_num: o.supplier_invoice_num,
                         amount: o.amount,
                         item: o.description,
-                        department: o.lpo.department.title,
+                        department: o.lpo
+                            ? o.lpo.department.title
+                            : o.requests
+                            ? o.requests.company.title
+                            : "",
                         qty: o.qty,
                         unit_price: o.unit_price,
                         vat: o.vat,
                         total: o.total_amount,
                         supplier: o.supplier ? o.supplier.title : "",
                         location: o.location,
-                        company: o.paf.company.title,
+                        company: o.paf.company ? o.paf.company.title : "",
                         rname: o.paf.process_by.name,
                         designation: o.paf.process_by.designation,
                         status: o.paf.status,
@@ -317,21 +353,33 @@ const Reports = () => {
                 fData[i] = {
                     PAFDate: new Date(o.created_at).toLocaleDateString(),
                     PAFNo: o.paf.paf_no,
-                    Month: date.toLocaleString("en-us", { month: "long" }),
-                    LPODate: new Date(o.lpo.created_at).toLocaleDateString(),
-                    LPONo: o.lpo.lpo_no,
+                    Month: fdate.toLocaleString("en-us", { month: "long" }),
+                    LPODate: o.lpo
+                        ? new Date(o.lpo.created_at).toLocaleDateString()
+                        : o.requests
+                        ? new Date(o.requests.created_at).toLocaleDateString()
+                        : "",
+                    LPONo: o.lpo
+                        ? o.lpo.lpo_no
+                        : o.requests
+                        ? o.requests.prf_no
+                        : "",
                     InvDate: o.invoice_date,
                     InvNo: o.supplier_invoice_num,
                     InvAmnt: o.total_amount,
                     Item: o.description,
-                    Department: o.lpo.department.title,
+                    Department: o.lpo
+                        ? o.lpo.department.title
+                        : o.requests
+                        ? o.requests.company.title
+                        : "",
                     Qty: o.qty,
                     UnitPrice: o.unit_price,
                     VAT: o.vat,
                     Total: o.total_amount,
                     Supplier: o.supplier ? o.supplier.title : "",
                     Location: o.location,
-                    Company: o.paf.company.title,
+                    Company: o.paf.company ? o.paf.company.title : "",
                     ProcessBy: o.paf.process_by.name,
                     Designation: o.paf.process_by.designation,
                     Flagged: flagged,
@@ -431,12 +479,37 @@ const Reports = () => {
         API.post("/v/report/monthly/counts", search).then((response) => {
             if (response.data) {
                 let fetchItems = response.data.item;
-                console.log(fetchItems);
                 setReportMonthlyData(fetchItems);
             }
         });
     };
 
+    const handleBusinessReport = (e) => {
+
+        if(department.length == 0){
+            return false;
+        }
+       
+        let dept = [];
+        department.map((o,i) => {
+            dept[i] = o.id;
+        });
+        
+        setReportMonthlyPerBusiness([]);
+        let search = {year: businessYear, month: businessMonth, department: dept};
+        API.post('v/report/business-report', search).then((response) => {
+            if (response.data) {
+                let fetchItems = response.data.item;
+                console.log(fetchItems);
+                setReportMonthlyPerBusiness(fetchItems);
+            }
+        });
+        
+    };
+
+    const handleDepartments = (e, val) => { 
+        setDepartment(val);
+    }
     useEffect(() => {
         API.get("/v/profile/procurements/list").then((response) => {
             if (response.data) {
@@ -464,6 +537,13 @@ const Reports = () => {
             fetchItems = Object.assign([], fetchItems);
 
             setCompany(fetchItems);
+        });
+
+        API.get("/v/departments/fetch-non-paginate").then((response) => {
+            let fetchItems = response.data.item;
+            fetchItems = Object.assign([], fetchItems);
+            console.log(fetchItems);
+            setDeptList(fetchItems);
         });
     }, []);
 
@@ -736,8 +816,12 @@ const Reports = () => {
             </TextField>
 
             <Paper sx={{ width: "100%", overflow: "hidden" }}>
-                <TableContainer sx={{ maxHeight: 620 }}>
-                    <Table stickyHeader aria-label="sticky table" className="dense-table">
+                <TableContainer>
+                    <Table
+                        stickyHeader
+                        aria-label="sticky table"
+                        className="dense-table"
+                    >
                         <TableHead>
                             <TableRow>
                                 {statusReport.map((column) => (
@@ -826,8 +910,12 @@ const Reports = () => {
             </TextField>
 
             <Paper sx={{ width: "100%", overflow: "hidden" }}>
-                <TableContainer sx={{ maxHeight: 820 }}>
-                    <Table stickyHeader aria-label="sticky table" className="dense-table">
+                <TableContainer>
+                    <Table
+                        stickyHeader
+                        aria-label="sticky table"
+                        className="dense-table"
+                    >
                         <TableHead>
                             <TableRow>
                                 <TableCell key="month">MONTH</TableCell>
@@ -898,6 +986,171 @@ const Reports = () => {
                     </Table>
                 </TableContainer>
             </Paper>
+            <Box sx={{ borderTop: "1px solid #000", mt: 3, pt: 2 }}>
+                                    <Box sx={{display: "flex"}}>
+                        <Button
+                            size="small"
+                            sx={{ verticalAlign: "bottom" }}
+                            variant="contained"
+                            color="secondary"
+                            onClick={(e) => handleBusinessReport(e)}
+                        >
+                            Filter by
+                        </Button>
+                   
+                        <TextField
+                            sx={{ m: 1, width: 120 }}
+                            select
+                            size="small"
+                            label="Year"
+                            value={businessYear}
+                            onChange={(e) => setBusinessYear(e.target.value)}
+                            SelectProps={{
+                                native: true,
+                            }}
+                        >
+                            <option value={currentYear}> {currentYear} </option>
+                            <option value={year1}> {year1} </option>
+                            <option value={year2}> {year2} </option>
+                        </TextField>
+                    
+                        <TextField
+                            sx={{ m: 1, width: 120 }}
+                            select
+                            size="small"
+                            label="Month"
+                            value={businessMonth}
+                            onChange={(e) => setBusinessMonth(e.target.value)}
+                            SelectProps={{
+                                native: true,
+                            }}
+                        >
+                            {months &&
+                                months.map((o, i) => {
+                                    return (
+                                        <option key={o + i} value={i + 1}>
+                                            {o}
+                                        </option>
+                                    );
+                                })}
+                        </TextField>
+                    
+                        <Autocomplete
+                            disablePortal 
+                            multiple
+                            fullWidth
+                            options={deptList}
+                            disableClearable
+                            getOptionLabel={(data) => data.title || ""}
+                            size="small"
+                            sx={{mt: "8px"}}
+                            onChange={(e, value) => handleDepartments(e, value)}
+                            renderOption={(props, option) => {
+                                return (
+                                    <li {...props} key={option.id}>
+                                        {option.title}
+                                    </li>
+                                );
+                            }}
+                            renderInput={(params) => (
+                                <TextField
+                                    {...params}
+                                    label="Departments"
+                                    fullWidth
+                                    
+                                />
+                            )}
+                        />
+                    </Box>
+                <Paper sx={{ width: "100%", overflow: "hidden" }}>
+                <TableContainer>
+                    <Table
+                        stickyHeader
+                        aria-label="sticky table"
+                        className="dense-table"
+                    >
+                        <TableHead>
+                            <TableRow>
+                                <TableCell key="month">ENTITY</TableCell>
+                                {department.map((column) => (
+                                    <TableCell
+                                        key={column.id}
+                                        align={column.align}
+                                        id={column.id}
+                                        style={{ minWidth: column.minWidth }}
+                                    >
+                                        {column.title}
+                                    </TableCell>
+                                ))}
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {reportMonthlyPerBusiness &&
+                                reportMonthlyPerBusiness.map((row, index) => {
+                                    return (
+                                        <TableRow
+                                            hover
+                                            role="checkbox"
+                                            tabIndex={-1} 
+                                            key={row.company_id+"-" + index}
+                                        >
+                                            <TableCell>
+                                                {row.company}
+                                            </TableCell>
+                                            {department.map((column) => {
+                                                let value = "-";
+                                                return (
+                                                    <TableCell
+                                                    
+                                                        key={
+                                                            row.company_id +"-" +
+                                                            column.id +"-" +
+                                                            index
+                                                        }
+                                                    >
+                                                        {row.data && 
+                                                        <>
+                                                        {row.data.length > 0 && row.data.map((r2,idx) => {
+                                                             r2.department == column.id
+                                                                ? (value =
+                                                                      r2.sum.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","))
+                                                                : (value = "");
+
+                                                            return (
+                                                                <span key={column.id + "-"+r2.sum+ "-"+idx+"-"+index}>
+                                                                    {value}
+                                                                </span>
+                                                            );
+                                                        })}
+                                                        </>
+                                                        }
+                                                        {!row.data &&
+                                                             <span key={row.company_id +"-" +
+                                                             column.id +"-" +
+                                                             index}>
+                                                            -
+                                                         </span>
+                                                        }
+                                                    </TableCell>
+                                                );
+                                            })}
+                                        </TableRow>
+                                    );
+                                })}
+                            {!setReportMonthlyPerBusiness ||
+                                (setReportMonthlyPerBusiness.length == 0 && (
+                                    <TableRow key="norecord">
+                                        <TableCell key="no-record" colSpan="6">
+                                            No record found.
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
+
+                </Paper>
+            </Box>
         </>
     );
 };

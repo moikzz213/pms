@@ -35,8 +35,16 @@ const columns = [
 
 const Suppliers = ({logged}) => {
     const navigate = useNavigate();
+    const params = new Proxy(new URLSearchParams(window.location.search), {
+        get: (searchParams, prop) => searchParams.get(prop),
+    });
+    // Get the value of "some_key" in eg "https://example.com/?some_key=some_value"
+    let qpage = params.page; // "some_value"
+    if(!qpage){
+        qpage = 1;
+    }
 
-    const [page, setPage] = useState(1);
+    const [page, setPage] = useState(parseInt(qpage));
     const [lastPage, setlastPage] = useState(0);
     const [totalPage, settotalPage] = useState(0);
     const [toPage, settoPage] = useState(0);
@@ -101,6 +109,13 @@ const Suppliers = ({logged}) => {
         let p = parseInt(selectedPage);
         p = p + n;
         setPage(p);
+
+        var queryParams = new URLSearchParams(window.location.search);
+        // Set new or modify existing parameter value. 
+        queryParams.set("page",  p);
+      
+        // Replace current querystring with the new one.
+        history.replaceState(null, null, "?"+queryParams.toString());
     };
 
     const handleSearch = (e) => {
@@ -116,6 +131,13 @@ const Suppliers = ({logged}) => {
         if (p > 0 && p <= lastPage) {
             setPage(p);
         }
+
+        var queryParams = new URLSearchParams(window.location.search);
+        // Set new or modify existing parameter value. 
+        queryParams.set("page",  p);
+      
+        // Replace current querystring with the new one.
+        history.replaceState(null, null, "?"+queryParams.toString());
     };
 
     const viewDetails = (e) => {
@@ -169,7 +191,7 @@ const Suppliers = ({logged}) => {
                 </Box>
             </Stack>
             <Paper sx={{ width: "100%", overflow: "hidden" }}>
-                <TableContainer sx={{ maxHeight: 600 }}>
+                <TableContainer>
                     <Table
                         stickyHeader
                         aria-label="sticky table"

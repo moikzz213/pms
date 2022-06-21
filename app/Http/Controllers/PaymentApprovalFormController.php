@@ -30,9 +30,20 @@ class PaymentApprovalFormController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function fetch()
+    public function fetch(Request $request)
     {
-        $data = Payment_approval_form::with( "process_by", "lpos", "company")->orderBy("updated_at", "desc")->paginate(10); 
+        $searchData = array();
+        if(@$request['company_id']){
+            $searchData = array_merge($searchData, array('company_id' => $request['company_id']));
+        }
+        if(@$request['status']){
+            $searchData = array_merge($searchData,array('status' => $request['status']));
+        }
+        
+        if(@$request['user_id']){
+            $searchData =  array_merge($searchData,array('user_id' => $request['user_id']));
+        }
+        $data = Payment_approval_form::where($searchData)->with( "prfs","process_by", "lpos", "company")->orderBy("updated_at", "desc")->paginate(10); 
         
         return response()->json([
             'item' => $data 
@@ -43,9 +54,11 @@ class PaymentApprovalFormController extends Controller
         if($search !== '-'){
             $data = Payment_approval_form::where("paf_no", "LIKE", "%".$search."%")->orWhereHas('lpos', function ($q) use ($search){
                 $q->where("lpo_no", "LIKE", "%".$search."%");  
-            })->with(  "process_by", "lpos", "company")->paginate(10);
+            })->orWhereHas('prfs', function ($q) use ($search){
+                $q->where("prf_no", "LIKE", "%".$search."%");  
+            })->with("prfs","process_by", "lpos", "company")->paginate(10);
         }else{
-            $data = Payment_approval_form::with(  "process_by", "lpos", "company")->orderBy("updated_at", "desc")->paginate(10); 
+            $data = Payment_approval_form::with( "prfs", "process_by", "lpos", "company")->orderBy("updated_at", "desc")->paginate(10); 
         }
         return response()->json([
             'item' => $data 
@@ -66,13 +79,13 @@ class PaymentApprovalFormController extends Controller
                     'paf_items.supplier', function ($q) use ($search){
                         $q->where("supplier_id", "=",  $search);  
                     }
-                )->with( "process_by", "lpos", "company")->orderBy("updated_at", "desc")->paginate(10);
+                )->with("prfs", "process_by", "lpos", "company")->orderBy("updated_at", "desc")->paginate(10);
             }else{
 
-                $data = Payment_approval_form::where($request['data'])->with( "process_by", "lpos", "company")->orderBy("updated_at", "desc")->paginate(10);
+                $data = Payment_approval_form::where($request['data'])->with("prfs", "process_by", "lpos", "company")->orderBy("updated_at", "desc")->paginate(10);
             }
         }else{
-            $data = Payment_approval_form::with(  "process_by", "lpos", "company")->orderBy("updated_at", "desc")->paginate(10); 
+            $data = Payment_approval_form::with("prfs",  "process_by", "lpos", "company")->orderBy("updated_at", "desc")->paginate(10); 
         }
 
         return response()->json([
@@ -152,7 +165,7 @@ class PaymentApprovalFormController extends Controller
      */
     public function show(Request $request)
     {
-        $data = Payment_approval_form::where('id', '=', $request->id)->with(["paf_items.supplier","requests","process_by", "company", 'paf_approvals.users.profile', 'paf_items', "images", "paf_approvals"  => function($query){
+        $data = Payment_approval_form::where('id', '=', $request->id)->with(["paf_items.supplier","prfs",'lpos',"process_by", "company", 'paf_approvals.users.profile', 'paf_items', "images", "paf_approvals"  => function($query){
             $query->orderBy("orders", "ASC");
         }])->first(); 
 
@@ -207,6 +220,59 @@ class PaymentApprovalFormController extends Controller
                 'success' => true               
             ], 200);
     }
+
+    public function updatePAF(Request $request){
+       
+        $data = Payment_approval_form::where('id', '=', $request['id'])->first(); 
+        
+        $item = array("amount_in_words" => $request['data']['amount_in_words'], "currency" => $request['data']['currency'], 
+        'currency_rate' => $request['data']['currency_rate'], 'discount' => $request['data']['discount'], 
+        'discount_title' => $request['data']['discount_title'], 'net_amount' => $request['data']['net_amount'], 
+        'remarks_general' => $request['data']['remarks_general']
+        , 'total_amount' => $request['data']['total_amount'], 'total_vat' => $request['data']['total_vat'], 
+        'vat_custom' => $request['data']['vat_custom'], 'supplier_count' => $request['data']['supplier_count']); 
+        
+        if($request['items']){
+            $data->paf_items()->createMany($request['items']);  
+        }
+       
+        $data->paf_approvals()->delete();
+
+        $data->paf_approvals()->createMany($request['approvals']);
+
+        $data->update($item); 
+        
+        $data->logs()->create([
+            'user_id' => $request['logged_id'],
+            'log_type' => 'update',
+            'details' => json_encode($item)
+        ]);
+         
+        $msg = 'PAF has been updated!';
+
+        return response()->json([
+            'status' => true,
+            'message' => $msg
+        ], 200); 
+    }
+
+    public function updateItem(Request $request){
+      
+        $data = Payment_approval_form_item::where('id', '=', $request['id'])->first(); 
+        
+        $item = array("amount" => $request['data']['amount'], "description" => $request['data']['description'], 
+        'qty' => $request['data']['qty'], 'local_purchase_order_id' => $request['data']['local_purchase_order_id'], 
+        'unit_price' => $request['data']['unit_price'], 'location' => $request['data']['location']
+        , 'serial_number' => $request['data']['serial_number'] , 'supplier_id' => $request['data']['supplier_id'] 
+        , 'supplier_invoice_num' => $request['data']['supplier_invoice_num'], 'total_amount' => $request['data']['total_amount'], 
+        'vat' => $request['data']['vat'], 'invoice_date' => $request['data']['invoice_date'] );
+        $data->update($item);  
+    
+        return response()->json([
+            'status' => true,
+            'message' => "Item has been updated!"
+        ], 200); 
+    }
     
     public function updateStatus(Request $request){
         
@@ -256,7 +322,7 @@ class PaymentApprovalFormController extends Controller
                 }
             }
         }) 
-        ->with("supplier", 'paf.company', 'paf.process_by', 'lpo.department' )->orderBy("created_at", "asc")->get();
+        ->with("supplier", 'paf.company', 'paf.process_by', 'lpo.department', 'requests.company' )->orderBy("payment_approval_form_id", "asc")->get();
 
         return response()->json([
             'item'     =>$data            

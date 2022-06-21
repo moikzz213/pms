@@ -37,7 +37,7 @@ Route::get('/', function () {
  * Dashboard Routes
  */
 Route::group(['prefix'=>'d','as'=>'dashboard.'], function(){
-    Route::get('/{slug}', function () { return view('layouts.app'); }); 
+    Route::get('/{slug}', function () { return view('layouts.app'); });  
     Route::get('/{slug}/{slug2}', function () { return view('layouts.app'); }); 
     Route::get('/{slug}/{slug2}/{slug3}', function () { return view('layouts.app'); }); 
     Route::get('/{slug}/{slug2}/{slug3}/{id}', function () { return view('layouts.app'); }); 
@@ -100,6 +100,7 @@ Route::post('/v/users/update', [UserController::class, 'update'])->name('user.up
 Route::post('/v/users/delete', [UserController::class, 'destroy'])->name('user.destroy');
 Route::post('/v/users/logout/{token}', [UserController::class, 'logout'])->name('user.logout');
 Route::post('/v/profile/change-password', [UserController::class, 'change_password'])->name('user.change.password');
+Route::post('/v/user/reset-password', [UserController::class, 'reset_link_password'])->name('user.reset.link.password');
 
 
 // Profile
@@ -115,6 +116,7 @@ Route::post('/v/request/new', [RequestController::class, 'store'])->name('reques
 Route::get('/v/request/fetch/{id}', [RequestController::class, 'show'])->name('request.show');
 Route::get('/v/request/fetch-all/{token}', [RequestController::class, 'fetch'])->name('request.fetch.paginate');
 Route::get('/v/request/search/{search}', [RequestController::class, 'search'])->name('request.search');
+Route::post('/v/request/filter/search', [RequestController::class, 'requestorFilterStatus'])->name('request.filter.requestor.search');
 Route::get('/file/{path}',  [RequestController::class, 'showFile'])->name('file.show');
 Route::get('/v/request/dashboard/{token}', [RequestController::class, 'dashboard'])->name('request.dashboard');
 Route::get('/v/request/fetch-onprocess/pendings', [RequestController::class, 'fetchAllOnProcess'])->name('request.fetch.fetch-pending');
@@ -125,6 +127,8 @@ Route::post('/v/request/procurement/assigned', [RequestController::class, 'procu
 Route::post('/v/request/procurement/filter/search', [RequestController::class, 'filterSearch'])->name('request.procurement.search');
 
 // Local Purchase Order - LPO
+Route::post('/v/local-purchase-order/item-update', [LocalPurchaseOrderController::class, 'updateItem'])->name('lpo.item.update');
+Route::post('/v/local-purchase-order/lpo-update', [LocalPurchaseOrderController::class, 'updateLPO'])->name('lpo.data.update'); 
 Route::post('/v/local-purchase-order/update-status', [LocalPurchaseOrderController::class, 'updateStatus'])->name('lpo.update.status');
 Route::post('/v/local-purchase-order/new', [LocalPurchaseOrderController::class, 'store'])->name('lpo.new');
 Route::post('/v/local-purchase-order/filter/search', [LocalPurchaseOrderController::class, 'filterSearch'])->name('lpo.filter.search');
@@ -133,7 +137,11 @@ Route::get('/v/local-purchase-order/fetch', [LocalPurchaseOrderController::class
 Route::get('/v/local-purchase-order/fetch/{id}', [LocalPurchaseOrderController::class, 'show'])->name('lpo.show');
 Route::get('/v/local-purchase-order/onprocess-status/fetch', [LocalPurchaseOrderController::class, 'fetchProcessStatus'])->name('lpo.fetch.onprocess');
 
+
+
 // Payment Approval Form - PAF
+Route::post('/v/payment-approval-form/item-update', [PaymentApprovalFormController::class, 'updateItem'])->name('paf.item.update');
+Route::post('/v/payment-approval-form/paf-update', [PaymentApprovalFormController::class, 'updatePAF'])->name('paf.data.update'); 
 Route::post('/v/payment-approval-form/update-status', [PaymentApprovalFormController::class, 'updateStatus'])->name('paf.update.status');
 Route::post('/v/payment-approval-form/new', [PaymentApprovalFormController::class, 'store'])->name('paf.new');
 Route::post('/v/payment-approval-form/invoice-update', [PaymentApprovalFormController::class, 'pafClosed'])->name('paf.closed');
@@ -152,7 +160,7 @@ Route::post('/v/departments/import', [DepartmentController::class, 'import'])->n
 // Reports
 Route::post('/v/report/prf', [RequestController::class, 'reportTable'])->name('report.prf.table');
 Route::post('/v/report/lpo', [LocalPurchaseOrderController::class, 'reportTable'])->name('report.lpo.table');
+Route::post('/v/report/business-report', [LocalPurchaseOrderController::class, 'fetchBusinessReport'])->name('report.business-report');
 Route::post('/v/report/paf', [PaymentApprovalFormController::class, 'reportTable'])->name('report.paf.table');
-Route::post('/v/report/statuses/counts', [UserController::class, 'fetchProcurement'])->name('report.statuses.counts');
-
+Route::post('/v/report/statuses/counts', [UserController::class, 'fetchProcurement'])->name('report.statuses.counts'); 
 Route::post('/v/report/monthly/counts', [UserController::class, 'fetchProcurementMonthly'])->name('report.monthly.counts');

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Paper from "@mui/material/Paper";
 import Box from "@mui/material/Box";
@@ -8,11 +7,15 @@ import LoadingButton from "@mui/lab/LoadingButton";
 import TextField from "@mui/material/TextField";
 import Snackbar from "@mui/material/Snackbar";
 import MuiAlert from "@mui/material/Alert";
-
+import Error from "../common/Error";
 const Alert = React.forwardRef(function Alert(props, ref) {
     return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
-export default function UserFormEdit({ id, logged }) {
+export default function UserFormEdit({ id, logged }) { 
+    if(id == 1){
+        return <Error/>;
+    }
+     
     let controller;
     const { vertical, horizontal } = {
         vertical: "bottom",
@@ -34,8 +37,7 @@ export default function UserFormEdit({ id, logged }) {
         title: ""       
     }]);
 
-    // Route Redirect
-    const navigate = useNavigate();
+    // Route Redirect 
 
     const [objData, setObjData] = useState([
         {
@@ -101,7 +103,7 @@ export default function UserFormEdit({ id, logged }) {
         fetchUser();
         fetchCompanies();
         fetchDepartments();
-    }, []);
+    }, [logged]);
 
    
 
@@ -156,35 +158,72 @@ export default function UserFormEdit({ id, logged }) {
         setOpen(false);
     };
 
+    const resetPassword = (e) => {
+        setLoading(true);
+        setOpen(true);
+        let newMessage = {
+            title: "info",
+            message: "Please wait...",
+        };
+        setSeverity(newMessage);
+
+        let data = { id: id, user_id : logged.id };
+        axios
+        .post("/v/user/reset-password", data)
+        .then((response) => {
+            setOpen(true);
+            newMessage = {
+                title: "success",
+                message: response.data.msg,
+            };
+            setTimeout(() => {
+                
+                setLoading(false);
+                setSeverity(newMessage);
+            }, 500); 
+            
+        })
+        .catch((err) => { 
+          
+            newMessage = {
+                title: "error",
+                message: "Error: kindly refresh the page!",
+            };
+            setSeverity(newMessage);
+            setLoading(false);
+        });
+    }
+
     controller = "/v/users/update";
 
     const submitForm = () => {
         setLoading(true);
+        setOpen(true);
         let newMessage = {
             title: "info",
             message: "Please wait...",
         };
         setSeverity(newMessage);
         let data = { data: objData, id: id, user_id : logged.id };
-
         axios
             .post(controller, data)
             .then((response) => {
                 setOpen(true);
-                setTimeout(() => {
-                    newMessage = {
-                        title: "success",
-                        message: "Data has been successfully updated!",
-                    };
-                    setLoading(false);
-                    setSeverity(newMessage);
+                newMessage = {
+                    title: "success",
+                    message: "Data has been successfully updated!",
+                };
+                setSeverity(newMessage);
+                setTimeout(() => { 
+                    setLoading(false); 
                 }, 500); 
                 
             })
-            .catch((error) => {
+            .catch((err) => { 
+              
                 newMessage = {
                     title: "error",
-                    message: "Kindly refresh the page.",
+                    message: "Not Allowed!",
                 };
                 setSeverity(newMessage);
                 setLoading(false);
@@ -345,6 +384,15 @@ export default function UserFormEdit({ id, logged }) {
                                     loading={loading}
                                 >
                                     Submit
+                                </LoadingButton>
+
+                                <LoadingButton
+                                    sx={{ml:2}}
+                                    variant="contained"
+                                    onClick={resetPassword}
+                                    loading={loading}
+                                >
+                                    RESET PASSWORD
                                 </LoadingButton>
                             </Grid>
                         </Grid>

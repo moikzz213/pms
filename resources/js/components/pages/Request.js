@@ -25,15 +25,25 @@ const columns = [
     { id: "status", label: "Status", minWidth: 30 },
     { id: "prf_no", label: "PRF No.", minWidth: 50 },
     { id: "company", label: "Business Unit", minWidth: 20 },
+    { id: "user_id", label: "RQSTED By", minWidth: 50 },
     { id: "process_by", label: "Process By", minWidth: 50 },
+    { id: "subject", label: "Subject", minWidth: 20 },
     { id: "urgency", label: "Urgency", minWidth: 20 },
     { id: "created_at", label: "RQST DATE", minWidth: 50 },
 ];
 
-const Companies = () => {
+const Request = ({logged}) => {
     const navigate = useNavigate();
-
-    const [page, setPage] = useState(1);
+    const params = new Proxy(new URLSearchParams(window.location.search), {
+        get: (searchParams, prop) => searchParams.get(prop),
+    });
+    var queryParams = new URLSearchParams(window.location.search);
+    // Get the value of "some_key" in eg "https://example.com/?some_key=some_value"
+    let qpage = params.page; // "some_value"
+    if(!qpage){
+        qpage = 1;
+    }
+    const [page, setPage] = useState(parseInt(qpage));
     const [lastPage, setlastPage] = useState(0);
     const [totalPage, settotalPage] = useState(0);
     const [toPage, settoPage] = useState(0);
@@ -46,14 +56,27 @@ const Companies = () => {
             prf_no: "",
             company: "",
             process_by: "",
+            subject: "",
             urgency: "",
             created_at: "",
         },
     ]);
-    function fetchRequests() {
+    const [filterSearch, setFilterSearch] = useState([
+        {
+            company_id: "",
+            status: "",
+            process_by: "",
+            user_id: "",
+        }
+    ]);
+    function fetchRequests(ss = "") {
         let token = localStorage.getItem('auth_token');
+        let pg = page;
+        if(queryParams.get('page')){
+            pg = queryParams.get('page');
+        }
         API
-            .get("/v/request/fetch-all/"+token+"/?page=" + page)
+            .get("/v/request/fetch-all/"+token+"/?page=" + pg+ss)
             .then((response) => {
                 let fetchItems = response.data.item; 
                 
@@ -79,7 +102,9 @@ const Companies = () => {
                 status: o.status,
                 prf_no: o.prf_no, 
                 company: o.company ? o.company.title : "",
+                user_id: o.profile ? o.profile.name : "",
                 process_by: o.process_by ? o.process_by.name : "",
+                subject: o.subject,
                 urgency: o.urgency,
                 created_at: new Date(o.created_at).toLocaleDateString()
             }
@@ -107,7 +132,18 @@ const Companies = () => {
     }
 
     useEffect(() => {
-        fetchRequests();
+        
+        let cStatus = params.status;
+       
+       
+        let czStatus = "";
+        
+        if (cStatus) {
+            czStatus = "&status=" + cStatus;
+        }
+        
+        let defaultQueryString =  czStatus;
+        fetchRequests(defaultQueryString);
         return () => {
             setListRequests([]);
           };
@@ -117,6 +153,13 @@ const Companies = () => {
         let p = parseInt(selectedPage);
         p = p + n;
         setPage(p);
+
+       
+        // Set new or modify existing parameter value. 
+        queryParams.set("page",  p);
+      
+        // Replace current querystring with the new one.
+        history.replaceState(null, null, "?"+queryParams.toString());
     };
 
     const handleSearch = (e) => {
@@ -129,11 +172,74 @@ const Companies = () => {
     
     };
 
+    const searchSubmit = (e) =>{
+        e.preventDefault();
+        setListRequests([]);
+        let search = filterSearch[0];
+        Object.keys(search).forEach(key => {
+            if (search[key] === undefined || search[key] === "" || search[key] === "-") {
+              delete search[key];
+            }
+          });   
+         
+          let ssssss = Object.assign([], search);
+          queryParams.set("page", 1);
+          let stringObj = "";
+         
+          Object.keys(ssssss).forEach((key) => {
+              stringObj += "&" + key + "=" + ssssss[key];
+              queryParams.set(key, ssssss[key]);
+          }); 
+  
+          history.replaceState(null, null, "?" + queryParams.toString());
+          
+  
+          fetchRequests(stringObj);
+    };
+
+    const handleData = (e,val, type) => {
+        
+        let value = '';
+        if(val){
+              value = val.id;
+        }else{
+              value = e.target.value;
+        }
+        
+        let objAssign = Object.assign([], filterSearch);
+        
+        if(type == "company"){
+            objAssign[0].company_id = value
+
+            if(value == undefined || value == null || value == "-"){ 
+                queryParams.delete('company_id');
+                history.replaceState(null, null, "?" + queryParams.toString());
+            }
+        }else if(type == "status"){
+            objAssign[0].status = value
+
+            if(value == undefined || value == null || value == "-"){ 
+                queryParams.delete('status');
+                history.replaceState(null, null, "?" + queryParams.toString());
+            }
+        }else if(type == "processby"){
+            objAssign[0].process_by = value
+        } 
+
+        setFilterSearch(objAssign);
+    };
+
     const arrowPage = (n) => {
         let p = page + n;
         if (p > 0 && p <= lastPage) {
             setPage(p);
-        }
+        } 
+        
+        // Set new or modify existing parameter value. 
+        queryParams.set("page",  p);
+      
+        // Replace current querystring with the new one.
+        history.replaceState(null, null, "?"+queryParams.toString());
     };
 
     const viewDetails = (e) => {
@@ -149,7 +255,7 @@ const Companies = () => {
                 <Link to="/d/requests/new-request">
                     <Button variant="contained"> New Request </Button>
                 </Link>
-
+              
                 <Box
                     sx={{
                         ml: "auto",
@@ -159,6 +265,25 @@ const Companies = () => {
                         width: 400,
                     }}
                 >
+                      <TextField
+                            sx={{ m: 1, width:"150px" }}
+                             
+                            select
+                            size="small"
+                            label="Status"
+                            onChange={(e) => handleData(e,null, "status")}
+                            SelectProps={{
+                                native: true,
+                            }}
+                        >
+                            <option> - </option>
+                            <option value="pending"> Open </option>
+                            <option value="onhold"> onHold </option>
+                            <option value="onprocess"> RQSTED By </option>
+                            <option value="onprocess"> OnProcess </option>
+                            <option value="closed"> Closed </option>
+                            <option value="cancelled"> Cancelled </option>
+                        </TextField> 
                     <TextField
                         size="small"
                         fullWidth
@@ -169,16 +294,17 @@ const Companies = () => {
                     />
 
                     <IconButton
-                        type="submit"
+                       
                         sx={{ p: "10px" }}
                         aria-label="search"
+                        onClick={(e) => searchSubmit(e)}
                     >
                         <SearchIcon />
                     </IconButton>
                 </Box>
             </Stack>
             <Paper sx={{ width: "100%", overflow: "hidden" }}>
-                <TableContainer sx={{ maxHeight: 600 }}>
+                <TableContainer>
                     <Table
                         stickyHeader
                         aria-label="sticky table"
@@ -284,4 +410,4 @@ const Companies = () => {
     );
 };
 
-export default Companies;
+export default Request;

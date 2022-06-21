@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 import TextField from "@mui/material/TextField";
 import Stack from "@mui/material/Stack";
@@ -8,11 +8,11 @@ import Table from "@mui/material/Table";
 import TableHead from "@mui/material/TableHead";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer"; 
+import TableContainer from "@mui/material/TableContainer";
 import TableRow from "@mui/material/TableRow";
-import Autocomplete from '@mui/material/Autocomplete';
+import Autocomplete from "@mui/material/Autocomplete";
 import Paper from "@mui/material/Paper";
-import IconButton from "@mui/material/IconButton"; 
+import IconButton from "@mui/material/IconButton";
 import SearchIcon from "@mui/icons-material/Search";
 import Pagination from "@mui/material/Pagination";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
@@ -33,25 +33,35 @@ const columns = [
     { id: "process_by", label: "PROCESSED BY", minWidth: 50 },
     { id: "urgency", label: "URGENCY", minWidth: 50 },
     { id: "created_at", label: "Date Requested", minWidth: 20 },
-]; 
+];
 
-const Procurement = ({logged}) => {
+const Procurement = ({ logged }) => {
     const [open, setOpen] = useState(false);
     const [severity, setSeverity] = useState({
         title: "",
         message: "",
     });
-     
+
     const handleClose = (event, reason) => {
         if (reason === "clickaway") {
             return;
         }
 
         setOpen(false);
-    }; 
+    };
 
     const navigate = useNavigate();
-    const [page, setPage] = useState(1);
+    const params = new Proxy(new URLSearchParams(window.location.search), {
+        get: (searchParams, prop) => searchParams.get(prop),
+    });
+    // Get the value of "some_key" in eg "https://example.com/?some_key=some_value"
+    let qpage = params.page; // "some_value"
+    if (!qpage) {
+        qpage = 1;
+    }
+    var queryParams = new URLSearchParams(window.location.search);
+    const [page, setPage] = useState(parseInt(qpage));
+
     const [lastPage, setlastPage] = useState(0);
     const [totalPage, settotalPage] = useState(0);
     const [toPage, settoPage] = useState(0);
@@ -61,6 +71,12 @@ const Procurement = ({logged}) => {
         if (p > 0 && p <= lastPage) {
             setPage(p);
         }
+
+        // Set new or modify existing parameter value.
+        queryParams.set("page", p);
+
+        // Replace current querystring with the new one.
+        history.replaceState(null, null, "?" + queryParams.toString());
     };
     const [company, setCompany] = useState([
         {
@@ -76,7 +92,7 @@ const Procurement = ({logged}) => {
             status: "",
             process_by: "",
             user_id: "",
-        }
+        },
     ]);
 
     const [requestData, setRequestsData] = useState([
@@ -92,8 +108,13 @@ const Procurement = ({logged}) => {
         },
     ]);
 
-    function fetchRequests() {
-        API.get("/v/request/procurement/fetch-all/?page=" + page)
+    function fetchRequests(ss = "") {
+        let pg = page;
+        if(queryParams.get('page')){
+            pg = queryParams.get('page');
+        }
+         
+        API.get("/v/request/procurement/fetch-all/?page=" + pg + ss)
             .then((response) => {
                 let fetchItems = response.data.item;
 
@@ -144,18 +165,17 @@ const Procurement = ({logged}) => {
             .catch((error) => {
                 console.log(error);
             });
-    } 
+    }
 
     const handleAssign = (e, row) => {
-        
         let selected = e.target.value;
-         
+
         let newMessage = {
             title: "info",
             message: "Please wait...",
         };
-        setSeverity(newMessage); 
-        
+        setSeverity(newMessage);
+
         let data = { id: row.id, process_by: selected, user_id: logged.id };
         API.post("/v/request/procurement/assigned", data)
             .then((response) => {
@@ -165,7 +185,7 @@ const Procurement = ({logged}) => {
                         title: "success",
                         message: response.data.message,
                     };
-                     
+
                     setSeverity(newMessage);
                 }, 1500);
             })
@@ -175,58 +195,78 @@ const Procurement = ({logged}) => {
                     message: "Kindly refresh the page.",
                 };
                 setSeverity(newMessage);
-                 
             });
     };
 
-    const handleData = (e,val, type) => {
-        
-        let value = '';
-        if(val){
-              value = val.id;
-        }else{
-              value = e.target.value;
+    const handleData = (e, val, type) => {
+        let value = "";
+        if (val) {
+            value = val.id;
+        } else {
+            value = e.target.value;
         }
-        
+
         let objAssign = Object.assign([], filterSearch);
-        
-        if(type == "company"){
-            objAssign[0].company_id = value
-        }else if(type == "status"){
-            objAssign[0].status = value
-        }else if(type == "processby"){
-            objAssign[0].process_by = value
-        }else if(type == "requestedby"){
-            objAssign[0].user_id = value
+
+        if (type == "company") {
+            objAssign[0].company_id = value;
+             
+            if(value == undefined || value == null || value == "-"){ 
+                queryParams.delete('company_id');
+                history.replaceState(null, null, "?" + queryParams.toString());
+            }
+        } else if (type == "status") {
+            objAssign[0].status = value;
+
+            if(value == undefined || value == null || value == "-"){ 
+                queryParams.delete('status');
+                history.replaceState(null, null, "?" + queryParams.toString());
+            }
+        } else if (type == "processby") {
+            objAssign[0].process_by = value;
+
+            if(value == undefined || value == null || value == "-"){ 
+                queryParams.delete('process_by');
+                history.replaceState(null, null, "?" + queryParams.toString());
+            }
+        } else if (type == "requestedby") {
+            objAssign[0].user_id = value;
+
+            if(value == undefined || value == null || value == "-"){ 
+                queryParams.delete('user_id');
+                history.replaceState(null, null, "?" + queryParams.toString());
+            }
         }
 
         setFilterSearch(objAssign);
     };
 
-    const searchSubmit = (e) =>{
+    const searchSubmit = (e) => {
         e.preventDefault();
         setRequestsData([]);
+        // Set new or modify existing parameter value.
+  
         let search = filterSearch[0];
-        Object.keys(search).forEach(key => {
-            if (search[key] === '' || search[key] === '-') {
-              delete search[key];
-            }
-          }); 
         
-         
-        search = { data: search };
-        API.post("/v/request/procurement/filter/search", search).then((response) => {
-            if (response.data) {
-                let fetchItems = response.data.item;
-
-                dataWithRelations(fetchItems.data); 
-                setPage(fetchItems.current_page);
-                setlastPage(fetchItems.last_page);
-                settotalPage(fetchItems.total);
-                settoPage(fetchItems.to);
-                setfromPage(fetchItems.from);
+        Object.keys(search).forEach((key) => {
+            if (search[key] === undefined || search[key] === "" || search[key] === "-") {
+                delete search[key];
             }
         });
+
+        let ssssss = Object.assign([], search);
+        queryParams.set("page", 1);
+        let stringObj = "";
+       
+        Object.keys(ssssss).forEach((key) => {
+            stringObj += "&" + key + "=" + ssssss[key];
+            queryParams.set(key, ssssss[key]);
+        }); 
+
+        history.replaceState(null, null, "?" + queryParams.toString());
+        
+
+        fetchRequests(stringObj);
     };
 
     const viewDetails = (e, v) => {
@@ -236,10 +276,31 @@ const Procurement = ({logged}) => {
     };
 
     useEffect(() => {
-        fetchRequests();
+        let cID = params.company_id;
+        let cStatus = params.status;
+        let cProcess = params.process_by;
+        let cUser = params.user_id;
+        let czID = "";
+        let czStatus = "";
+        let czProcess = "";
+        let czUser = "";
+        if (cID) {
+            czID = "&company_id=" + cID;
+        }
+        if (cStatus) {
+            czStatus = "&status=" + cStatus;
+        }
+        if (cProcess) {
+            czProcess = "&process_by=" + cProcess;
+        }
+        if (cUser) {
+            czUser = "&user_id=" + cUser;
+        }
+        let defaultQueryString = czID + czStatus + czProcess + czUser;
+        fetchRequests(defaultQueryString);
         return () => {
             setRequestsData([]);
-          };
+        };
     }, [page]);
 
     useEffect(() => {
@@ -247,13 +308,15 @@ const Procurement = ({logged}) => {
             if (response.data) {
                 let fetchItems = response.data.item;
                 fetchItems = Object.assign([], fetchItems);
-                let unSigned = [{
-                    id: "unassign",
-                    name: "Unassign",
-                    user_id: "unassign"
-                }];
+                let unSigned = [
+                    {
+                        id: "unassign",
+                        name: "Unassign",
+                        user_id: "unassign",
+                    },
+                ];
                 let mergeData = [...fetchItems, ...unSigned];
-               
+
                 setProcessBy(mergeData);
             }
         });
@@ -262,7 +325,7 @@ const Procurement = ({logged}) => {
             if (response.data) {
                 let fetchItems = response.data.item;
                 fetchItems = Object.assign([], fetchItems);
-                
+
                 setRequestedBy(fetchItems);
             }
         });
@@ -270,7 +333,7 @@ const Procurement = ({logged}) => {
         API.get("/v/companies/fetch-non-paginate").then((response) => {
             let fetchItems = response.data.item;
             fetchItems = Object.assign([], fetchItems);
-            
+
             setCompany(fetchItems);
         });
     }, []);
@@ -279,10 +342,15 @@ const Procurement = ({logged}) => {
         let p = parseInt(selectedPage);
         p = p + n;
         setPage(p);
+
+        // Set new or modify existing parameter value.
+        queryParams.set("page", p);
+
+        // Replace current querystring with the new one.
+        history.replaceState(null, null, "?" + queryParams.toString());
     };
 
     const handleSearch = (e) => {
-        
         if (e.target.value.length > 3) {
             axiosFunction("/v/request/search/" + e.target.value);
         } else if (e.target.value.length == 0) {
@@ -312,31 +380,39 @@ const Procurement = ({logged}) => {
                     </Snackbar>
                     <Box sx={{ display: "flex", width: "80%" }}>
                         <Box sx={{ my: "auto" }}> Filter by:</Box>
-                      
+
                         <Autocomplete
-                                    disablePortal
+                            disablePortal
+                            fullWidth
+                            sx={{ m: 1 }}
+                            options={company}
+                            getOptionLabel={(company) => company.title}
+                            size="small"
+                            onChange={(e, value) =>
+                                handleData(e, value, "company")
+                            }
+                            renderOption={(props, option) => {
+                                return (
+                                    <li {...props} key={option.id}>
+                                        {option.title}
+                                    </li>
+                                );
+                            }}
+                            renderInput={(params) => (
+                                <TextField
+                                    {...params}
+                                    label="Company"
                                     fullWidth
-                                    sx={{ m: 1 }} 
-                                    options={company}
-                                    getOptionLabel={(company) => company.title } 
-                                    size="small" 
-                                    onChange={(e,value) => handleData(e,value, "company")}
-                                    renderOption={(props, option) => {
-                                        return (
-                                          <li {...props} key={option.id}>
-                                            {option.title}
-                                          </li>
-                                        );
-                                      }}
-                                    renderInput={(params) => <TextField {...params} label="Company" fullWidth/>}
-                                    />       
+                                />
+                            )}
+                        />
                         <TextField
                             sx={{ m: 1 }}
                             fullWidth
                             select
                             size="small"
                             label="Status"
-                            onChange={(e) => handleData(e,null, "status")}
+                            onChange={(e) => handleData(e, null, "status")}
                             SelectProps={{
                                 native: true,
                             }}
@@ -347,44 +423,58 @@ const Procurement = ({logged}) => {
                             <option value="onprocess"> OnProcess </option>
                             <option value="closed"> Closed </option>
                             <option value="cancelled"> Cancelled </option>
-                        </TextField> 
-                    
+                        </TextField>
+
                         <Autocomplete
-                                    disablePortal
-                                    sx={{ m: 1 }}
+                            disablePortal
+                            sx={{ m: 1 }}
+                            fullWidth
+                            options={processBy}
+                            getOptionLabel={(company) => company.name}
+                            size="small"
+                            onChange={(e, value) =>
+                                handleData(e, value, "processby")
+                            }
+                            renderOption={(props, option) => {
+                                return (
+                                    <li {...props} key={option.user_id}>
+                                        {option.name}
+                                    </li>
+                                );
+                            }}
+                            renderInput={(params) => (
+                                <TextField
+                                    {...params}
+                                    label="Process By"
                                     fullWidth
-                                    options={processBy} 
-                                    getOptionLabel={(company) => company.name } 
-                                    size="small" 
-                                    onChange={(e,value) => handleData(e,value, "processby")}
-                                    renderOption={(props, option) => {
-                                        return (
-                                       
-                                          <li {...props} key={option.user_id}>
-                                            {option.name}
-                                          </li>
-                                        );
-                                      }}
-                                    renderInput={(params) => <TextField {...params} label="Process By" fullWidth/>}
-                                    />    
+                                />
+                            )}
+                        />
                         <Autocomplete
                             disablePortal
                             fullWidth
-                            sx={{ m: 1 }} 
-                            options={requestedBy} 
-                            getOptionLabel={(company) => company.name } 
-                            size="small" 
-                            onChange={(e,value) => handleData(e,value, "requestedby")}
+                            sx={{ m: 1 }}
+                            options={requestedBy}
+                            getOptionLabel={(company) => company.name}
+                            size="small"
+                            onChange={(e, value) =>
+                                handleData(e, value, "requestedby")
+                            }
                             renderOption={(props, option) => {
                                 return (
-                                  <li {...props} key={option.user_id}>
-                                    {option.name}
-                                  </li>
+                                    <li {...props} key={option.user_id}>
+                                        {option.name}
+                                    </li>
                                 );
-                              }}
-                            renderInput={(params) => <TextField {...params} label="Requested By" fullWidth/>}
-                        />   
-                        
+                            }}
+                            renderInput={(params) => (
+                                <TextField
+                                    {...params}
+                                    label="Requested By"
+                                    fullWidth
+                                />
+                            )}
+                        />
                     </Box>
                     <Box
                         sx={{
@@ -392,7 +482,7 @@ const Procurement = ({logged}) => {
                             p: "2px 4px",
                             display: "flex",
                             alignItems: "center",
-                            borderLeft: "1px solid #ccc"
+                            borderLeft: "1px solid #ccc",
                         }}
                     >
                         <TextField
@@ -404,7 +494,7 @@ const Procurement = ({logged}) => {
                             inputProps={{ "aria-label": "Search" }}
                         />
                         <IconButton
-                             onClick={(e) => searchSubmit(e)}
+                            onClick={(e) => searchSubmit(e)}
                             sx={{ p: "10px" }}
                             aria-label="search"
                         >
@@ -414,7 +504,7 @@ const Procurement = ({logged}) => {
                 </Box>
             </Stack>
             <Paper sx={{ width: "100%", overflow: "hidden" }}>
-                <TableContainer sx={{ maxHeight: 620 }}>
+                <TableContainer>
                     <Table
                         stickyHeader
                         aria-label="sticky table"
@@ -440,7 +530,7 @@ const Procurement = ({logged}) => {
                                         hover
                                         role="checkbox"
                                         tabIndex={-1}
-                                        key={row.prf_no} 
+                                        key={row.prf_no}
                                     >
                                         {columns.map((column) => {
                                             const value = row[column.id];
@@ -465,7 +555,12 @@ const Procurement = ({logged}) => {
                                                         </span>
                                                     ) : (
                                                         <TextField
-                                                            disabled={row.status == 'cancelled' ? true : false}
+                                                            disabled={
+                                                                row.status ==
+                                                                "cancelled"
+                                                                    ? true
+                                                                    : false
+                                                            }
                                                             select
                                                             size="small"
                                                             label="Assign To"

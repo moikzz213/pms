@@ -48,7 +48,12 @@ function renderElement(logged){
   let procSlug1 = "";
   let procSlug2 = "";
   pathName = location.pathname.split("/");
+  
+   
   slug = pathName[pathName.length - 1];
+  if(slug == "" || slug == null){
+    slug = pathName[pathName.length - 2];
+  }
 
   procSlug1 =   pathName[pathName.length - 3];
   procSlug2 =   pathName[pathName.length - 2];  
