@@ -14,9 +14,16 @@ class SupplierController extends Controller
        // $this->middleware('auth');
     } 
 
-    public function fetch()
+    public function fetch(Request $request)
     {
-        $data = Supplier::orderBy('title', 'ASC')->paginate(10); 
+        if(@$request['category']){
+            $searchData = array('category_id' => $request['category']);
+            $data = Supplier::orderBy('title', 'ASC')->whereHas("category",  function($query) use ($searchData) {
+                $query->where($searchData);
+            })->with('category')->paginate(10); 
+        }else{
+            $data = Supplier::orderBy('title', 'ASC')->with("category")->paginate(10); 
+        }
         
         return response()->json([
             'item' => $data 
@@ -71,6 +78,8 @@ class SupplierController extends Controller
                 'details' => json_encode($arrDetail)
             ]);
 
+            $data->category()->sync($request['category']);
+
             $msg = "Data has been added"; 
           
             DB::commit();
@@ -93,7 +102,7 @@ class SupplierController extends Controller
      
     public function show(Request $request)
     {
-        $data = Supplier::where('id', '=', $request->id)->first(); 
+        $data = Supplier::where('id', '=', $request->id)->with('category')->first(); 
 
         return response()->json([
             'item' => $data 
@@ -127,6 +136,8 @@ class SupplierController extends Controller
                 'log_type' => 'update',
                 'details' => json_encode($arrDetail)
             ]);
+
+            $data->category()->sync($request['category']);
             $msg = "Data has been updated!"; 
           
             DB::commit();

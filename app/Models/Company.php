@@ -21,4 +21,18 @@ class Company extends Model
     {
         return $this->morphToMany(Log::class, 'loggable');
     }
+
+    public function images()
+    { 
+        return $this->morphToMany(
+            Image::class,
+            'imageable',
+            'imageables',
+            'imageable_id',
+            'image_id',
+            '',
+            'id'
+        );
+
+    }
 }

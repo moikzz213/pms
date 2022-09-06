@@ -8,15 +8,13 @@ import Table from "@mui/material/Table";
 import TableHead from "@mui/material/TableHead";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-
+import TableContainer from "@mui/material/TableContainer"; 
 import TableRow from "@mui/material/TableRow";
 import Button from "@mui/material/Button";
 import Paper from "@mui/material/Paper";
-
+import Autocomplete from "@mui/material/Autocomplete";
 import SearchIcon from "@mui/icons-material/Search";
-import Pagination from "@mui/material/Pagination";
-
+import Pagination from "@mui/material/Pagination"; 
 import IconButton from "@mui/material/IconButton";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
@@ -26,6 +24,7 @@ import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 const columns = [ 
     { id: "title", label: "Company", minWidth: 30 },
     { id: "code", label: "Code", minWidth: 30 },
+    { id: "category", label: "Category", minWidth: 50 },
     { id: "address", label: "Address", minWidth: 50 },
     { id: "tax_no", label: "Tax No.", minWidth: 20 },
     { id: "contact_person", label: "Contact Person", minWidth: 50 },
@@ -38,6 +37,7 @@ const Suppliers = ({logged}) => {
     const params = new Proxy(new URLSearchParams(window.location.search), {
         get: (searchParams, prop) => searchParams.get(prop),
     });
+    var queryParams = new URLSearchParams(window.location.search);
     // Get the value of "some_key" in eg "https://example.com/?some_key=some_value"
     let qpage = params.page; // "some_value"
     if(!qpage){
@@ -49,12 +49,14 @@ const Suppliers = ({logged}) => {
     const [totalPage, settotalPage] = useState(0);
     const [toPage, settoPage] = useState(0);
     const [fromPage, setfromPage] = useState(0);
-
+    const [category, setCategories] = useState([]);
+    const [selectedCategory, setSelectedCategory] = useState("");
     const [supplierList, setSupplierList] = useState([
         {
             id: null,
             title: "",
             code: "",
+            category: "",
             address: "",
             tax_no: "",
             contact_person: "",
@@ -62,13 +64,17 @@ const Suppliers = ({logged}) => {
             email: "",
         },
     ]);
-    function fetchSuppliers() {
+    function fetchSuppliers(ss = "") {
+        let pg = page;
+        if(queryParams.get('page')){
+            pg = queryParams.get('page');
+        }
         axios
-            .get("/v/suppliers/fetch-all/?page=" + page)
+            .get("/v/suppliers/fetch-all/?page=" + pg+ss)
             .then((response) => {
                 let fetchItems = response.data.item;
-                setSupplierList(fetchItems.data);
-                console.log(fetchItems);
+                dataWithRelations(fetchItems.data);
+                
                 setPage(fetchItems.current_page);
                 setlastPage(fetchItems.last_page);
                 settotalPage(fetchItems.total);
@@ -80,12 +86,40 @@ const Suppliers = ({logged}) => {
             });
     }
 
+    function dataWithRelations(data) {
+        let newData = [];
+        console.log(data);
+        data.map((o, i) => {
+            let cats = "";
+            if(o.category){
+                o.category.map((oo,ii) =>{
+                    cats += " "+oo.title;
+                    cats += ",";
+                });
+            }
+
+            newData[i] = {
+                id: o.id,
+                address: o.address,
+                code: o.code,
+                contact_no: o.contact_no,
+                contact_person: o.contact_person,
+                email: o.email,
+                tax_no: o.tax_no,
+                title: o.title, 
+                category: cats
+            };
+        });
+
+        setSupplierList(newData);
+    }
+
     function axiosFunction(controller) {
         axios
             .get(controller)
             .then((response) => {
                 let fetchItems = response.data.item;
-                setSupplierList(fetchItems.data);
+                dataWithRelations(fetchItems.data);
 
                 setPage(fetchItems.current_page);
                 setlastPage(fetchItems.last_page);
@@ -99,18 +133,55 @@ const Suppliers = ({logged}) => {
     }
 
     useEffect(() => {
-        fetchSuppliers();
+        let cStatus = params.category; 
+       
+        let czStatus = "";
+        
+        if (cStatus) {
+            czStatus = "&category=" + cStatus;
+        }
+        
+        let defaultQueryString =  czStatus;
+       
+        fetchSuppliers(defaultQueryString);
         return () => {
             setSupplierList([]);
           };
     }, [page]);
+
+    useEffect(() => {
+        axios.get("/v/categories/fetch-non-paginate").then((response) => {
+            let fetchItems = response.data.item;
+            fetchItems = Object.assign([], fetchItems);
+
+            setCategories(fetchItems);
+        });
+    }, []);
+
+    const handleCategories = (event, val) => { 
+        setSupplierList([]);
+        let selected = "";
+        
+        if(val){
+            selected = val.id;
+        }  
+        setSelectedCategory(selected);
+        
+       
+        // Set new or modify existing parameter value. 
+        queryParams.set("category",  selected);
+        queryParams.set("page", 1);
+        // Replace current querystring with the new one.
+        history.replaceState(null, null, "?"+queryParams.toString()); 
+        fetchSuppliers("&category="+selected);
+    };
 
     const handleChangePage = (selectedPage, n) => {
         let p = parseInt(selectedPage);
         p = p + n;
         setPage(p);
 
-        var queryParams = new URLSearchParams(window.location.search);
+        
         // Set new or modify existing parameter value. 
         queryParams.set("page",  p);
       
@@ -132,7 +203,7 @@ const Suppliers = ({logged}) => {
             setPage(p);
         }
 
-        var queryParams = new URLSearchParams(window.location.search);
+        
         // Set new or modify existing parameter value. 
         queryParams.set("page",  p);
       
@@ -172,6 +243,29 @@ const Suppliers = ({logged}) => {
                         width: 400,
                     }}
                 >
+                    <Autocomplete
+                            disablePortal
+                            fullWidth 
+                            options={category}
+                             sx={{mr:2}}
+                            getOptionLabel={(data) => data.title || ""}
+                            size="small"
+                            onChange={(e, value) => handleCategories(e, value)}
+                            renderOption={(props, option) => {
+                                return (
+                                    <li {...props} key={option.id}>
+                                        {option.title}
+                                    </li>
+                                );
+                            }}
+                            renderInput={(params) => (
+                                <TextField
+                                    {...params}
+                                    label="Category*"
+                                    fullWidth
+                                />
+                            )}
+                        />
                     <TextField
                         size="small"
                         fullWidth
@@ -209,7 +303,7 @@ const Suppliers = ({logged}) => {
                                         {column.label}
                                     </TableCell>
                                 ))}
-                                <TableCell> </TableCell>
+                                <TableCell sx={{minWidth: 80}}> </TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
@@ -293,8 +387,7 @@ const Suppliers = ({logged}) => {
                         }
                         hidePrevButton
                         hideNextButton
-                        color="secondary"
-                        size="medium"
+                        color="secondary" 
                         variant="outlined"
                         shape="rounded"
                         size="small"

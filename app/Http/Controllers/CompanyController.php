@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Image;
 use App\Models\Company;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class CompanyController extends Controller
 {
@@ -90,7 +93,7 @@ class CompanyController extends Controller
      
     public function show(Request $request)
     {
-        $data = Company::where('id', '=', $request->id)->first(); 
+        $data = Company::where('id', '=', $request->id)->with('images')->first(); 
 
         return response()->json([
             'item' => $data 
@@ -106,15 +109,59 @@ class CompanyController extends Controller
      */
     public function update(Request $request)
     {
+       
         $success = true;
         $responseCode = 200;
         $data = '';
-        $newData = $request->data[0]; 
-      
+        $newData = array(
+            'address' => $request->address,
+            'code' => $request->code,
+            'contact_no' => $request->contact_no,
+            'contact_person' => $request->contact_person,
+            'email' => $request->email,
+            'tax_no' => $request->tax_no,
+            'title' => $request->title
+        );
+        
         DB::beginTransaction();
         // do all your updates here
         try { 
             $data = Company::where('id', '=', $request->id)->first(); 
+
+            $userStorage = '/uploads';
+            if (!Storage::exists($userStorage)) {
+                Storage::makeDirectory($userStorage, 0755, true);
+            }
+            $fileArray = array();
+                if( $request->hasFile('images') ) { 
+                    $uploadKey = Carbon::now()->format('YmdHis');
+                    $img_id = array();
+                    foreach($request->file('images') as $k => $file) {
+                        $fileName = $file->getClientOriginalName();
+                        $title = pathinfo($fileName, PATHINFO_FILENAME);
+                        $extn = strtolower($file->getClientOriginalExtension());
+                        $slugTitle = Str::slug($title, '-');
+                        $path = $slugTitle."-".$uploadKey.".".$extn;
+                        $mime = $file->getClientMimeType(); 
+                        $file->move(storage_path() . '/app' . $userStorage, $path);
+                        
+                         // Setup data into array
+                        $fileArray = array(
+                            'original_name' => $fileName,
+                            'title' => $title,
+                            'disk' => 'local',
+                            'path' => $path, 
+                            'mime' => $mime,
+                            'user_id' => $request['user_id'],
+                            'created_at' => Carbon::now(),
+                        );
+    
+                        $images = Image::insertGetId($fileArray);
+                        array_push( $img_id, $images);
+                    }
+                     
+                    $data->images()->sync($img_id); 
+                }
             
             $data->update($newData);
 

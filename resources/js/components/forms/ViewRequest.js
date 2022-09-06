@@ -43,13 +43,14 @@ export default function RequestForm({ id, logged }) {
                     company: responseData.company,
 
                     details: responseData.details,
+                    recipients: responseData.recipients,
                     location: responseData.location.title,
                     subject: responseData.subject,
                     prf_no: responseData.prf_no,
                     date: date,
                     time: curTime,
                     requestor: responseData.profile.name,
-                    designation: responseData.profile.designation,
+                    designation: responseData.profile.designation, 
                 };
                 setData(details);
                 setSpecs([{
@@ -95,7 +96,7 @@ export default function RequestForm({ id, logged }) {
         prf_no: "",
         date: "",
         time: "",
-        requestor: "",
+        requestor: "", 
         designation: "",
     });
 
@@ -453,7 +454,7 @@ export default function RequestForm({ id, logged }) {
                             </Grid>
                             {/* new row */}
 
-                            <Grid item xs={12} md={12}>
+                            <Grid item xs={12} md={8}>
                                 <strong>Attachment(s): </strong>
                                 {image.map((row, index) => {
                                     return (
@@ -471,12 +472,11 @@ export default function RequestForm({ id, logged }) {
                                     );
                                 })}
                             </Grid>
+                       
                             <Grid item xs={12} md={4}></Grid>
 
-                            <Grid className="request-desc" item xs={12} md={12}>
-                               
-                              
-                                 
+                            <Grid className="request-desc" item xs={12} md={12}> 
+                            
                                 {!isEdit && 
                                 <>
                                   <h3>{data.subject}</h3>
@@ -490,6 +490,9 @@ export default function RequestForm({ id, logged }) {
                                         __html: data.details,
                                     }}
                                 ></Box>
+                                {data.recipients && 
+                                <Box sx={{mt:2}}>Mailed To: {data.recipients}</Box>
+                                }
                                 </>
                                 }
                                 {isEdit &&
@@ -530,6 +533,7 @@ export default function RequestForm({ id, logged }) {
                                 }
                             </Grid>
                             <Grid item xs={12} md={12}>
+                                <Box>Normal Requests will take atleast 14 working days.</Box>
                                 {status !== 'onhold' && status !== 'pending' && status !== 'cancelled' &&
                                 <small>Note: Contact the Procurement Team who is processing this request to change the status to <b>ON HOLD</b> for you to edit the description.</small>
                                 }

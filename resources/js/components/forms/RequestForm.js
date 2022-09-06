@@ -4,7 +4,9 @@ import axios from "axios";
 import Paper from "@mui/material/Paper";
 import Box from "@mui/material/Box";
 import Grid from "@mui/material/Grid";
-
+import FormGroup from '@mui/material/FormGroup';
+import FormControlLabel from "@mui/material/FormControlLabel";
+import Checkbox from "@mui/material/Checkbox";
 import TextField from "@mui/material/TextField";
 import LoadingButton from "@mui/lab/LoadingButton";
 import Snackbar from "@mui/material/Snackbar";
@@ -18,6 +20,8 @@ import Modal from "@mui/material/Modal";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import API from "../../services/api.js";
+ 
+ 
 const Alert = React.forwardRef(function Alert(props, ref) {
     return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
@@ -46,6 +50,7 @@ export default function RequestForm({ logged }) {
 
     const [newLocation, setNewLocation] = useState("");
     const [openModal, setOpenModal] = useState(false);
+    const [checkPolicy, setCheckPolicy] = useState(false);
     const [fieldState, setFieldState] = useState(true);
     const [files, setFiles] = useState("");
     const [requestor, setRequestor] = useState([
@@ -97,6 +102,7 @@ export default function RequestForm({ logged }) {
             urgency: 3,
             location_id: "",
             details: "",
+            recipients: "",
         },
     ]);
 
@@ -145,8 +151,10 @@ export default function RequestForm({ logged }) {
                 o.details = val;
             }else if (type == "subject") {
                 o.subject = value;
+            }else if (type == "recipients") {
+                o.recipients = value;
             }
-            if (o.urgency && o.company_id && o.location_id && o.details && o.subject) {
+            if (o.urgency && o.company_id && o.location_id && o.details && o.subject && checkPolicy) {
                 setFieldState(false);
             } else {
                 setFieldState(true);
@@ -158,6 +166,30 @@ export default function RequestForm({ logged }) {
     };
     const handleAddLocation = () => {
         setOpenModal(true);
+    };
+
+    const handlePolicy = (e) => { 
+         let is_policy_enabled = false;
+        if (!e.target.checked) {
+            setCheckPolicy(false);
+            is_policy_enabled = false;
+            
+        }else{
+            setCheckPolicy(true); 
+            is_policy_enabled = true;
+        }
+        console.log(is_policy_enabled);
+        let objAssign = Object.assign([], objData);
+
+        let data = objAssign.map((o, i) => { 
+            if (o.urgency && o.company_id && o.location_id && o.details && o.subject && is_policy_enabled) {
+                setFieldState(false);
+            } else {
+                setFieldState(true);
+            }
+            return o;
+        });
+        
     };
 
     useEffect(() => {
@@ -282,8 +314,8 @@ export default function RequestForm({ logged }) {
             message: "Please wait...",
         };
         setSeverity(newMessage);
-        let objAssign = Object.assign({}, objData); 
-       
+        let objAssign = Object.assign({}, objData);  
+        
         let newDetails = objAssign[0].details.replaceAll('<td>', '<td style="border: 1px solid #cecece;font-size:12px;padding-left:10px;">');
         newDetails = newDetails.replaceAll('<table>', '<table style="border-spacing:0">');
         const data = new FormData();
@@ -294,6 +326,7 @@ export default function RequestForm({ logged }) {
         data.append("urgency", objAssign[0].urgency);
         data.append("user_id", objAssign[0].user_id);
         data.append("subject", objAssign[0].subject);
+        data.append("recipients", objAssign[0].recipients);
 
         if (files) {
             files.forEach((file) => {
@@ -519,7 +552,21 @@ export default function RequestForm({ logged }) {
                                 />
                             </Grid>
 
-                            <Grid item xs={12} md={12}>
+                            <Grid item xs={12} md={12}> 
+                            <TextField
+                                fullWidth 
+                                sx={{marginLeft: "0 !important", width: "100% !important"}}
+                                size="small"
+                                label="(Optional) Email Recipient - add comma if multiple email." 
+                                onChange={(e) =>
+                                    handleData(e, null, "recipients")
+                                } 
+                            > </TextField>
+                            <FormGroup>
+                            <FormControlLabel className="red" control={<Checkbox />}   onChange={handlePolicy} label="I accept that the request will take atleast 14 working days." />
+                            
+                            </FormGroup>
+                            
                                 <LoadingButton
                                     disabled={fieldState}
                                     variant="contained"

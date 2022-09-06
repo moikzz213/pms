@@ -214,8 +214,8 @@ const Reports = () => {
                     prf = prf + "-" + o.lpo.prf_extension;
                 }
 
-                let date = new Date(o.lpo.requests.created_at);
-                let fdate = new Date(o.lpo.requests.created_at);
+                let date = new Date(o.lpo.created_at);
+                let fdate = new Date(o.lpo.created_at);
                 let udate = new Date(o.lpo.updated_at);
                 let ddate = new Date(
                     date.setTime(date.getTime() + dterms * 86400000)
@@ -287,6 +287,7 @@ const Reports = () => {
                         ? o.lpo.requests.location.title
                         : "",
                     Company: o.lpo.company,
+                    ProcessedBy: o.lpo.process_by.name,
                     RequestBy: o.lpo.requests
                         ? o.lpo.requests.profile.name
                         : "",
@@ -294,6 +295,7 @@ const Reports = () => {
                         ? o.lpo.requests.profile.designation
                         : "",
                     Status: o.lpo.status,
+                    Reason: o.lpo.reasons
                 };
             } else if (vtype == "paf") {
                 let date = new Date(o.created_at);
@@ -384,6 +386,7 @@ const Reports = () => {
                     Designation: o.paf.process_by.designation,
                     Flagged: flagged,
                     status: o.paf.status,
+                    Reason: o.paf.reasons
                 };
             }
         });

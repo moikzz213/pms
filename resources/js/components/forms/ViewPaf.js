@@ -26,7 +26,7 @@ import IconButton from "@mui/material/IconButton";
 import DeleteIcon from "@mui/icons-material/Delete";
 import Autocomplete from "@mui/material/Autocomplete";
 import SaveAsIcon from "@mui/icons-material/SaveAs";
-
+import Modal from '@mui/material/Modal';
 const Alert = React.forwardRef(function Alert(props, ref) {
     return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
@@ -59,6 +59,7 @@ const ViewPaf = ({ id, logged }) => {
     const [files, setFiles] = useState("");
     const [logo, setLogo] = useState("");
     const [open, setOpen] = useState(false);
+    const [openModal, setOpenModal] = useState(false);
     const [editEnable, setEditEnable] = useState(false);
     const [discount, setDiscount] = useState(0);
     const [severity, setSeverity] = useState({
@@ -69,7 +70,7 @@ const ViewPaf = ({ id, logged }) => {
         vertical: "bottom",
         horizontal: "center",
     };
-
+    const [defaultMath, setDefaultMath] = useState("-"); 
     const [contactPersons, setContactPersons] = useState([]); 
     const [labelApproval, setLabelApproval] = useState([
         {
@@ -110,7 +111,14 @@ const ViewPaf = ({ id, logged }) => {
         }
         setOpen(false);
     };
+    const handleCloseModal = (e) => {
+        e.preventDefault();
+        setOpenModal(false);
+        setReason("");
+    };
     const [vat, setVat] = useState(0);
+    const [tempVat, setTempVat] = useState(0);
+    const [tempVat2, setTempVat2] = useState(0);
     const [approvalRows, setApprovalRows] = useState([]);
     const [customVAT, setCustomVAT] = useState(5);
      
@@ -128,18 +136,22 @@ const ViewPaf = ({ id, logged }) => {
     const [rowCount, setRowCount] = useState(1);
     const [currencyRate, setCurrencyRate] = useState(1);
     const [supplierCount, setSupplierCount] = useState(0);
+    const [reason, setReason] = useState("");
     function defaultFetch(logged) {
         setApprovals([]);
         setItems([]);
         API.get("/v/payment-approval-form/fetch/" + id).then((response) => {
-            let fetchItems = response.data.item; 
-           
-            
+            let fetchItems = response.data.item;
+            console.log(fetchItems.company);
             setItems(fetchItems);
             setCurrency(fetchItems.currency);
             setCurrencyRate(fetchItems.currency_rate);
             let img = "";
             if (
+                fetchItems.company && fetchItems.company.images && fetchItems.company.images.length > 0  
+            ) {
+                img = '/file/'+fetchItems.company.images[0].path;
+            }else if (
                 fetchItems.company &&
                 fetchItems.company.title.toLowerCase().includes("aboud group")
             ) {
@@ -196,6 +208,11 @@ const ViewPaf = ({ id, logged }) => {
                 fetchItems.company.title.toLowerCase().includes("point")
             ) {
                 img = "/logo/livepoint.png";
+            }else if (
+                fetchItems.company &&
+                fetchItems.company.title.toLowerCase().includes("spare parts")
+            ) {
+                img = "/logo/spareparts.png";
             } else if (
                 fetchItems.company &&
                 fetchItems.company.title.toLowerCase().includes("training")
@@ -231,6 +248,8 @@ const ViewPaf = ({ id, logged }) => {
 
             
             setCustomVAT(fetchItems.vat_custom); 
+            setTempVat(fetchItems.total_vat);
+            setVat(fetchItems.total_vat);
             setDiscountTitle(fetchItems.discount_title);
             setApprovalRows(fetchItems.paf_approvals);
             setDiscount(fetchItems.discount);
@@ -244,7 +263,7 @@ const ViewPaf = ({ id, logged }) => {
                     approval_limit_payment:
                         fetchItems.approval_limit_payment || "",
                     remarks_finance: fetchItems.remarks_finance || "", 
-                    total_vat: fetchItems.vat || 0,
+                    total_vat: fetchItems.total_vat || 0,
                     vat_custom: fetchItems.vat_custom || 5,
                     discount: fetchItems.discount || 0,
                     discount_title: fetchItems.discount_title || "",
@@ -262,7 +281,7 @@ const ViewPaf = ({ id, logged }) => {
                     approval_limit_payment:
                         fetchItems.approval_limit_payment || "",
                     remarks_finance: fetchItems.remarks_finance || "", 
-                    total_vat: fetchItems.vat || 0,
+                    total_vat: fetchItems.total_vat || 0,
                     vat_custom: fetchItems.vat_custom || 5,
                     discount: fetchItems.discount || 0,
                     discount_title: fetchItems.discount_title || "",
@@ -463,6 +482,15 @@ const ViewPaf = ({ id, logged }) => {
         setTableRows([...tableRows, newItem]);
     };
 
+    const popUpCancelReason = () => {
+        setOpenModal(true);
+    }
+
+    const handleCancelReason = (e) => {
+        
+        setReason(e.target.value);
+    }
+
     const changeStatus = (e, type) => {
         e.preventDefault();
         setOpen(true);
@@ -472,7 +500,12 @@ const ViewPaf = ({ id, logged }) => {
             message: "Please wait...",
         };
         setSeverity(newMessage);
-        let data = { id: id, type: type, user_id: logged.id };
+        let reasonForCancellation = '';
+        if(type == 'cancelled'){
+            reasonForCancellation = reason;
+        } 
+
+        let data = { id: id, type: type, user_id: logged.id, reason: reasonForCancellation };
         API.post("/v/payment-approval-form/update-status", data).then(
             (response) => {
                 setTimeout(() => {
@@ -482,6 +515,10 @@ const ViewPaf = ({ id, logged }) => {
                     };
                     setLoading(false);
                     setSeverity(newMessage);
+                    if(type == 'cancelled'){
+                        setOpenModal(false);
+                    }
+                    defaultFetch(logged);
                 }, 1500);
             }
         );
@@ -495,12 +532,18 @@ const ViewPaf = ({ id, logged }) => {
         calculateAmount("removedrow");
     };
 
-    const handleSaveItem = (e, row) => {
-        let data = { id: row.id, data: row, logged_id: logged.id };
-        console.log(data);
+    const handleSaveItem = (e, row,index, type) => {
+        let data = { id: row.id, data: row, logged_id: logged.id, type: type};
+        
         API.post("/v/payment-approval-form/item-update", data).then(
             (response) => {
-                //  defaultFetch(logged);
+                if(type == 'delete'){
+                    let rows = editOnlyRows;
+                    rows.splice(index, 1);
+                    setEditOnlyRows([...rows]);
+            
+                    calculateAmountEditOnly("removedrow");
+                }
             }
         );
     };
@@ -509,7 +552,6 @@ const ViewPaf = ({ id, logged }) => {
         setEditEnable(stats);
         if (stats) { 
            
-            setVat(items.total_vat);
             setTotalamount(items.total_amount);
             setNetAmount(items.net_amount); 
             setEditOnlyRows([...items.paf_items]);
@@ -578,6 +620,10 @@ const ViewPaf = ({ id, logged }) => {
         );
     };
 
+    const handleMath = (e) =>{ 
+        setDefaultMath(e.target.value);
+    }
+
     const handleApproveType = (event, index) => {
         let selected = event.target.value;
 
@@ -620,8 +666,10 @@ const ViewPaf = ({ id, logged }) => {
     };
 
     const calculateAmountEditOnly = (e, index, type) => {
-        let value = e.target.value;
-        
+        let value = '';
+        if(e !== 'removedrow'){
+            value = e.target.value;
+        }
         let checkVAT = parseFloat(customVAT)/100;
         let netAmountz = 0;
         let curDiscount = 0;
@@ -672,7 +720,7 @@ const ViewPaf = ({ id, logged }) => {
 
             return o;
         });
-
+        console.log(netAmountz);
         if (isNaN(netAmountz)) {
             netAmountz = 0;
             tempRows = editOnlyRows.map((o, i) => {
@@ -691,11 +739,25 @@ const ViewPaf = ({ id, logged }) => {
         }
         let totalAmnt = netAmountz.toFixed(2);
         
-        setTotalamount(totalAmnt);
+        setTotalamount(totalAmnt); 
+        
 
-        setVat(totalVat.toFixed(2));
+        let tVat2 = totalVat;
 
-        netAmountz = (netAmountz - curDiscount) * currencyRate;
+        setTempVat(tVat2.toFixed(2));
+        setVat(tVat2.toFixed(2));
+
+        let multiplication = defaultMath;
+        if(multiplication == "-"){
+            netAmountz = (netAmountz - curDiscount) * currencyRate;
+        }else if(multiplication == "*"){ 
+            netAmountz = (netAmountz * curDiscount) * currencyRate;
+        }else if(multiplication == "/"){
+            netAmountz = (netAmountz / curDiscount) * currencyRate;
+        }else if(multiplication == "+"){
+            netAmountz = (parseFloat(netAmountz) + parseFloat(curDiscount)) * currencyRate;
+        }
+        
         netAmountz = Math.round(netAmountz * 100) / 100;
 
         if (netAmountz < 0) {
@@ -717,22 +779,22 @@ const ViewPaf = ({ id, logged }) => {
         let withCents = "";
        
         if(cents.length > 1){
-           let addZero = "";
+            let addZero = "";
+
             if(cents[1].length == 1){
                 addZero = cents[1]+"0";
             }else{
                   addZero = String(cents[1]);
                 if(addZero.charAt(0) === '0'){
-                    
                     addZero.substring(1);
                 }
-                
             }
           
             withCents = number2words(Number(addZero));
              
             withCents = " And "+withCents;
         }
+
         dataAssign[0].amount_in_words = amountWords + withCents; 
        
         let newData = dataAssign.map((o, i) => {
@@ -760,7 +822,7 @@ const ViewPaf = ({ id, logged }) => {
         
         let netAmountz = parseFloat(editTempTotal);
         curDiscount = discount;
-        console.log(netAmountz);
+        
         let tempRows = tableRows.map((o, i) => {
             if (i == index && type == "qty") {
                 let amount = o.unit_price;
@@ -807,7 +869,7 @@ const ViewPaf = ({ id, logged }) => {
 
             return o;
         });  
-        console.log(netAmountz);
+        
         let dataAssign = Object.assign([], tempDataObj); 
         if (netAmountz < 0) {
             netAmountz = 0;
@@ -818,9 +880,22 @@ const ViewPaf = ({ id, logged }) => {
        
         setTotalamount(totalAmnt);
 
-        setVat(totalVat.toFixed(2));
+        let tVat = parseFloat(tempVat) + totalVat;
 
-        netAmountz = (netAmountz - curDiscount) * currencyRate;
+        setTempVat2(tVat.toFixed(2));
+        setVat(tVat.toFixed(2)); 
+
+        let multiplication = defaultMath;
+        if(multiplication == "-"){
+            netAmountz = (netAmountz - curDiscount) * currencyRate;
+        }else if(multiplication == "*"){ 
+            netAmountz = (netAmountz * curDiscount) * currencyRate;
+        }else if(multiplication == "/"){
+            netAmountz = (netAmountz / curDiscount) * currencyRate;
+        }else if(multiplication == "+"){
+            netAmountz = (parseFloat(netAmountz) + parseFloat(curDiscount)) * currencyRate;
+        } 
+          
         netAmountz = Math.round(netAmountz * 100) / 100;
 
         if (netAmountz < 0) {
@@ -829,8 +904,7 @@ const ViewPaf = ({ id, logged }) => {
 
         setNetAmount(netAmountz.toFixed(2));  
 
-        setTableRows(tempRows);
-       
+        setTableRows(tempRows); 
     
         dataAssign[0].net_amount = netAmountz; 
         dataAssign[0].discount = curDiscount;  
@@ -876,14 +950,36 @@ const ViewPaf = ({ id, logged }) => {
         let newNetAmount = 0;
         setDiscount(value);
         let dataAssign = Object.assign([], tempDataObj);
+        let multiplication = defaultMath;
+        let newVat = vat;
         let newData = dataAssign.map((o, i) => {
             o.discount = value;
-            o.net_amount = (o.total_amount - value) * o.currency_rate;
-            newNetAmount = (o.total_amount - value) * o.currency_rate;           
+
+           
+            if(multiplication == "-"){
+                o.net_amount = (o.total_amount - value) * o.currency_rate;
+                newNetAmount = (o.total_amount - value) * o.currency_rate;           
+            }else if(multiplication == "*"){ 
+                o.net_amount = (o.total_amount * value) * o.currency_rate; 
+                newNetAmount = ((o.total_amount * value) * o.currency_rate );    
+               
+            }else if(multiplication == "/"){
+                o.net_amount = (o.total_amount / value) * o.currency_rate;
+                newNetAmount = (o.total_amount / value) * o.currency_rate;           
+            }else if(multiplication == "+"){
+                o.net_amount = (parseFloat(o.total_amount) + parseFloat(value)) * o.currency_rate;
+                newNetAmount = (parseFloat(o.total_amount) + parseFloat(value)) * o.currency_rate;           
+            } 
+            
             return o;
-        });
+        }); 
         
-       
+        newVat = Math.round(newNetAmount * parseFloat(customVAT))/100;
+
+        if(multiplication == "*"){
+            setVat(newVat);
+            newNetAmount = newNetAmount + newVat;
+        }
 
         let netAmountz = newNetAmount.toFixed(2);
         let cents = netAmountz.toString().split(".");
@@ -909,6 +1005,10 @@ const ViewPaf = ({ id, logged }) => {
         }
         newData[0].amount_in_words = amountWords + withCents; 
 
+       
+        newData[0].total_vat =newVat;
+        newData[0].net_amount =newNetAmount.toFixed(2);
+         
         setEditDataObj(newData);
         setNetAmount(newNetAmount.toFixed(2));   
     }
@@ -1027,6 +1127,59 @@ const ViewPaf = ({ id, logged }) => {
                         {severity.message}
                     </Alert>
                 </Snackbar>
+
+                <Modal
+                open={openModal} 
+                aria-labelledby="parent-modal-title"
+                aria-describedby="parent-modal-description"
+                >
+                <Box sx={{ position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    width: 400,
+                    bgcolor: 'background.paper',
+                    border: '2px solid #000',
+                    boxShadow: 24,
+                    p: 4,}}>
+                    <h2 style={{marginTop:0}} id="parent-modal-title">What is your reason?</h2>
+                    <TextField 
+                        size="small"
+                        label="Reason?"
+                        fullWidth
+                        name="reason"
+                        onChange={(e) => handleCancelReason(e)}  
+                        sx={{mb:2}}
+                    > 
+                    </TextField>
+                    <LoadingButton
+                        className="btn-cancel"
+                        onClick={(e) =>
+                            handleCloseModal(e)
+                        } 
+                        variant="contained"
+                        color="black"
+                        size="small"
+                        sx={{ mr: 2 }}
+                    >
+                        CANCEL
+                    </LoadingButton>
+                    <LoadingButton
+                        className="btn-cancel"
+                        onClick={(e) =>
+                            changeStatus(e, "cancelled")
+                        }
+                        loading={loading}
+                        variant="contained"
+                        color="primary"
+                        size="small"
+                        
+                    >
+                        SUBMIT
+                    </LoadingButton>
+                   
+                </Box>
+                </Modal>
                 <Box
                     sx={{
                         "& .MuiTextField-root": { m: 1, width: "90%" },
@@ -1066,9 +1219,8 @@ const ViewPaf = ({ id, logged }) => {
                                     <LoadingButton
                                         className="btn-cancel"
                                         onClick={(e) =>
-                                            changeStatus(e, "cancelled")
-                                        }
-                                        loading={loading}
+                                            popUpCancelReason()
+                                        } 
                                         variant="contained"
                                         color="red"
                                         size="small"
@@ -1114,7 +1266,7 @@ const ViewPaf = ({ id, logged }) => {
                                 items.status !== "cancelled" &&
                                 items.status !== "closed" && (
                                     <LoadingButton
-                                        className="btn-info"
+                                        className="btn-info no-print"
                                         color="black"
                                         size="small"
                                         variant="contained"
@@ -1161,12 +1313,17 @@ const ViewPaf = ({ id, logged }) => {
                                         <th>
                                             {new Date(
                                                 items.created_at
-                                            ).toLocaleDateString()}
+                                            ).toLocaleDateString('en-GB')}
                                         </th>
                                     </tr>
                                 </tbody>
                             </table>
                         </Grid>
+                        {items.status == 'cancelled' &&
+                         <Grid className="no-print" item md={12} sx={{borderTop:1, borderBottom: 1, mb:2, py: "10px !important"}}>
+                             REASON: {items.reasons}
+                        </Grid>
+                        }
                         <Grid
                             item
                             md={6}
@@ -1426,23 +1583,23 @@ const ViewPaf = ({ id, logged }) => {
                                                     <td className="text-center">
                                                         { row.invoice_date ? new Date(
                                                             row.invoice_date
-                                                        ).toLocaleDateString() : ""}
+                                                        ).toLocaleDateString('en-GB') : ""}
                                                     </td>
                                                     <td className="text-center">
                                                         {row.qty}
                                                     </td>
                                                     <td className="text-center">
-                                                        {row.unit_price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                                                        {(row.unit_price).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                                                     </td>
                                                     <td className="text-right">
-                                                        {row.amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                                                        {(Number(row.amount)).toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                                                     </td>
                                                     <td className="text-center">
                                                         {row.vat.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                                                     </td>
                                                     <td className="text-right">
                                                         {row.total_amount
-                                                            ? row.total_amount.toFixed(
+                                                            ? parseFloat(row.total_amount).toFixed(
                                                                   2
                                                               ).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                                                             : "0.00"}
@@ -1461,7 +1618,7 @@ const ViewPaf = ({ id, logged }) => {
                                         <th className="text-right">
                                      
                                                 {items.total_amount
-                                                    ? items.total_amount.toFixed(
+                                                    ? (items.total_amount - items.total_vat).toFixed(
                                                             2
                                                         ).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                                                     : "0.00"}
@@ -1474,7 +1631,7 @@ const ViewPaf = ({ id, logged }) => {
                                         </th>
                                         <th className="text-right">
                                             {items.total_amount
-                                                ? items.total_amount.toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                                                ? (items.total_amount).toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                                                 : "0.00"}
                                         </th>
                                     </tr>
@@ -1841,7 +1998,7 @@ const ViewPaf = ({ id, logged }) => {
                                                                     <TextField
                                                                         disabled
                                                                         size="small"
-                                                                        value={"" || row.amount}
+                                                                        value={"" || (Number(row.amount)).toFixed(2)}
                                                                         variant="outlined"
                                                                         sx={{
                                                                             width: "70px !important",
@@ -1880,7 +2037,7 @@ const ViewPaf = ({ id, logged }) => {
                                                                         size="small"
                                                                         value={
                                                                             "" ||
-                                                                            row.total_amount
+                                                                            (Number(row.total_amount)).toFixed(2)
                                                                         }
                                                                         variant="outlined"
                                                                         sx={{
@@ -1897,7 +2054,9 @@ const ViewPaf = ({ id, logged }) => {
                                                                             onClick={(e) =>
                                                                                 handleSaveItem(
                                                                                     e,
-                                                                                    row
+                                                                                    row,
+                                                                                    index,
+                                                                                    'save'
                                                                                 )
                                                                             }
                                                                             color="green"
@@ -1905,6 +2064,21 @@ const ViewPaf = ({ id, logged }) => {
                                                                         >
                                                                             <SaveAsIcon />
                                                                         </IconButton>
+                                                                        <IconButton
+                                                                            onClick={(e) =>
+                                                                                handleSaveItem(
+                                                                                    e,
+                                                                                    row,
+                                                                                    index,
+                                                                                    'delete'
+                                                                                )
+                                                                            }
+                                                                            color="inherit"
+                                                                            className="remove"
+                                                                        >
+                                                                            <DeleteIcon />
+                                                                        </IconButton>
+                                                                        
                                                                 </TableCell>
                                                             </TableRow>
                                                         );
@@ -2103,7 +2277,8 @@ const ViewPaf = ({ id, logged }) => {
                                                             onChange={(e) =>
                                                                 handleItemData(
                                                                     e,
-                                                                    index, false
+                                                                    index,
+                                                                    'date', false
                                                                 )
                                                             }
                                                             sx={{
@@ -2315,6 +2490,17 @@ const ViewPaf = ({ id, logged }) => {
                                                 handleFreeText( e, 'discount_title' )
                                             }
                                         />
+
+                                            <TextField
+                                                label="SIGN" 
+                                                size="small"
+                                                value={defaultMath}
+                                                variant="outlined"
+                                                margin="dense" 
+                                                onChange={(e) =>
+                                                    handleMath( e )
+                                                }
+                                            />
                                     </Grid>
                                     <Grid item xs={12} md={8} sx={{pt: "0 !important"}}>
                                         <TextField
@@ -2414,6 +2600,21 @@ const ViewPaf = ({ id, logged }) => {
                                         <td width="20%">COMMENTS</td>
                                         <td width="80%">
                                             {items.remarks_finance}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td width="20%">PRF's/LPO'S</td>
+                                        <td width="80%">
+                                            {items.prfs && items.prfs.length > 0 && items.prfs.map((o,i) => {
+                                                return (
+                                                 <span key={o.prf_no} style={{mr:2, borderRight:1}}>{o.prf_no} / </span>
+                                                )
+                                            })}
+                                             {items.lpos && items.lpos.length > 0 && items.lpos.map((o,i) => {
+                                                return (
+                                                 <span  key={o.lpo_no} style={{mr:2, borderRight:1}}>{o.lpo_no}/</span> 
+                                                )
+                                            })}
                                         </td>
                                     </tr>
                                 </tbody>

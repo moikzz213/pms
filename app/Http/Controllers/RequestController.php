@@ -2,12 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use Swift_Mailer;
 use App\Models\Image;
 use App\Models\Requests;
+use Swift_SmtpTransport;
 use App\Jobs\CancelRequest;
+use App\Jobs\RecipientMailJob;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use App\Jobs\ReminderNotification;
 use App\Jobs\RequestToProcurement;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -45,9 +49,33 @@ class RequestController extends Controller
         }
 
         if($id == 304){
-            $data = Requests::where($searchData)->where('user_id',"=",$id)->orWhere('user_id',"=", 258)->orWhere('user_id',"=", 261)->orWhere('user_id',"=", 82)->orWhere('user_id',"=", 19)->with("company","location","process_by", "profile")->orderBy("updated_at", "desc")->paginate(10); 
+            $data = Requests::where($searchData)->where( function($query)  use ($id){
+                $query->where('user_id',"=",$id) 
+                ->orWhere('user_id',"=", 261)->orWhere('user_id',"=", 82)
+                ->orWhere('user_id',"=", 19)->orWhere('user_id',"=", 258);
+            })->with("company","location","process_by", "profile")->orderBy("updated_at", "desc")->paginate(10); 
+        }elseif($id == 258){
+            $data = Requests::where($searchData)->where( function($query)  use ($id){
+                $query->where('user_id',"=",$id) 
+                ->orWhere('user_id',"=", 261)->orWhere('user_id',"=", 82)
+                ->orWhere('user_id',"=", 19)->orWhere('user_id',"=", 304);
+            })->with("company","location","process_by", "profile")->orderBy("updated_at", "desc")->paginate(10); 
+        }elseif($id == 261){
+            $data = Requests::where($searchData)->where( function($query)  use ($id){
+                $query->where('user_id',"=",$id) 
+                ->orWhere('user_id',"=", 258)->orWhere('user_id',"=", 82)
+                ->orWhere('user_id',"=", 19)->orWhere('user_id',"=", 304);
+            })->with("company","location","process_by", "profile")->orderBy("updated_at", "desc")->paginate(10); 
+        }elseif($id == 333 || $id == 249){
+            $data = Requests::where($searchData)->where( function($query)  use ($id){
+                $query->where('user_id',"=",$id)
+                ->orWhere('user_id',"=", 304)->orWhere('user_id',"=", 258)
+                ->orWhere('user_id',"=", 261)->orWhere('user_id',"=", 82)
+                ->orWhere('user_id',"=", 19);
+            })->with("company","location","process_by", "profile")->orderBy("updated_at", "desc")->paginate(10); 
         }else{
-            $data = Requests::where($searchData)->where('user_id',"=",$id)->with("company","location","process_by", "profile")->orderBy("updated_at", "desc")->paginate(10); 
+             
+            $data = Requests::where('user_id',"=",$id)->where($searchData)->with("company","location","process_by", "profile")->orderBy("updated_at", "desc")->paginate(10); 
         }
         return response()->json([
             'item' => $data 
@@ -66,7 +94,6 @@ class RequestController extends Controller
 
     public function requests_procurements(Request $request)
     {  
-         
         $searchData = array();
         if($request['process_by'] == 'unassign'){
             $searchData = 'process_by';
@@ -98,8 +125,8 @@ class RequestController extends Controller
             return false;
         }
         $user = $token->tokenable;
-       
-        if($user->id == 304){
+       //|| $user->id == 258 || $user->id == 261
+        if($user->id == 304 ){
             // jeff - 258
             // jerico - 261
             // arnel - 82
@@ -107,14 +134,29 @@ class RequestController extends Controller
             $id = $user->id;
             $data = Requests::where('user_id', "=",$id)->orWhere('user_id',"=", 258)->orWhere('user_id',"=", 261)->orWhere('user_id',"=", 82)->orWhere('user_id',"=", 19)->with("company","location","process_by", "profile")->orderBy("updated_at", "desc")->take(10)->get();
             $pending =  Requests::where(['user_id' => $id])->where("status", "=", "pending")->get(); 
+            $onhold =  Requests::where(['user_id' => $id])->where("status", "=", "onhold")->get(); 
             $processed = Requests::where(['user_id' => $id])->where("status", "=", "onprocess")->get(); 
             $newRequest =  Requests::where('user_id', "=", $id)->whereDate( "created_at" , Carbon::today())->get(); 
             $closed =  Requests::where(['user_id' => $id, "status" => "closed"])->get(); 
             $totalRequest = Requests::where(['user_id' => $id])->orWhere('user_id',"=", 258)->orWhere('user_id',"=", 261)->orWhere('user_id',"=", 82)->orWhere('user_id',"=", 19)->where("status", "!=", "cancelled")->get(); 
+        }elseif($user->id == 333){
+            // jeff - 258
+            // jerico - 261
+            // arnel - 82
+            // abe - 19
+            $id = $user->id;
+            $data = Requests::where('user_id', "=",$id)->orWhere('user_id',"=", 304)->orWhere('user_id',"=", 258)->orWhere('user_id',"=", 261)->orWhere('user_id',"=", 82)->orWhere('user_id',"=", 19)->with("company","location","process_by", "profile")->orderBy("updated_at", "desc")->take(10)->get();
+            $pending =  Requests::where(['user_id' => $id])->where("status", "=", "pending")->get(); 
+            $onhold =  Requests::where(['user_id' => $id])->where("status", "=", "onhold")->get(); 
+            $processed = Requests::where(['user_id' => $id])->where("status", "=", "onprocess")->get(); 
+            $newRequest =  Requests::where('user_id', "=", $id)->whereDate( "created_at" , Carbon::today())->get(); 
+            $closed =  Requests::where(['user_id' => $id, "status" => "closed"])->get(); 
+            $totalRequest = Requests::where(['user_id' => $id])->orWhere('user_id',"=", 304)->orWhere('user_id',"=", 258)->orWhere('user_id',"=", 261)->orWhere('user_id',"=", 82)->orWhere('user_id',"=", 19)->where("status", "!=", "cancelled")->get(); 
         }elseif($user->role == 'normal'){
             $id = $user->id;
             $data = Requests::where('user_id',"=",$id)->with("company","location","process_by", "profile")->orderBy("updated_at", "desc")->take(10)->get();
             $pending = Requests::where(['user_id' => $id, "status" => "pending"])->get(); 
+            $onhold =  Requests::where(['user_id' => $id])->where("status", "=", "onhold")->get(); 
             $processed = Requests::where(['user_id' => $id, "status" => "onprocess"])->get(); 
             $newRequest = Requests::where(['user_id' => $id])->whereDate( "created_at" , Carbon::today())->get(); 
             $closed = Requests::where(['user_id' => $id, "status" => "closed"])->get(); 
@@ -123,6 +165,7 @@ class RequestController extends Controller
             $data = Requests::with("company","location","process_by", "profile")->orderBy("updated_at", "desc")->take(10)->get();
             $pending = Requests::where([ "status" => "pending"])->get(); 
             $processed = Requests::where([ "status" => "onprocess"])->get(); 
+            $onhold =  Requests::where([ "status" => "onhold"])->get(); 
             $newRequest = Requests::whereDate( "created_at" , Carbon::today())->get(); 
             $closed = Requests::where([ "status" => "closed"])->get(); 
             $totalRequest = Requests::where( "status", "!=", "cancelled")->get();
@@ -131,26 +174,56 @@ class RequestController extends Controller
         $pendingCount = $pending->count();
         $processedCount = $processed->count();
         $newCount = $newRequest->count();
+        $holdCount = $onhold->count();
         $totalCount = $totalRequest->count();
         $closedCount = $closed->count();
         return response()->json([
             'item'     =>$data,
             'pending' => $pendingCount,
             'process' => $processedCount,
+            'hold'  => $holdCount,
             'new'     => $newCount,
             'closed'    => $closedCount,
             'totalcount' => $totalCount
         ], 200); 
     }
 
-    public function search($search){
+    public function search($id,$search){ 
+        if($id == 261 || $id == 82 || $id == 19 || $id == 258 || $id == 304){
+            $where = ['user_id' => '261','user_id' => '82','user_id' => '19','user_id' => '258','user_id' => '304'];
+        }else{
+            $where = ['user_id' => $id];
+        }
         if($search !== '-'){
-            $data = Requests::where("subject", "LIKE", "%".$search."%")->orWhere("prf_no", "LIKE", "%".$search."%")->orWhere("status", "LIKE", "%".$search."%")->orWhereHas('profile', function ($q) use ($search){
+            
+            $data = Requests::where($where)->where(function ($q) use ($search){
+                $q->where("subject", "LIKE", "%".$search."%")->orWhere("prf_no", "LIKE", "%".$search."%")->orWhere("status", "LIKE", "%".$search."%");
+            })->orWhereHas('profile', function ($q) use ($search){
                 $q->where("name", "LIKE", "%".$search."%");  
             })->orWhereHas('company', function ($q) use ($search){
                 $q->where("title", "LIKE", "%".$search."%");  
             })->with("company","location","process_by", "profile")->paginate(10);
         }else{
+             
+            $data = Requests::where($where)->with("company","location","process_by", "profile")->orderBy("updated_at", "desc")->paginate(10); 
+        }
+        return response()->json([
+            'item' => $data 
+        ], 200); 
+    }
+
+    public function procSearch($search){ 
+         
+        if($search !== '-'){ 
+            $data = Requests::where(function ($q) use ($search){
+                $q->where("subject", "LIKE", "%".$search."%")->orWhere("prf_no", "LIKE", "%".$search."%")->orWhere("status", "LIKE", "%".$search."%");
+            })->orWhereHas('profile', function ($q) use ($search){
+                $q->where("name", "LIKE", "%".$search."%");  
+            })->orWhereHas('company', function ($q) use ($search){
+                $q->where("title", "LIKE", "%".$search."%");  
+            })->with("company","location","process_by", "profile")->paginate(10);
+        }else{
+             
             $data = Requests::with("company","location","process_by", "profile")->orderBy("updated_at", "desc")->paginate(10); 
         }
         return response()->json([
@@ -186,9 +259,7 @@ class RequestController extends Controller
         return response()->json([
             'item' => $data 
         ], 200); 
-    }
-
-    
+    } 
 
     /**
      * Store a newly created resource in storage.
@@ -199,10 +270,11 @@ class RequestController extends Controller
     public function store(Request $request)
     {
         $success = true;
+        $have_recipient = false;
         $responseCode = 200;
         $id = '';
         $data = array(); 
-
+        $rabbitArray = array();
         $userStorage = '/uploads';
         if (!Storage::exists($userStorage)) {
             Storage::makeDirectory($userStorage, 0755, true);
@@ -215,6 +287,7 @@ class RequestController extends Controller
                 "subject" => $request['subject'],
                 "status" => "pending",
                 "details" => $request['details'],
+                "recipients" => $request['recipients'],
                 "user_id"  => $request['user_id'],
                 "created_at"    => Carbon::now()
         );
@@ -285,21 +358,48 @@ class RequestController extends Controller
             //procurementgroup@gagroup.net
             $emails = 'jacob@gagroup.net';
             $details = array("prf_no" => $prfNo, 'data' => $request['details'], 'user_id' => $request['user_id']);
-            $rabbitArray = array("details" => $details, "email" => $emails, "subject" => "New Request");  
-            
-           // RequestToProcurement::dispatch($rabbitArray); 
+            $rabbitArray = array("details" => $details, "email" => $emails, "subject" => "New Request");
+
+            if($request['recipients']){
+                $have_recipient = true;
+                $recipients_email = str_replace(' ', '', $request['recipients']);  
+                $recipients_message = "Dear, 
+
+Your request has been forwarded to Procurement Team, 
+Normal requests: Will take at least 14 working days.
+Project requests: Will take at least 2 months.";
+                $recipients_data = array("email" => $recipients_email, "message" => $recipients_message, "subject" => "Requested to Procurement Team");
+            }
              
             $msg = "New request has been created!"; 
           
             DB::commit();
             
         } catch (\Exception $e) {
-            DB::rollback();
-            dd($e);
+            DB::rollback(); 
             $success = false;
             $msg = "Error: Failed to add the data!";
             $responseCode = 500;
         }
+        
+        if($success){
+                try{
+                    $transport = new Swift_SmtpTransport('smtp.office365.com', '587', 'tls');
+                    $transport->setUsername('GAGWebService@gagroup.net');
+                    $transport->setPassword('G4@Sf4V52zY46$4T6du');
+                    $mailer = new Swift_Mailer($transport);
+                    $mailer->getTransport()->start();
+                    RequestToProcurement::dispatch($rabbitArray);
+
+                    if($have_recipient){
+                        RecipientMailJob::dispatch($recipients_data);
+                    }
+                } catch (Swift_TransportException $e) {
+                    $msg = 'Request has been '.$request['type'] .' But Email notification has not been sent!'; 
+                } catch (Exception $e) {
+                    $msg = 'Request has been '.$request['type'] .' But Email notification has not been sent!'; 
+                }
+            }
 
         return response()->json([
             'success' => $success,
@@ -331,23 +431,36 @@ class RequestController extends Controller
         
         $item = array("status" => $request['type']);
         $data->update($item); 
-
-        if($request['type'] == 'cancelled'){
-             //procurementgroup@gagroup.net
-             $emails = 'jacob@gagroup.net';
-             $rabbitArray = array("details" => $data, "email" => $emails, "subject" => "Request Cancelled");  
-             
-             CancelRequest::dispatch($rabbitArray);  
-             
-        }
-
-        $data->logs()->create([
+        
+         $data->logs()->create([
             'user_id' => $request['user_id'],
             'log_type' => 'change_status',
             'details' => json_encode($item)
         ]);
          
         $msg = 'Request has been '.$request['type']; 
+
+        if($request['type'] == 'cancelled'){
+             //procurementgroup@gagroup.net
+             $emails = 'procurementgroup@gagroup.net';
+             $rabbitArray = array("details" => $data, "email" => $emails, "subject" => "Request Cancelled");  
+             
+             if($data){
+                try{
+                    $transport = new Swift_SmtpTransport('smtp.office365.com', '587', 'tls');
+                    $transport->setUsername('GAGWebService@gagroup.net');
+                    $transport->setPassword('G4@Sf4V52zY46$4T6du');
+                    $mailer = new Swift_Mailer($transport);
+                    $mailer->getTransport()->start();
+                    CancelRequest::dispatch($rabbitArray);
+                } catch (Swift_TransportException $e) {
+                    $msg = 'Request has been '.$request['type'] .' But Email notification has not been sent!'; 
+                } catch (Exception $e) {
+                    $msg = 'Request has been '.$request['type'] .' But Email notification has not been sent!'; 
+                }
+            }
+             
+        } 
 
         return response()->json([
             'status' => true,
@@ -373,8 +486,22 @@ class RequestController extends Controller
         $details = array("prf_no" => $data['prf_no'], 'user_id' => $request['process_by']); 
         
         $rabbitArray = array("details" => $details, "subject" => "Request Assigned");  
-        RequestAssignToProcurement::dispatch($rabbitArray);
-         
+       
+         if($data){
+            try{
+                $transport = new Swift_SmtpTransport('smtp.office365.com', '587', 'tls');
+                $transport->setUsername('GAGWebService@gagroup.net');
+                $transport->setPassword('G4@Sf4V52zY46$4T6du');
+                $mailer = new Swift_Mailer($transport);
+                $mailer->getTransport()->start();
+                RequestAssignToProcurement::dispatch($rabbitArray);
+            } catch (Swift_TransportException $e) {
+                $msg = "Request has been assigned! But Email notification has not been sent!"; 
+            } catch (Exception $e) {
+                $msg = "Request has been assigned! But Email notification has not been sent!"; 
+            }
+        }
+        
         $msg = 'Request has been assigned!';
 
         return response()->json([
@@ -431,6 +558,32 @@ class RequestController extends Controller
 
         return response()->json([
             'item'     =>$data            
-        ], 200); 
+        ], 200);
+    }
+
+    function cronJobReminderNotification(){
+        $query = Requests::where( function($q) { 
+            $q->where('status', '!=', 'closed')->where('status', '!=', 'cancelled')->where('status', '!=', 'onhold');
+        })->where('created_at', '<=', Carbon::now()->subDays(3)->toDateTimeString())->with('profile', 'processed_by', 'company')
+        ->get();
+       
+        $newArray = array();
+        if($query){
+           foreach($query AS $k => $v){
+            $newArray[] = array(
+                'prf_no'        => $v->prf_no,
+                'company'       => $v->company->title,
+                'profile'       => $v->profile->name,
+                'process_by'    => $v->processed_by ? $v->processed_by->name : '',
+                'request_date'  => $v->created_at
+
+            );
+           }
+
+           $rabbitArray = array("details" => $newArray, 'email' => 'procurementgroup@gagroup.net');  
+           ReminderNotification::dispatch($rabbitArray);
+        }
+      
+        return;
     }
 }

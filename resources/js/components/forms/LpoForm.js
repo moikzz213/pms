@@ -1328,20 +1328,25 @@ const LpoForm = ({ logged }) => {
                                                         }
                                                     />
                                                 </TableCell>
-                                                <TableCell>
-                                                    <TextField
-                                                        label="Specification"
-                                                        size="small"
-                                                        name="specification"
-                                                        variant="outlined"
-                                                        onChange={(e) =>
-                                                            handleCategory(
-                                                                e,
-                                                                index,
-                                                                "specs"
-                                                            )
-                                                        }
-                                                    />
+                                                <TableCell> 
+                                            <TextareaAutosize
+                                                aria-label="minimum height"
+                                                minRows={2}
+                                                maxRows={15}
+                                                placeholder="Specification"
+                                                onChange={(e) =>
+                                                    handleCategory(
+                                                        e,
+                                                        index,
+                                                        "specs"
+                                                    )
+                                                }
+                                                style={{
+                                                    width: "100%",
+                                                    border: "1px solid #cecece",
+                                                    padding: 10,
+                                                }}
+                                            />
                                                 </TableCell>
                                                 <TableCell>
                                                     <TextField

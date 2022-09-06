@@ -7,6 +7,7 @@ import LoadingButton from "@mui/lab/LoadingButton";
 import TextField from "@mui/material/TextField";
 import Snackbar from "@mui/material/Snackbar";
 import MuiAlert from "@mui/material/Alert";
+import Autocomplete from "@mui/material/Autocomplete";
 
 const Alert = React.forwardRef(function Alert(props, ref) {
     return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
@@ -30,7 +31,23 @@ export default function SupplierFormEdit({ id, logged }) {
             email: "",
         },
     ]);
+    const [category, setCategories] = useState([]);
+    const [selectedCategory, setSelectedCategory] = useState([]);
+    const [defaultCategory, setDefaultCategory] = useState([]);
 
+    const handleCategories = (event, val) => { 
+  
+        let selected = val;  
+ 
+        let fff = [];
+        selected.map((o, i) => {
+            fff[i] = o.id;
+        });
+        
+        setDefaultCategory(selected);
+        setSelectedCategory(fff);
+         
+    };
     useEffect(() => {
         axios.get("/v/suppliers/fetch/" + id).then((response) => {
             let itemData = response.data.item;
@@ -46,7 +63,21 @@ export default function SupplierFormEdit({ id, logged }) {
                 },
             ];
             setObjData(newData);
- 
+            setDefaultCategory(itemData.category);
+            let catSelected = [];
+            if(itemData && itemData.category && itemData.category.length > 0){
+                itemData.category.map((o,i)=>{
+                    catSelected[i] = o.id;
+                })
+            }
+            setSelectedCategory(catSelected);
+        });
+
+        axios.get("/v/categories/fetch-non-paginate").then((response) => {
+            let fetchItems = response.data.item;
+            fetchItems = Object.assign([], fetchItems);
+
+            setCategories(fetchItems);
         });
     }, []);
 
@@ -110,7 +141,7 @@ export default function SupplierFormEdit({ id, logged }) {
             message: "Please wait...",
         };
         setSeverity(newMessage);
-        let data = { data: objData, id: id, user_id: logged.id };
+        let data = { data: objData, id: id, user_id: logged.id, category: selectedCategory };
 
         axios
             .post(controller, data)
@@ -248,6 +279,36 @@ export default function SupplierFormEdit({ id, logged }) {
                                     value={objData[0].email || ""}
                                     onChange={(e) => handleData(e, "email")}
                                     variant="outlined"
+                                />
+                            </Grid>
+                            <Grid item xs={12} md={2}>
+                                Category
+                            </Grid>
+                            <Grid item xs={12} md={4}>
+                                <Autocomplete
+                                    disablePortal
+                                    fullWidth
+                                    multiple
+                                    options={category}
+                                    value={defaultCategory}
+                                    disableClearable
+                                    getOptionLabel={(data) => data.title || ""}
+                                    size="small"
+                                    onChange={(e, value) => handleCategories(e, value)}
+                                    renderOption={(props, option) => {
+                                        return (
+                                            <li {...props} key={option.id}>
+                                                {option.title}
+                                            </li>
+                                        );
+                                    }}
+                                    renderInput={(params) => (
+                                        <TextField
+                                            {...params}
+                                            label="Category*"
+                                            fullWidth
+                                        />
+                                    )}
                                 />
                             </Grid>
 

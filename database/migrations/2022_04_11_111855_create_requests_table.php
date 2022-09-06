@@ -20,9 +20,11 @@ class CreateRequestsTable extends Migration
             $table->unsignedBigInteger('user_id')->nullable();
             $table->unsignedBigInteger('location_id')->nullable();
             $table->unsignedBigInteger('process_by')->nullable();
+            $table->unsignedInteger('days_reminder')->default(3)->nullable();
             $table->string('status',50);
             $table->string('prf_no',50)->nullable();
             $table->text('details')->nullable();
+            $table->string('recipients')->nullable();
             $table->timestamps();
         });
     }

@@ -137,7 +137,7 @@ const Lpo = () => {
                 prf_no: prf,
                 supplier: o.supplier ? o.supplier.title : "",
                 company: o.company,
-                net_amount: o.net_amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","),
+                net_amount: o.net_amount ? o.net_amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") : "0.00",
                 process_by: o.process_by ? o.process_by.name : "",
                 created_at: new Date(o.created_at).toLocaleDateString(),
             };
@@ -549,8 +549,7 @@ const Lpo = () => {
                         }
                         hidePrevButton
                         hideNextButton
-                        color="secondary"
-                        size="medium"
+                        color="secondary" 
                         variant="outlined"
                         shape="rounded"
                         size="small"

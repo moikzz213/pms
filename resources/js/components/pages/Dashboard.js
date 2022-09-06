@@ -25,6 +25,7 @@ const Dashboard = ({ logged }) => {
     const [countPending, setCountPending] = useState(0);
     const [countProcess, setCountProcess] = useState(0);
     const [countNew, setCountNew] = useState(0);
+    const [countHold, setCountHold] = useState(0); 
     const [countTotal, setCountTotal] = useState(0);
     const [countClosed, setCountClosed] = useState(0);
 
@@ -48,6 +49,7 @@ const Dashboard = ({ logged }) => {
                     setCountPending(fetchItems.pending);
                     setCountProcess(fetchItems.process);
                     setCountNew(fetchItems.new);
+                    setCountHold(fetchItems.hold);
                     setCountClosed(fetchItems.closed);
                     setCountTotal(fetchItems.totalcount);
                 })
@@ -82,9 +84,9 @@ const Dashboard = ({ logged }) => {
                 <Box
                     sx={{
                         width: "auto",
-                        minWidth: 200,
+                        minWidth: 170,
                         backgroundColor: "#fff",
-                        padding: "20px 30px",
+                        padding: "20px 20px",
                         textAlign: "center",
                         mx: 1,
                         my: 1,
@@ -96,9 +98,9 @@ const Dashboard = ({ logged }) => {
                 <Box
                     sx={{
                         width: "auto",
-                        minWidth: 200,
+                        minWidth: 170,
                         backgroundColor: "#fff",
-                        padding: "20px 30px",
+                        padding: "20px 20px",
                         textAlign: "center",
                         mx: 1,
                         my: 1,
@@ -107,13 +109,26 @@ const Dashboard = ({ logged }) => {
                     OPEN REQUESTS
                     <h2>{countPending}</h2>
                 </Box>
-
                 <Box
                     sx={{
                         width: "auto",
-                        minWidth: 200,
+                        minWidth: 170,
                         backgroundColor: "#fff",
-                        padding: "20px 30px",
+                        padding: "20px 20px",
+                        textAlign: "center",
+                        mx: 1,
+                        my: 1,
+                    }}
+                >
+                    ONHOLD REQUESTS
+                    <h2>{countHold}</h2>
+                </Box>
+                <Box
+                    sx={{
+                        width: "auto",
+                        minWidth: 170,
+                        backgroundColor: "#fff",
+                        padding: "20px 20px",
                         textAlign: "center",
                         mx: 1,
                         my: 1,
@@ -125,9 +140,9 @@ const Dashboard = ({ logged }) => {
                 <Box
                     sx={{
                         width: "auto",
-                        minWidth: 200,
+                        minWidth: 170,
                         backgroundColor: "#fff",
-                        padding: "20px 30px",
+                        padding: "20px 20px",
                         textAlign: "center",
                         mx: 1,
                         my: 1,
@@ -139,9 +154,9 @@ const Dashboard = ({ logged }) => {
                 <Box
                     sx={{
                         width: "auto",
-                        minWidth: 200,
+                        minWidth: 170,
                         backgroundColor: "#fff",
-                        padding: "20px 30px",
+                        padding: "20px 20px",
                         textAlign: "center",
                         mx: 1,
                         my: 1,

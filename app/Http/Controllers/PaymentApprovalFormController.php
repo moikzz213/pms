@@ -165,8 +165,13 @@ class PaymentApprovalFormController extends Controller
      */
     public function show(Request $request)
     {
-        $data = Payment_approval_form::where('id', '=', $request->id)->with(["paf_items.supplier","prfs",'lpos',"process_by", "company", 'paf_approvals.users.profile', 'paf_items', "images", "paf_approvals"  => function($query){
+        $data = Payment_approval_form::where('id', '=', $request->id)
+        ->with(["paf_items.supplier","prfs",'lpos',"process_by", "company.images", 'paf_approvals.users.profile', "images", "paf_approvals"  => function($query){
+             $query->where('user_id', '>',0);
             $query->orderBy("orders", "ASC");
+        }, 'paf_items' => function($query) {
+            $query->where('qty', '!=', null);
+            $query->where('unit_price', '!=', null);
         }])->first(); 
 
         return response()->json([
@@ -257,42 +262,53 @@ class PaymentApprovalFormController extends Controller
     }
 
     public function updateItem(Request $request){
-      
-        $data = Payment_approval_form_item::where('id', '=', $request['id'])->first(); 
-        
-        $item = array("amount" => $request['data']['amount'], "description" => $request['data']['description'], 
-        'qty' => $request['data']['qty'], 'local_purchase_order_id' => $request['data']['local_purchase_order_id'], 
-        'unit_price' => $request['data']['unit_price'], 'location' => $request['data']['location']
-        , 'serial_number' => $request['data']['serial_number'] , 'supplier_id' => $request['data']['supplier_id'] 
-        , 'supplier_invoice_num' => $request['data']['supplier_invoice_num'], 'total_amount' => $request['data']['total_amount'], 
-        'vat' => $request['data']['vat'], 'invoice_date' => $request['data']['invoice_date'] );
-        $data->update($item);  
+        if($request['type'] == 'save'){
+            $data = Payment_approval_form_item::where('id', '=', $request['id'])->first();
+
+            $item = array("amount" => $request['data']['amount'], "description" => $request['data']['description'], 
+                        'qty' => $request['data']['qty'], 'local_purchase_order_id' => $request['data']['local_purchase_order_id'], 
+                        'unit_price' => $request['data']['unit_price'], 'location' => $request['data']['location']
+                        , 'serial_number' => $request['data']['serial_number'] , 'supplier_id' => $request['data']['supplier_id'] 
+                        , 'supplier_invoice_num' => $request['data']['supplier_invoice_num'], 'total_amount' => $request['data']['total_amount'], 
+                        'vat' => $request['data']['vat'], 'invoice_date' => $request['data']['invoice_date'] );
+                        
+            $data->update($item);  
+            $msg = "Item has been updated!";
+         }else{
+            Payment_approval_form_item::where('id', '=', $request['id'])->delete();
+            $msg = "Item has been deleted!";
+         }
     
         return response()->json([
             'status' => true,
-            'message' => "Item has been updated!"
+            'message' => $msg
         ], 200); 
     }
     
     public function updateStatus(Request $request){
         
-        $data = Payment_approval_form::where('id', '=', $request['id'])->first(); 
+        $data = Payment_approval_form::where('id', '=', $request['id'])->first();
 
-        $item = array("status" => $request['type']);
-        $data->update($item); 
+        // Reason Remarks has been put at remarks_finance field
+        if($request['type'] == 'cancelled'){
+            $item = array("status" => $request['type'], 'reasons' => $request['reason']);
+        }else{
+            $item = array("status" => $request['type']);
+        }
 
+        $data->update($item);
         $data->logs()->create([
             'user_id' => $request['user_id'],
             'log_type' => 'change_status',
             'details' => json_encode($item)
         ]);
          
-        $msg = 'LPO Status changed to '.$request['type']; 
+        $msg = 'LPO Status changed to '.$request['type'];
 
         return response()->json([
             'status' => true,
             'message' => $msg
-        ], 200); 
+        ], 200);
     }
 
     function pad($num, $size){
@@ -303,10 +319,9 @@ class PaymentApprovalFormController extends Controller
         $search = $request['daterange'];
         $fromDate = $search['from'];
         $toDate = $search['to'];
-       
         $dataSearch = $request['data'];
        
-        $data = Payment_approval_form_item::whereDate('created_at', '>=', $fromDate)->whereDate('created_at', '<=', $toDate)->whereHas('paf', function($query) use ($dataSearch) {
+        $data = Payment_approval_form_item::where('qty', '!=', NULL)->whereDate('created_at', '>=', $fromDate)->whereDate('created_at', '<=', $toDate)->whereHas('paf', function($query) use ($dataSearch) {
             if($dataSearch){
                 if(@$dataSearch['company_id']){
                     $query->where("payment_approval_forms.company_id",$dataSearch['company_id']);

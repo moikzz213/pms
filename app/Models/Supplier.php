@@ -14,4 +14,9 @@ class Supplier extends Model
     {
         return $this->morphToMany(Log::class, 'loggable');
     }
+
+    public function category()
+    {
+        return $this->belongsToMany(Category::class);
+    }
 }

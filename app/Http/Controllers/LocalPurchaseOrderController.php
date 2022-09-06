@@ -149,9 +149,14 @@ class LocalPurchaseOrderController extends Controller
      */
     public function show(Request $request)
     {
-        $data = Local_purchase_order::where('id', '=', $request->id)->with(["supplier","requests", "location","process_by", 'billing', 'contact_person.profile', 'lpo_items', 'lpo_approvals.users.profile', 
+        $data = Local_purchase_order::where('id', '=', $request->id)
+        ->with(["supplier","requests.company.images", "location","process_by", 'billing', 'contact_person.profile', 'lpo_approvals.users.profile', 
         'lpo_approvals' => function($query){
+            $query->where('user_id', '>',0);
             $query->orderBy("orders", "ASC");
+        }, 'lpo_items' => function($query) {
+            $query->where('qty', '!=', null);
+            $query->where('unit_price', '!=', null);
         }])->first(); 
 
         return response()->json([
@@ -166,7 +171,9 @@ class LocalPurchaseOrderController extends Controller
         $item = array("delivery_terms" => $request['data']['delivery_terms'], "discount" => $request['data']['discount'], 'net_amount' => $request['data']['net_amount'], 
         'remarks_finance' => $request['data']['remarks_finance'], 
         'remarks_general' => $request['data']['remarks_general'], 'remarks_optional' => $request['data']['remarks_optional'], 'remarks_payment_terms' => $request['data']['remarks_payment_terms']
-        , 'total_amount' => $request['data']['total_amount'], 'vat' => $request['data']['vat'], 'currency' => $request['data']['currency'], 'vat_custom' => $request['data']['vat_custom']); 
+        , 'total_amount' => $request['data']['total_amount'], 'vat' => $request['data']['vat'], 'currency' => $request['data']['currency'], 'vat_custom' => $request['data']['vat_custom'],
+        'license_title_value_1' => $request['data']['license_title_value_1'], 'license_title_value_2' => $request['data']['license_title_value_2'], 'license_title_label_1' => $request['data']['license_title_label_1'], 'license_title_label_2' => $request['data']['license_title_label_2']
+        , 'is_license' => $request['data']['is_license']); 
         
         if($request['items']){
             $data->lpo_items()->createMany($request['items']);  
@@ -194,11 +201,17 @@ class LocalPurchaseOrderController extends Controller
     
     public function updateItem(Request $request){
       
-        $data = Local_purchase_order_item::where('id', '=', $request['id'])->first(); 
         
-        $item = array("category_id" => $request['data']['category_id'], "item" => $request['data']['item'], 'qty' => $request['data']['qty'], 'specification' => $request['data']['specification'], 
-        'unit_price' => $request['data']['unit_price'], 'uom' => $request['data']['uom'] );
-        $data->update($item); 
+
+        if($request['type'] == 'save'){
+            $data = Local_purchase_order_item::where('id', '=', $request['id'])->first(); 
+        
+            $item = array("category_id" => $request['data']['category_id'], "item" => $request['data']['item'], 'qty' => $request['data']['qty'], 'specification' => $request['data']['specification'], 
+            'unit_price' => $request['data']['unit_price'], 'uom' => $request['data']['uom'] );
+            $data->update($item); 
+        }else{
+            Local_purchase_order_item::where('id', '=', $request['id'])->delete();
+        }
 
         // $data->logs()->create([
         //     'user_id' => $request['logged_id'],
@@ -218,7 +231,11 @@ class LocalPurchaseOrderController extends Controller
         
         $data = Local_purchase_order::where('id', '=', $request['id'])->first(); 
 
-        $item = array("status" => $request['type']);
+        if($request['type'] == 'cancelled'){
+            $item = array("status" => $request['type'], 'reasons' => $request['reason']);
+        }else{
+            $item = array("status" => $request['type']);
+        }
         $data->update($item); 
 
         $data->logs()->create([
@@ -246,7 +263,7 @@ class LocalPurchaseOrderController extends Controller
         
         $dataSearch = $request['data'];
        
-        $data = Local_purchase_order_item::whereBetween('created_at', [$fromDate, $toDate])->whereHas('lpo', function($query) use ($dataSearch) {
+        $data = Local_purchase_order_item::where('qty', '!=', NULL)->whereBetween('created_at', [$fromDate, $toDate])->whereHas('lpo', function($query) use ($dataSearch) {
             if($dataSearch){
                 if(@$dataSearch['company_id']){
                     $query->where("local_purchase_orders.company_id",$dataSearch['company_id']);
@@ -266,7 +283,7 @@ class LocalPurchaseOrderController extends Controller
 
         return response()->json([
             'item'     =>$data            
-        ], 200); 
+        ], 200);
     }
 
     function fetchBusinessReport(Request $request){ 
@@ -285,8 +302,7 @@ class LocalPurchaseOrderController extends Controller
                     $newData[$k]['data'][$cnt]['department'] = $vv->department_id; 
                     $newData[$k]['data'][$cnt]['sum'] = $vv->sum;
                     $cnt++;
-                } 
-               
+                }
             }
         }
         return response()->json([ 

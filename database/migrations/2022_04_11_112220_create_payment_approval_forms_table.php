@@ -32,6 +32,7 @@ class CreatePaymentApprovalFormsTable extends Migration
             $table->unsignedBigInteger('supplier_id')->nullable();
             $table->unsignedInteger('supplier_count')->nullable();
             $table->string('currency',10)->default("aed");
+            $table->string('reasons', 250)->nullable();
             $table->text('remarks_general')->nullable();
             $table->text('amount_in_words')->nullable();
             $table->text('approval_limit_payment')->nullable();

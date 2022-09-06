@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import Paper from "@mui/material/Paper";
 import Box from "@mui/material/Box";
@@ -7,18 +7,20 @@ import LoadingButton from "@mui/lab/LoadingButton";
 import TextField from "@mui/material/TextField";
 import Snackbar from "@mui/material/Snackbar";
 import MuiAlert from "@mui/material/Alert";
+import { useDropzone } from "react-dropzone";
 
 const Alert = React.forwardRef(function Alert(props, ref) {
     return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
 export default function CompanyFormEdit({ id, logged }) {
     let controller;
+    const [files, setFiles] = useState("");
     const [open, setOpen] = useState(false);
     const [severity, setSeverity] = useState({
         title: "",
         message: "",
     }); 
-
+    const [logo, setLogo] = useState("");
     const [objData, setObjData] = useState([
         {
             title: "",
@@ -46,9 +48,33 @@ export default function CompanyFormEdit({ id, logged }) {
                 },
             ];
             setObjData(newData);
- 
+            if(itemData.images && itemData.images.length > 0){
+                setLogo("/file/"+itemData.images[0].path);
+            }
         });
     }, []);
+
+    //Dropzone
+
+    const onDrop = useCallback(
+        (acceptedFiles) => {
+            setFiles(acceptedFiles);
+        },
+        [setFiles]
+    );
+
+    const { acceptedFiles, getRootProps, getInputProps } = useDropzone({
+        onDrop,
+    });
+
+    const acceptedFileItems = acceptedFiles.map((file) => (
+        <li key={file.path}>
+            {file.path} -
+            {parseInt(file.size / 1000) < 1000
+                ? parseInt(file.size / 1000).toFixed(2) + " KB"
+                : (parseInt(file.size / 1000) / 1000).toFixed(2) + "MB"}
+        </li>
+    ));
 
     controller = "/v/companies/update";
 
@@ -111,7 +137,24 @@ export default function CompanyFormEdit({ id, logged }) {
             message: "Please wait...",
         };
         setSeverity(newMessage);
-        let data = { data: objData, id: id, user_id: logged.id };
+
+        const data = new FormData(); 
+        
+        data.append("user_id", logged.id);
+        data.append("id", id);
+        data.append("address", objData[0].address);
+        data.append("code", objData[0].code);
+        data.append("contact_no", objData[0].contact_no);
+        data.append("contact_person", objData[0].contact_person);
+        data.append("email", objData[0].email);
+        data.append("tax_no", objData[0].tax_no);
+        data.append("title", objData[0].title);
+        
+        if (files) {
+            files.forEach((file) => {
+                data.append("images[]", file, file.name);
+            });
+        }  
 
         axios
             .post(controller, data)
@@ -162,6 +205,19 @@ export default function CompanyFormEdit({ id, logged }) {
                     <Grid container spacing={2} sx={{ py: 3, pb: 1, mb: 1 }}>
                         <Grid container spacing={2} sx={{ padding: "0 16px" }}>
                             {/* new row */}
+                            <Grid item xs={12} md={12} >
+                            {logo  && 
+                                (
+                                    <img
+                                        src={logo}
+                                        srcSet={logo}
+                                        alt="Logo"
+                                        loading="lazy"
+                                        className="small-logo"
+                                    />
+                                )
+                           }
+                            </Grid>
                             <Grid item xs={12} md={2}>
                                 Company Name *
                             </Grid>
@@ -250,6 +306,24 @@ export default function CompanyFormEdit({ id, logged }) {
                                     onChange={(e) => handleData(e, "email")}
                                     variant="outlined"
                                 />
+                            </Grid> 
+
+                            <Grid item xs={12} md={12} className="container">
+                                <div {...getRootProps()} className="dropzone">
+                                    <input {...getInputProps()} />
+                                    <p>
+                                        Drag 'n' drop some files here, or click
+                                        to select files
+                                    </p>
+                                    <em>
+                                        (Only *.jpeg, *.jpg and *.png images
+                                        will be accepted)
+                                    </em>
+                                </div>
+                                <aside>
+                                    <h4>Logo</h4>
+                                    <ul>{acceptedFileItems}</ul>
+                                </aside>
                             </Grid>
 
                             <Grid item xs={12} md={12}>

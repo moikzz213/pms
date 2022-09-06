@@ -115,7 +115,9 @@ Route::post('/v/request/edit-data', [RequestController::class, 'editData'])->nam
 Route::post('/v/request/new', [RequestController::class, 'store'])->name('request.new');
 Route::get('/v/request/fetch/{id}', [RequestController::class, 'show'])->name('request.show');
 Route::get('/v/request/fetch-all/{token}', [RequestController::class, 'fetch'])->name('request.fetch.paginate');
-Route::get('/v/request/search/{search}', [RequestController::class, 'search'])->name('request.search');
+Route::get('/v/request/search/{id}/{search}', [RequestController::class, 'search'])->name('request.search');
+Route::get('/v/request/proc-search/{search}', [RequestController::class, 'procSearch'])->name('procurement.request.search');
+
 Route::post('/v/request/filter/search', [RequestController::class, 'requestorFilterStatus'])->name('request.filter.requestor.search');
 Route::get('/file/{path}',  [RequestController::class, 'showFile'])->name('file.show');
 Route::get('/v/request/dashboard/{token}', [RequestController::class, 'dashboard'])->name('request.dashboard');
@@ -164,3 +166,6 @@ Route::post('/v/report/business-report', [LocalPurchaseOrderController::class, '
 Route::post('/v/report/paf', [PaymentApprovalFormController::class, 'reportTable'])->name('report.paf.table');
 Route::post('/v/report/statuses/counts', [UserController::class, 'fetchProcurement'])->name('report.statuses.counts'); 
 Route::post('/v/report/monthly/counts', [UserController::class, 'fetchProcurementMonthly'])->name('report.monthly.counts');
+
+// CRONJOB
+Route::get('/job/notification/procurement',  [RequestController::class, 'cronJobReminderNotification'])->name('cron.job.notification');

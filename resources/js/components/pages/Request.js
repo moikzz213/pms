@@ -48,7 +48,7 @@ const Request = ({logged}) => {
     const [totalPage, settotalPage] = useState(0);
     const [toPage, settoPage] = useState(0);
     const [fromPage, setfromPage] = useState(0);
-
+    const [isSearch, setIsSearch ]= useState(false);
     const [listRequest, setListRequests] = useState([
         {
             id: null,
@@ -143,7 +143,9 @@ const Request = ({logged}) => {
         }
         
         let defaultQueryString =  czStatus;
+        if(!isSearch){
         fetchRequests(defaultQueryString);
+        }
         return () => {
             setListRequests([]);
           };
@@ -165,9 +167,15 @@ const Request = ({logged}) => {
     const handleSearch = (e) => {
         
         if (e.target.value.length > 3) {
-            axiosFunction("/v/request/search/" + e.target.value);
+            setIsSearch(true);
+            setPage(1);
+            queryParams.set("page", 1);  
+            history.replaceState(null, null, "?" + queryParams.toString()); 
+
+            axiosFunction("/v/request/search/"+logged.id +"/" + e.target.value);
         } else if (e.target.value.length == 0) {
-            axiosFunction("/v/request/search/-");
+            setIsSearch(false);
+            axiosFunction("/v/request/search/"+logged.id+"/-");
         }
     
     };
@@ -278,8 +286,7 @@ const Request = ({logged}) => {
                         >
                             <option> - </option>
                             <option value="pending"> Open </option>
-                            <option value="onhold"> onHold </option>
-                            <option value="onprocess"> RQSTED By </option>
+                            <option value="onhold"> onHold </option> 
                             <option value="onprocess"> OnProcess </option>
                             <option value="closed"> Closed </option>
                             <option value="cancelled"> Cancelled </option>
@@ -388,8 +395,7 @@ const Request = ({logged}) => {
                         }
                         hidePrevButton
                         hideNextButton
-                        color="secondary"
-                        size="medium"
+                        color="secondary" 
                         variant="outlined"
                         shape="rounded"
                         size="small"

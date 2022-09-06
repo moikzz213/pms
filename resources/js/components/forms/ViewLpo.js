@@ -22,7 +22,7 @@ import IconButton from "@mui/material/IconButton";
 import DeleteIcon from "@mui/icons-material/Delete";
 import Autocomplete from "@mui/material/Autocomplete";
 import SaveAsIcon from "@mui/icons-material/SaveAs";
-
+import Modal from "@mui/material/Modal";
 const Alert = React.forwardRef(function Alert(props, ref) {
     return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
@@ -42,6 +42,7 @@ function approvalLabelled(label) {
 const ViewLpo = ({ id, logged }) => {
     const [logo, setLogo] = useState("");
     const [open, setOpen] = useState(false);
+    const [openModal, setOpenModal] = useState(false);
     const [editEnable, setEditEnable] = useState(false);
     const [severity, setSeverity] = useState({
         title: "",
@@ -55,7 +56,7 @@ const ViewLpo = ({ id, logged }) => {
     const [customVAT, setCustomVAT] = useState(5);
     const [totalamount, setTotalamount] = useState(0);
     const [enableLicense, setEnableLicense] = useState(false);
-    const [rowCountApproval, setRowCountApproval] = useState(1);
+
     const [netamount, setNetAmount] = useState(0);
     const [licenseMonth, setLicenseMonth] = useState(0);
     const [licenseTotalAmount, setLicenseTotalAmount] = useState(0);
@@ -95,12 +96,17 @@ const ViewLpo = ({ id, logged }) => {
     const [tempEditTotal, setTempEditTotal] = useState(0);
 
     const [contactPersons, setContactPersons] = useState([]);
-
+    const [reason, setReason] = useState("");
     const handleClose = (event, reason) => {
         if (reason === "clickaway") {
             return;
         }
         setOpen(false);
+    };
+    const handleCloseModal = (e) => {
+        e.preventDefault();
+        setOpenModal(false);
+        setReason("");
     };
     const [active, setActive] = useState(false);
     const [approvals, setApprovals] = useState([]);
@@ -147,6 +153,10 @@ const ViewLpo = ({ id, logged }) => {
 
             let img = "";
             if (
+                fetchItems.requests  && fetchItems.requests.company && fetchItems.requests.company.images && fetchItems.requests.company.images.length > 0  
+            ) {
+                img = '/file/'+fetchItems.requests.company.images[0].path;
+            }else if (
                 fetchItems.company &&
                 fetchItems.company.toLowerCase().includes("aboud group")
             ) {
@@ -173,9 +183,19 @@ const ViewLpo = ({ id, logged }) => {
                 img = "/logo/catering.png";
             } else if (
                 fetchItems.company &&
+                fetchItems.company.toLowerCase().includes("spare parts")
+            ) {
+                img = "/logo/spareparts.png";
+            } else if (
+                fetchItems.company &&
                 fetchItems.company.toLowerCase().includes("crystal")
             ) {
                 img = "/logo/crystalbrook.png";
+            } else if (
+                fetchItems.company &&
+                fetchItems.company.toLowerCase().includes("gaelan")
+            ) {
+                img = "/logo/gaelan.png";
             } else if (
                 fetchItems.company &&
                 fetchItems.company.toLowerCase().includes("news")
@@ -183,14 +203,9 @@ const ViewLpo = ({ id, logged }) => {
                 img = "/logo/orient.png";
             } else if (
                 fetchItems.company &&
-                fetchItems.company.toLowerCase().includes("cars")
+                fetchItems.company.toLowerCase().includes("car")
             ) {
                 img = "/logo/gac.png";
-            } else if (
-                fetchItems.company &&
-                fetchItems.company.toLowerCase().includes("gaelan")
-            ) {
-                img = "/logo/gaelan.png";
             } else if (
                 fetchItems.company &&
                 fetchItems.company.toLowerCase().includes("point")
@@ -226,12 +241,14 @@ const ViewLpo = ({ id, logged }) => {
                     type: approvalLabelled(o.approval_type),
                 };
             });
+            setVat(fetchItems.vat);
             setCustomVAT(fetchItems.vat_custom);
             setApprovals(approvals);
             setApprovalRows(fetchItems.lpo_approvals);
             setDiscount(fetchItems.discount);
             setTempEditTotal(fetchItems.total_amount);
             setEditTempTotal(fetchItems.total_amount);
+            setEnableLicense(fetchItems.is_license);
             setTempDataObj([
                 {
                     remarks_general: fetchItems.remarks_general || "",
@@ -246,6 +263,15 @@ const ViewLpo = ({ id, logged }) => {
                     net_amount: fetchItems.net_amount || 0,
                     total_amount: fetchItems.total_amount || 0,
                     currency: fetchItems.currency || "aed",
+                    license_title_label_1:
+                        fetchItems.license_title_label_1 || "",
+                    license_title_value_1:
+                        fetchItems.license_title_value_1 || 0,
+                    license_title_label_2:
+                        fetchItems.license_title_label_2 || "",
+                    license_title_value_2:
+                        fetchItems.license_title_value_2 || 0,
+                    is_license: fetchItems.is_license,
                 },
             ]);
             setEditDataObj([
@@ -262,14 +288,18 @@ const ViewLpo = ({ id, logged }) => {
                     net_amount: fetchItems.net_amount || 0,
                     total_amount: fetchItems.total_amount || 0,
                     currency: fetchItems.currency || "aed",
+                    license_title_label_1: fetchItems.license_title_label_1,
+                    license_title_value_1: fetchItems.license_title_value_1,
+                    license_title_label_2: fetchItems.license_title_label_2,
+                    license_title_value_2: fetchItems.license_title_value_2,
+                    is_license: fetchItems.is_license,
                 },
             ]);
-
-          
         });
     }
 
     useEffect(() => {
+        
         defaultFetch(logged);
 
         // Fetch Active Users
@@ -289,25 +319,23 @@ const ViewLpo = ({ id, logged }) => {
                 };
             });
 
-            setContactPersons(newData); 
-           
+            setContactPersons(newData);
         });
     }, [logged]);
 
-    const handleCustomVat = (e) => { 
-        
+    const handleCustomVat = (e) => {
         let value = e.target.value;
 
         let dataAssign = Object.assign([], tempDataObj);
 
-        let newData = dataAssign.map((o, i) => { 
-                o.vat_custom = value; 
+        let newData = dataAssign.map((o, i) => {
+            o.vat_custom = value;
             return o;
         });
 
         setEditDataObj(newData);
         setCustomVAT(e.target.value);
-    }
+    };
 
     const handleApproveType = (event, index) => {
         let selected = event.target.value;
@@ -323,7 +351,7 @@ const ViewLpo = ({ id, logged }) => {
 
     const handleApproveEmployee = (e, index, val) => {
         let selected = val;
-        
+
         let tempRows = approvalRows.map((o, i) => {
             if (i == index) {
                 o.user_id = selected.user_id;
@@ -350,6 +378,14 @@ const ViewLpo = ({ id, logged }) => {
         setApprovalRows([...rows]);
     };
 
+    const popUpCancelReason = () => {
+        setOpenModal(true);
+    };
+
+    const handleCancelReason = (e) => {
+        setReason(e.target.value);
+    };
+
     const changeStatus = (e, type) => {
         e.preventDefault();
         setOpen(true);
@@ -359,7 +395,18 @@ const ViewLpo = ({ id, logged }) => {
             message: "Please wait...",
         };
         setSeverity(newMessage);
-        let data = { id: id, type: type, user_id: logged.id };
+
+        let reasonForCancellation = "";
+        if (type == "cancelled") {
+            reasonForCancellation = reason;
+        }
+
+        let data = {
+            id: id,
+            type: type,
+            user_id: logged.id,
+            reason: reasonForCancellation,
+        };
         API.post("/v/local-purchase-order/update-status", data).then(
             (response) => {
                 setTimeout(() => {
@@ -369,6 +416,10 @@ const ViewLpo = ({ id, logged }) => {
                     };
                     setLoading(false);
                     setSeverity(newMessage);
+                    if (type == "cancelled") {
+                        setOpenModal(false);
+                    }
+                    defaultFetch(logged);
                 }, 1500);
             }
         );
@@ -376,7 +427,7 @@ const ViewLpo = ({ id, logged }) => {
 
     // Edit Area
 
-    const editLPO = (e, stats) => { 
+    const editLPO = (e, stats) => {
         setEditEnable(stats);
         if (stats) {
             API.get("/v/categories/fetch-non-paginate").then((response) => {
@@ -387,7 +438,7 @@ const ViewLpo = ({ id, logged }) => {
             });
             setTotalamount(items.total_amount);
             setNetAmount(items.net_amount);
-            setEnableLicense(items.is_licenes);
+           
             setEditOnlyRows([...items.lpo_items]);
         } else {
             defaultFetch(logged);
@@ -402,11 +453,18 @@ const ViewLpo = ({ id, logged }) => {
         calculateAmount("removedrow");
     };
 
-    const handleSaveItem = (e, row) => {
-        let data = { id: row.id, data: row, logged_id: logged.id };
+    const handleSaveItem = (e, row,index, type) => {
+        
+        let data = { id: row.id, data: row, logged_id: logged.id, type : type };
         API.post("/v/local-purchase-order/item-update", data).then(
             (response) => {
-                //  defaultFetch(logged);
+                if(type == 'delete'){
+                    let rows = editOnlyRows;
+                    rows.splice(index, 1);
+                    setEditOnlyRows([...rows]);
+            
+                    calculateAmountEditOnly("removedrow");
+                }
             }
         );
     };
@@ -427,8 +485,12 @@ const ViewLpo = ({ id, logged }) => {
                 o.remarks_payment_terms = value;
             } else if (type == "delivery_terms") {
                 o.delivery_terms = value;
-            }else if (type == "currency") {
+            } else if (type == "currency") {
                 o.currency = value;
+            } else if (type == "license_title_label_1") {
+                o.license_title_label_1 = value;
+            } else if (type == "license_title_label_2") {
+                o.license_title_label_2 = value;
             }
 
             return o;
@@ -495,13 +557,52 @@ const ViewLpo = ({ id, logged }) => {
         setTableRows([...tableRows, newItem]);
     };
 
+    const handleLicense = (e) => {
+        setEnableLicense(e.target.checked);
+        let isCheck = 0;
+        if (!e.target.checked) {
+            setLicenseMonth(0);
+            isCheck = 0;
+        }else{
+            isCheck = 1;
+        }
+        let dataAssign = Object.assign([], tempDataObj);
+        let newData = dataAssign.map((o, i) => {
+            o.is_license = isCheck;
+            return o;
+        });
+
+        setEditDataObj(newData);
+    };
+
+    const handleLicenseMonth = (e) => {
+        setLicenseMonth(e.target.value);
+        let customTotalAmount = parseFloat(totalamount) * e.target.value;
+        let newVat = (parseFloat(customVAT) * customTotalAmount) / 100;
+        let newTotalAmount =
+            parseFloat(totalamount) * e.target.value +
+            parseFloat(newVat) -
+            parseFloat(discount);
+        let dataAssign = Object.assign([], tempDataObj);
+        let newData = dataAssign.map((o, i) => {
+            o.license_title_value_1 = e.target.value;
+            o.net_amount = newTotalAmount;
+            o.license_title_value_2 = customTotalAmount;
+            return o;
+        });
+
+        setVat(newVat);
+        setNetAmount(newTotalAmount);
+        setTempDataObj(newData);
+    };
+
     const calculateAmountEditOnly = (e, index, type) => {
         let value = 0;
         let totalMonth = 0;
         let checkedLicense = false;
         let is_license = 0;
         let checkedData = false;
-        let checkVAT = parseFloat(customVAT)/100;
+        let checkVAT = parseFloat(customVAT) / 100;
         if (e == "license") {
             totalMonth = index;
             checkedLicense = true;
@@ -589,7 +690,7 @@ const ViewLpo = ({ id, logged }) => {
         }
 
         totalVat = Math.round(totalVat * 100) / 100;
-        setVat(totalVat.toFixed(2));
+       
 
         netAmount = Math.round(totalAmount * 100) / 100;
         netAmount = netAmount + totalVat;
@@ -601,12 +702,26 @@ const ViewLpo = ({ id, logged }) => {
         }
 
         setEditOnlyRows(tempRows);
-        setNetAmount(netAmount.toFixed(2));
-
+        
+        let licenseTotalAmount = null;
+        if(enableLicense){
+            licenseTotalAmount = (totAmount * parseFloat(tempDataObj[0].license_title_value_1)).toFixed(2);
+            totalVat = licenseTotalAmount * checkVAT;
+            totalVat =   Math.round(totalVat * 100) / 100;
+            netAmount = (licenseTotalAmount - curDiscount) + totalVat;
+            setVat(totalVat.toFixed(2));
+            setNetAmount(netAmount.toFixed(2));
+        }else{
+            setVat(totalVat.toFixed(2));
+            setNetAmount(netAmount.toFixed(2));
+        }
+         
         let newData = dataAssign.map((o, i) => {
             o.discount = curDiscount;
             o.net_amount = netAmount.toFixed(2);
             o.total_amount = totAmount;
+            o.license_title_value_1 = tempDataObj[0].license_title_value_1;
+            o.license_title_value_2 = licenseTotalAmount;
             o.vat = totalVat.toFixed(2);
             return o;
         });
@@ -620,7 +735,7 @@ const ViewLpo = ({ id, logged }) => {
         let value = 0;
         let totalMonth = 0;
         let checkedLicense = false;
-        let checkVAT = parseFloat(customVAT)/100;
+        let checkVAT = parseFloat(customVAT) / 100;
         let is_license = 0;
         let checkedData = false;
         if (e == "license") {
@@ -694,7 +809,7 @@ const ViewLpo = ({ id, logged }) => {
         }
 
         totalVat = Math.round(totalVat * 100) / 100;
-        setVat(totalVat.toFixed(2));
+        
 
         netAmount = Math.round(totalAmount * 100) / 100;
         netAmount = netAmount + totalVat;
@@ -705,13 +820,27 @@ const ViewLpo = ({ id, logged }) => {
             checkedData = true;
         }
 
-        setTableRows(tempRows);
-        setNetAmount(netAmount.toFixed(2));
+        let licenseTotalAmount = null;
+        if(enableLicense){
+            licenseTotalAmount = (totAmount * parseFloat(tempDataObj[0].license_title_value_1)).toFixed(2);
+            totalVat = licenseTotalAmount * checkVAT;
+            totalVat =   Math.round(totalVat * 100) / 100;
+            netAmount = (licenseTotalAmount - curDiscount) + totalVat;
+            setVat(totalVat.toFixed(2));
+            setNetAmount(netAmount.toFixed(2));
+        }else{
+            setVat(totalVat.toFixed(2));
+            setNetAmount(netAmount.toFixed(2));
+        } 
+
+        setTableRows(tempRows); 
 
         let newData = dataAssign.map((o, i) => {
             o.discount = curDiscount;
             o.net_amount = netAmount.toFixed(2);
             o.total_amount = totAmount;
+            o.license_title_value_1 = tempDataObj[0].license_title_value_1;
+            o.license_title_value_2 = licenseTotalAmount;
             o.vat = totalVat.toFixed(2);
             return o;
         });
@@ -721,12 +850,21 @@ const ViewLpo = ({ id, logged }) => {
     };
     const calculateVAT = (e) => {
         let chckNetAmount =
-            parseFloat(totalamount) -
-            parseFloat(discount) +
-            parseFloat(e.target.value);
-       
+        parseFloat(totalamount) -
+        parseFloat(discount) +
+        parseFloat(e.target.value); 
 
-        let dataAssign = Object.assign([], tempDataObj);
+        let dataAssign = Object.assign([], tempDataObj); 
+
+        setVat(e.target.value);
+
+        let licenseTotalAmount = null;
+        
+        if(enableLicense){
+            licenseTotalAmount = (totalamount * parseFloat(tempDataObj[0].license_title_value_1)).toFixed(2);
+            console.log(licenseTotalAmount);
+            chckNetAmount = parseFloat(licenseTotalAmount) - parseFloat(discount) + parseFloat(e.target.value);
+        } 
 
         let newData = dataAssign.map((o, i) => {
             o.vat = e.target.value;
@@ -734,15 +872,13 @@ const ViewLpo = ({ id, logged }) => {
             o.net_amount = chckNetAmount;
             return o;
         });
-
-        setNetAmount(chckNetAmount);
-        setVat(e.target.value);
+        setNetAmount(chckNetAmount); 
         setEditDataObj(newData);
     };
-
+     
     const UpdateLPO = (e) => {
         let addNewItems = {};
-        
+
         if (tableRows.length > 0 && tableRows[0].amount > 0) {
             let newTablerow = Object.assign([], tableRows);
             let newItems = newTablerow.map((o, i) => {
@@ -754,7 +890,7 @@ const ViewLpo = ({ id, logged }) => {
             addNewItems = newItems;
         }
         let validateApprovals = {};
-        if(approvalRows.length > 0){
+        if (approvalRows.length > 0) {
             let newApprovals = Object.assign([], approvalRows);
             validateApprovals = newApprovals.map((o, i) => {
                 delete o["created_at"];
@@ -776,7 +912,7 @@ const ViewLpo = ({ id, logged }) => {
         setSeverity(newMessage);
 
         let editObj = editDataObj;
-       
+
         let data = {
             id: id,
             data: editObj[0],
@@ -815,6 +951,58 @@ const ViewLpo = ({ id, logged }) => {
                         {severity.message}
                     </Alert>
                 </Snackbar>
+
+                <Modal
+                    open={openModal}
+                    aria-labelledby="parent-modal-title"
+                    aria-describedby="parent-modal-description"
+                >
+                    <Box
+                        sx={{
+                            position: "absolute",
+                            top: "50%",
+                            left: "50%",
+                            transform: "translate(-50%, -50%)",
+                            width: 400,
+                            bgcolor: "background.paper",
+                            border: "2px solid #000",
+                            boxShadow: 24,
+                            p: 4,
+                        }}
+                    >
+                        <h2 style={{ marginTop: 0 }} id="parent-modal-title">
+                            What is your reason?
+                        </h2>
+                        <TextField
+                            size="small"
+                            label="Reason?"
+                            fullWidth
+                            name="reason"
+                            onChange={(e) => handleCancelReason(e)}
+                            sx={{ mb: 2 }}
+                        ></TextField>
+                        <LoadingButton
+                            className="btn-cancel"
+                            onClick={(e) => handleCloseModal(e)}
+                            variant="contained"
+                            color="black"
+                            size="small"
+                            sx={{ mr: 2 }}
+                        >
+                            CANCEL
+                        </LoadingButton>
+                        <LoadingButton
+                            className="btn-cancel"
+                            onClick={(e) => changeStatus(e, "cancelled")}
+                            loading={loading}
+                            variant="contained"
+                            color="primary"
+                            size="small"
+                        >
+                            SUBMIT
+                        </LoadingButton>
+                    </Box>
+                </Modal>
                 <Box
                     sx={{
                         "& .MuiTextField-root": { m: 1, width: "90%" },
@@ -857,10 +1045,7 @@ const ViewLpo = ({ id, logged }) => {
                                                     size="small"
                                                     variant="contained"
                                                     onClick={(e) =>
-                                                        changeStatus(
-                                                            e,
-                                                            "cancelled"
-                                                        )
+                                                        popUpCancelReason()
                                                     }
                                                     loading={loading}
                                                     sx={{
@@ -994,7 +1179,21 @@ const ViewLpo = ({ id, logged }) => {
                                 )}
                             </>
                         </Grid>
-
+                        {items.status == "cancelled" && (
+                            <Grid
+                                className="no-print"
+                                item
+                                md={12}
+                                sx={{
+                                    borderTop: 1,
+                                    borderBottom: 1,
+                                    mb: 2,
+                                    py: "10px !important",
+                                }}
+                            >
+                                REASON: {items.reasons}
+                            </Grid>
+                        )}
                         <Grid item md={6}>
                             <table className="normal-table" cellSpacing="0">
                                 <tbody>
@@ -1090,17 +1289,25 @@ const ViewLpo = ({ id, logged }) => {
                                                 <>
                                                     {netamount
                                                         ? netamount
-                                                        : items.net_amount.toFixed(
-                                                              2
-                                                          ).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                                                        : items.net_amount
+                                                              .toFixed(2)
+                                                              .toString()
+                                                              .replace(
+                                                                  /\B(?=(\d{3})+(?!\d))/g,
+                                                                  ","
+                                                              )}
                                                 </>
                                             )}
                                             {!editEnable && (
                                                 <>
                                                     {items.net_amount
-                                                        ? items.net_amount.toFixed(
-                                                              2
-                                                          ).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                                                        ? items.net_amount
+                                                              .toFixed(2)
+                                                              .toString()
+                                                              .replace(
+                                                                  /\B(?=(\d{3})+(?!\d))/g,
+                                                                  ","
+                                                              )
                                                         : "0.00"}
                                                 </>
                                             )}
@@ -1114,55 +1321,52 @@ const ViewLpo = ({ id, logged }) => {
                     <Grid container spacing={2} sx={{ py: 3 }}>
                         {editEnable && (
                             <>
-                            <Grid className="no-print" item md={1}>
-                                <Button
-                                    id="addBtn"
-                                    variant="contained"
-                                    onClick={() => handleAddRow()}
-                                    size="small"
-                                >
-                                    ADD
-                                </Button>
-                            </Grid>
-                            <Grid item md={4} sx={{display: "flex"}}>
-                            <TextField
-                                    select
-                                    size="small"
-                                    label="Currency" 
-                                    value={
-                                        tempDataObj[0]
-                                            .currency
-                                    }
-                                    onChange={(e) =>  handleFreeText(e, "currency")} 
-                                    SelectProps={{
-                                        native: true,
-                                    }}
-                                >
-                                     <option value="aed"> AED </option>
-                                <option value="aud"> AUD </option>
-                                <option value="bhd"> BHD </option>
-                                <option value="egp"> EGP </option>
-                                <option value="eur"> EUR </option>
-                                <option value="gbp"> GBP </option>
-                                <option value="jod"> JOD </option>
-                                <option value="lira"> LIRA </option>
-                                <option value="usd"> USD </option>
-                                </TextField>
+                                <Grid className="no-print" item md={1}>
+                                    <Button
+                                        id="addBtn"
+                                        variant="contained"
+                                        onClick={() => handleAddRow()}
+                                        size="small"
+                                    >
+                                        ADD
+                                    </Button>
+                                </Grid>
+                                <Grid item md={4} sx={{ display: "flex" }}>
+                                    <TextField
+                                        select
+                                        size="small"
+                                        label="Currency"
+                                        value={tempDataObj[0].currency}
+                                        onChange={(e) =>
+                                            handleFreeText(e, "currency")
+                                        }
+                                        SelectProps={{
+                                            native: true,
+                                        }}
+                                    >
+                                        <option value="aed"> AED </option>
+                                        <option value="aud"> AUD </option>
+                                        <option value="bhd"> BHD </option>
+                                        <option value="egp"> EGP </option>
+                                        <option value="eur"> EUR </option>
+                                        <option value="gbp"> GBP </option>
+                                        <option value="jod"> JOD </option>
+                                        <option value="lira"> LIRA </option>
+                                        <option value="usd"> USD </option>
+                                    </TextField>
 
-                                <TextField 
-                                size="small"
-                                label="% VAT"
-                                value={customVAT}
-                                onChange={(e) => handleCustomVat(e)}
-                                sx={{
-                                    width: "90px !important;",
-                                    marginTop: "8px !important",
-                                    marginLeft: "20px !important",
-                                }}
-                                
-                            > 
-                            </TextField>
-                            </Grid>
+                                    <TextField
+                                        size="small"
+                                        label="% VAT"
+                                        value={customVAT}
+                                        onChange={(e) => handleCustomVat(e)}
+                                        sx={{
+                                            width: "90px !important;",
+                                            marginTop: "8px !important",
+                                            marginLeft: "20px !important",
+                                        }}
+                                    ></TextField>
+                                </Grid>
                             </>
                         )}
                         <Grid
@@ -1210,7 +1414,10 @@ const ViewLpo = ({ id, logged }) => {
                                                 className="text-center"
                                                 style={{ width: 150 }}
                                             >
-                                                AMOUNT IN <span className="text-uppercase">{items.currency}</span>
+                                                AMOUNT IN{" "}
+                                                <span className="text-uppercase">
+                                                    {items.currency}
+                                                </span>
                                             </th>
                                         </tr>
                                     </thead>
@@ -1226,10 +1433,15 @@ const ViewLpo = ({ id, logged }) => {
                                                             <td className="text-center">
                                                                 {row.item}
                                                             </td>
-                                                            <td className="text-center">
-                                                                {
-                                                                    row.specification
-                                                                }
+                                                            <td>
+                                                            <pre
+                                                            style={{
+                                                                whiteSpace:
+                                                                    "pre-wrap",
+                                                            }}
+                                                        >
+                                                            {row.specification}
+                                                        </pre>
                                                             </td>
                                                             <td className="text-center">
                                                                 {row.qty}
@@ -1238,16 +1450,27 @@ const ViewLpo = ({ id, logged }) => {
                                                                 {row.uom}
                                                             </td>
                                                             <td className="text-right">
-                                                                {row.unit_price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                                                                {(Number(row.unit_price)).toFixed(2)
+                                                                    .toString()
+                                                                    .replace(
+                                                                        /\B(?=(\d{3})+(?!\d))/g,
+                                                                        ","
+                                                                    )}
                                                             </td>
                                                             <td className="text-right">
                                                                 {row.unit_price
                                                                     ? (
                                                                           row.qty *
                                                                           row.unit_price
-                                                                      ).toFixed(
-                                                                          2
-                                                                      ).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                                                                      )
+                                                                          .toFixed(
+                                                                              2
+                                                                          )
+                                                                          .toString()
+                                                                          .replace(
+                                                                              /\B(?=(\d{3})+(?!\d))/g,
+                                                                              ","
+                                                                          )
                                                                     : ""}
                                                             </td>
                                                         </tr>
@@ -1258,9 +1481,7 @@ const ViewLpo = ({ id, logged }) => {
                                 </table>
                             )}
                             {editEnable && (
-                                <TableContainer
-                                    className="no-print" 
-                                >
+                                <TableContainer className="no-print">
                                     <Table
                                         stickyHeader
                                         aria-label="a dense table"
@@ -1327,7 +1548,8 @@ const ViewLpo = ({ id, logged }) => {
                                                                     ) => (
                                                                         <option
                                                                             key={
-                                                                                option.id+row.id
+                                                                                option.id +
+                                                                                row.id
                                                                             }
                                                                             value={
                                                                                 option.id
@@ -1360,16 +1582,13 @@ const ViewLpo = ({ id, logged }) => {
                                                                 }
                                                             />
                                                         </TableCell>
-                                                        <TableCell>
-                                                            <TextField
-                                                                label="Specification"
-                                                                size="small"
-                                                                name="specification"
-                                                                variant="outlined"
-                                                                value={
-                                                                    row.specification ||
-                                                                    ""
-                                                                }
+                                                        <TableCell> 
+                                                            <TextareaAutosize
+                                                                aria-label="minimum height"
+                                                                minRows={2}
+                                                                maxRows={15}
+                                                                placeholder="Specification"
+                                                                value={row.specification || ""}
                                                                 onChange={(e) =>
                                                                     handleEditOnlyCategory(
                                                                         e,
@@ -1377,7 +1596,13 @@ const ViewLpo = ({ id, logged }) => {
                                                                         "specs"
                                                                     )
                                                                 }
+                                                                style={{
+                                                                    width: "100%",
+                                                                    border: "1px solid #cecece",
+                                                                    padding: 10,
+                                                                }}
                                                             />
+
                                                         </TableCell>
                                                         <TableCell>
                                                             <TextField
@@ -1434,14 +1659,13 @@ const ViewLpo = ({ id, logged }) => {
                                                                 padding:
                                                                     "0 !important",
                                                             }}
-                                                        >
+                                                        > 
                                                             <TextField
                                                                 type="number"
                                                                 label="Unit Price"
                                                                 size="small"
                                                                 value={
-                                                                    row.unit_price ||
-                                                                    0
+                                                                    row.unit_price
                                                                 }
                                                                 name="unit_price"
                                                                 variant="outlined"
@@ -1492,7 +1716,9 @@ const ViewLpo = ({ id, logged }) => {
                                                                 onClick={(e) =>
                                                                     handleSaveItem(
                                                                         e,
-                                                                        row
+                                                                        row,
+                                                                        index,
+                                                                        'save'
                                                                     )
                                                                 }
                                                                 className="savebtn"
@@ -1500,6 +1726,21 @@ const ViewLpo = ({ id, logged }) => {
                                                             >
                                                                 <SaveAsIcon />
                                                             </IconButton>
+                                                            <IconButton
+                                                                onClick={(e) =>
+                                                                    handleSaveItem(
+                                                                        e,
+                                                                        row,
+                                                                        index,
+                                                                        'delete'
+                                                                    )
+                                                                }
+                                                                className="remove"
+                                                                color="inherit"
+                                                            >
+                                                                <DeleteIcon />
+                                                            </IconButton>        
+
                                                         </TableCell>
                                                     </TableRow>
                                                 );
@@ -1582,15 +1823,13 @@ const ViewLpo = ({ id, logged }) => {
                                                             />
                                                         </TableCell>
                                                         <TableCell>
-                                                            <TextField
-                                                                label="Specification"
-                                                                size="small"
-                                                                name="specification"
-                                                                variant="outlined"
-                                                                value={
-                                                                    row.specification ||
-                                                                    ""
-                                                                }
+                                                         
+                                                             <TextareaAutosize
+                                                                aria-label="minimum height"
+                                                                minRows={2}
+                                                                maxRows={15}
+                                                                placeholder="Specification"
+                                                                value={row.specification || ""}
                                                                 onChange={(e) =>
                                                                     handleCategory(
                                                                         e,
@@ -1598,6 +1837,11 @@ const ViewLpo = ({ id, logged }) => {
                                                                         "specs"
                                                                     )
                                                                 }
+                                                                style={{
+                                                                    width: "100%",
+                                                                    border: "1px solid #cecece",
+                                                                    padding: 10,
+                                                                }}
                                                             />
                                                         </TableCell>
                                                         <TableCell>
@@ -1781,6 +2025,39 @@ const ViewLpo = ({ id, logged }) => {
                                                 style={{ minHeight: 118 }}
                                             >
                                                 <tbody>
+                                                    {editEnable && (
+                                                        <tr>
+                                                            <td colSpan="2">
+                                                                <FormControlLabel
+                                                                    control={
+                                                                        <Checkbox
+                                                                            checked={
+                                                                                enableLicense
+                                                                                    ? true
+                                                                                    : false
+                                                                            }
+                                                                            size="small"
+                                                                            sx={{
+                                                                                padding:
+                                                                                    "0 10px !important",
+                                                                            }}
+                                                                        />
+                                                                    }
+                                                                    size="small"
+                                                                    label="Licenses?"
+                                                                    onChange={
+                                                                        handleLicense
+                                                                    }
+                                                                />
+                                                                <small className="text-warning">
+                                                                    Be sure to
+                                                                    uncheck if
+                                                                    not for
+                                                                    Licenses!
+                                                                </small>
+                                                            </td>
+                                                        </tr>
+                                                    )}
                                                     <tr>
                                                         <td
                                                             className="text-right"
@@ -1795,9 +2072,15 @@ const ViewLpo = ({ id, logged }) => {
                                                             {!editEnable && (
                                                                 <>
                                                                     {items.total_amount
-                                                                        ? items.total_amount.toFixed(
-                                                                              2
-                                                                          ).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                                                                        ? items.total_amount
+                                                                              .toFixed(
+                                                                                  2
+                                                                              )
+                                                                              .toString()
+                                                                              .replace(
+                                                                                  /\B(?=(\d{3})+(?!\d))/g,
+                                                                                  ","
+                                                                              )
                                                                         : "0.00"}
                                                                 </>
                                                             )}
@@ -1810,24 +2093,68 @@ const ViewLpo = ({ id, logged }) => {
                                                             )}
                                                         </td>
                                                     </tr>
-                                                    {items.is_license ? (
+                                                    {enableLicense ? (
                                                         <>
                                                             <tr>
                                                                 <td
                                                                     className="text-right"
                                                                     width="150"
                                                                 >
-                                                                    {
-                                                                        items.license_title_label_1
-                                                                    }
+                                                                    {editEnable && (
+                                                                        <TextField
+                                                                            label="EX. FROM OCT 2021"
+                                                                            value={
+                                                                                tempDataObj[0]
+                                                                                    .license_title_label_1
+                                                                            }
+                                                                            size="small"
+                                                                            onChange={(
+                                                                                e
+                                                                            ) =>
+                                                                                handleFreeText(
+                                                                                    e,
+                                                                                    "license_title_label_1"
+                                                                                )
+                                                                            }
+                                                                            variant="outlined"
+                                                                        />
+                                                                    )}
+                                                                    {!editEnable && (
+                                                                        <>
+                                                                            {
+                                                                                items.license_title_label_1
+                                                                            }
+                                                                        </>
+                                                                    )}
                                                                 </td>
                                                                 <td
                                                                     className="text-right"
                                                                     width="150"
                                                                 >
-                                                                    {
-                                                                        items.license_title_value_1
-                                                                    }
+                                                                    {editEnable && (
+                                                                        <TextField
+                                                                            value={
+                                                                                tempDataObj[0]
+                                                                                    .license_title_value_1
+                                                                            }
+                                                                            size="small"
+                                                                            onChange={(
+                                                                                e
+                                                                            ) =>
+                                                                                handleLicenseMonth(
+                                                                                    e
+                                                                                )
+                                                                            }
+                                                                            variant="outlined"
+                                                                        />
+                                                                    )}
+                                                                    {!editEnable && (
+                                                                        <>
+                                                                            {
+                                                                                items.license_title_value_1
+                                                                            }
+                                                                        </>
+                                                                    )}
                                                                 </td>
                                                             </tr>
                                                             <tr>
@@ -1835,16 +2162,40 @@ const ViewLpo = ({ id, logged }) => {
                                                                     className="text-right"
                                                                     width="150"
                                                                 >
-                                                                    {
-                                                                        items.license_title_label_2
-                                                                    }
+                                                                    {editEnable && (
+                                                                        <TextField
+                                                                            label="EX. FROM OCT 2021"
+                                                                            value={
+                                                                                tempDataObj[0]
+                                                                                    .license_title_label_2
+                                                                            }
+                                                                            size="small"
+                                                                            onChange={(
+                                                                                e
+                                                                            ) =>
+                                                                                handleFreeText(
+                                                                                    e,
+                                                                                    "license_title_label_2"
+                                                                                )
+                                                                            }
+                                                                            variant="outlined"
+                                                                        />
+                                                                    )}
+                                                                    {!editEnable && (
+                                                                        <>
+                                                                            {
+                                                                                items.license_title_label_2
+                                                                            }
+                                                                        </>
+                                                                    )}
                                                                 </td>
                                                                 <td
                                                                     className="text-right"
                                                                     width="150"
                                                                 >
                                                                     {
-                                                                        items.license_title_value_2
+                                                                        (parseFloat(tempDataObj[0]
+                                                                            .license_title_value_2)).toFixed(2)
                                                                     }
                                                                 </td>
                                                             </tr>
@@ -1884,7 +2235,7 @@ const ViewLpo = ({ id, logged }) => {
                                                                     name="vat"
                                                                     value={
                                                                         vat
-                                                                            ? vat
+                                                                            ? parseFloat(vat).toFixed(2)
                                                                             : items.vat.toFixed(
                                                                                   2
                                                                               )
@@ -1903,9 +2254,15 @@ const ViewLpo = ({ id, logged }) => {
                                                             {!editEnable && (
                                                                 <>
                                                                     {items.vat
-                                                                        ? items.vat.toFixed(
-                                                                              2
-                                                                          ).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                                                                        ? items.vat
+                                                                              .toFixed(
+                                                                                  2
+                                                                              )
+                                                                              .toString()
+                                                                              .replace(
+                                                                                  /\B(?=(\d{3})+(?!\d))/g,
+                                                                                  ","
+                                                                              )
                                                                         : "0.00"}
                                                                 </>
                                                             )}
@@ -1916,7 +2273,11 @@ const ViewLpo = ({ id, logged }) => {
                                                             className="text-right"
                                                             width="150"
                                                         >
-                                                            NET AMOUNT (<span className="text-uppercase">{items.currency}</span>)
+                                                            NET AMOUNT (
+                                                            <span className="text-uppercase">
+                                                                {items.currency}
+                                                            </span>
+                                                            )
                                                         </td>
                                                         <td
                                                             className="text-right"
@@ -1925,18 +2286,32 @@ const ViewLpo = ({ id, logged }) => {
                                                             {editEnable && (
                                                                 <>
                                                                     {netamount
-                                                                        ? netamount
-                                                                        : items.net_amount.toFixed(
-                                                                              2
-                                                                          ).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                                                                        ? parseFloat(netamount).toFixed(
+                                                                            2
+                                                                        )
+                                                                        : items.net_amount
+                                                                              .toFixed(
+                                                                                  2
+                                                                              )
+                                                                              .toString()
+                                                                              .replace(
+                                                                                  /\B(?=(\d{3})+(?!\d))/g,
+                                                                                  ","
+                                                                              )}
                                                                 </>
                                                             )}
                                                             {!editEnable && (
                                                                 <>
                                                                     {items.net_amount
-                                                                        ? items.net_amount.toFixed(
-                                                                              2
-                                                                          ).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                                                                        ? items.net_amount
+                                                                              .toFixed(
+                                                                                  2
+                                                                              )
+                                                                              .toString()
+                                                                              .replace(
+                                                                                  /\B(?=(\d{3})+(?!\d))/g,
+                                                                                  ","
+                                                                              )
                                                                         : "0.00"}
                                                                 </>
                                                             )}
@@ -2382,173 +2757,190 @@ const ViewLpo = ({ id, logged }) => {
                     >
                         {editEnable && (
                             <>
-                            <Grid item md={12}>
-                            <Button
-                            id="addBtn"
-                            variant="contained"
-                            onClick={() => handleAddApproval()}
-                            sx={{ mr: 2 }}
-                            >
-                            ADD
-                            </Button>
-                            APPROVAL SETUP
-                            </Grid>
-                            <TableContainer>
-                                <Table
-                                    stickyHeader
-                                    aria-label="a dense table"
-                                    className="dense-table"
-                                >
-                                    <TableHead>
-                                        <TableRow>
-                                            <TableCell>S/N</TableCell>
-                                            <TableCell>Title</TableCell>
-                                            <TableCell>Name</TableCell>
-                                            <TableCell>Sort</TableCell>
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {approvalRows.map((row, index) => {
-                                            return (
-                                                <TableRow
-                                                    id={row.id+"-" + index}
-                                                    key={
-                                                        index +"-" +
-                                                        row.id  
-                                                    }
-                                                >
-                                                    <TableCell>
-                                                        {index + 1}
-                                                    </TableCell>
-                                                    <TableCell
-                                                        sx={{
-                                                            padding:
-                                                                "0 !important",
-                                                        }}
+                                <Grid item md={12}>
+                                    <Button
+                                        id="addBtn"
+                                        variant="contained"
+                                        onClick={() => handleAddApproval()}
+                                        sx={{ mr: 2 }}
+                                    >
+                                        ADD
+                                    </Button>
+                                    APPROVAL SETUP
+                                </Grid>
+                                <TableContainer>
+                                    <Table
+                                        stickyHeader
+                                        aria-label="a dense table"
+                                        className="dense-table"
+                                    >
+                                        <TableHead>
+                                            <TableRow>
+                                                <TableCell>S/N</TableCell>
+                                                <TableCell>Title</TableCell>
+                                                <TableCell>Name</TableCell>
+                                                <TableCell>Sort</TableCell>
+                                            </TableRow>
+                                        </TableHead>
+                                        <TableBody>
+                                            {approvalRows.map((row, index) => {
+                                                return (
+                                                    <TableRow
+                                                        id={
+                                                            row.id + "-" + index
+                                                        }
+                                                        key={
+                                                            index + "-" + row.id
+                                                        }
                                                     >
-                                                        <TextField
-                                                            select
-                                                            size="small"
-                                                            label="Approval Type"
-                                                            sx={{ m: 0 }}
-                                                            value={
-                                                                row.approval_type || ""
-                                                            }
-                                                            onChange={(e) =>
-                                                                handleApproveType(
-                                                                    e,
-                                                                    index
-                                                                )
-                                                            }
-                                                            SelectProps={{
-                                                                native: true,
+                                                        <TableCell>
+                                                            {index + 1}
+                                                        </TableCell>
+                                                        <TableCell
+                                                            sx={{
+                                                                padding:
+                                                                    "0 !important",
                                                             }}
                                                         >
-                                                            <option value="">
-                                                                -
-                                                            </option>
-                                                            {labelApproval.map(
-                                                                (option) => (
-                                                                    <option
-                                                                        key={
-                                                                            option.id
+                                                            <TextField
+                                                                select
+                                                                size="small"
+                                                                label="Approval Type"
+                                                                sx={{ m: 0 }}
+                                                                value={
+                                                                    row.approval_type ||
+                                                                    ""
+                                                                }
+                                                                onChange={(e) =>
+                                                                    handleApproveType(
+                                                                        e,
+                                                                        index
+                                                                    )
+                                                                }
+                                                                SelectProps={{
+                                                                    native: true,
+                                                                }}
+                                                            >
+                                                                <option value="">
+                                                                    -
+                                                                </option>
+                                                                {labelApproval.map(
+                                                                    (
+                                                                        option
+                                                                    ) => (
+                                                                        <option
+                                                                            key={
+                                                                                option.id
+                                                                            }
+                                                                            value={
+                                                                                option.id
+                                                                            }
+                                                                        >
+                                                                            {
+                                                                                option.title
+                                                                            }
+                                                                        </option>
+                                                                    )
+                                                                )}
+                                                            </TextField>
+                                                        </TableCell>
+                                                        <TableCell
+                                                            sx={{
+                                                                padding:
+                                                                    "0 !important",
+                                                            }}
+                                                        >
+                                                            <Autocomplete
+                                                                disablePortal
+                                                                fullWidth
+                                                                defaultValue={
+                                                                    contactPersons.filter(
+                                                                        (
+                                                                            o,
+                                                                            i
+                                                                        ) => {
+                                                                            return (
+                                                                                o.user_id ===
+                                                                                row.user_id
+                                                                            );
                                                                         }
-                                                                        value={
-                                                                            option.id
-                                                                        }
-                                                                    >
-                                                                        {
-                                                                            option.title
-                                                                        }
-                                                                    </option>
-                                                                )
-                                                            )}
-                                                        </TextField>
-                                                    </TableCell>
-                                                    <TableCell
-                                                        sx={{ padding: "0 !important" }}
-                                                    >
-                                                        
-                                                        <Autocomplete
-                                                            disablePortal  
-                                                            fullWidth
-                                                            defaultValue={contactPersons.filter((o,i)=>{
-                                                                return o.user_id === row.user_id;
-                                                            })[0] || row.user_id}
-                                                            sx={{ m: 0 }}
-                                                            
-                                                            options={
-                                                                contactPersons
-                                                            }
-                                                            getOptionLabel={(
-                                                                contact
-                                                            ) =>
-                                                                contact.name ||
-                                                                ""
-                                                            }
-                                                            size="small"
-                                                            onChange={(
-                                                                e,
-                                                                val
-                                                            ) =>
-                                                                handleApproveEmployee(
+                                                                    )[0] ||
+                                                                    row.user_id
+                                                                }
+                                                                sx={{ m: 0 }}
+                                                                options={
+                                                                    contactPersons
+                                                                }
+                                                                getOptionLabel={(
+                                                                    contact
+                                                                ) =>
+                                                                    contact.name ||
+                                                                    ""
+                                                                }
+                                                                size="small"
+                                                                onChange={(
                                                                     e,
-                                                                    index,
                                                                     val
-                                                                )
-                                                            }
-                                                            renderOption={(
-                                                                props,
-                                                                option
-                                                            ) => {
-                                                                return (
-                                                                    <li
-                                                                        {...props}
-                                                                        key={
-                                                                            option.id + index
-                                                                        } 
-                                                                    >
-                                                                        {
-                                                                            option.name
-                                                                        }
-                                                                    </li>
-                                                                );
+                                                                ) =>
+                                                                    handleApproveEmployee(
+                                                                        e,
+                                                                        index,
+                                                                        val
+                                                                    )
+                                                                }
+                                                                renderOption={(
+                                                                    props,
+                                                                    option
+                                                                ) => {
+                                                                    return (
+                                                                        <li
+                                                                            {...props}
+                                                                            key={
+                                                                                option.id +
+                                                                                index
+                                                                            }
+                                                                        >
+                                                                            {
+                                                                                option.name
+                                                                            }
+                                                                        </li>
+                                                                    );
+                                                                }}
+                                                                renderInput={(
+                                                                    params
+                                                                ) => (
+                                                                    <TextField
+                                                                        {...params}
+                                                                        label="Approval*"
+                                                                        fullWidth
+                                                                    />
+                                                                )}
+                                                            />
+                                                        </TableCell>
+                                                        <TableCell
+                                                            sx={{
+                                                                padding:
+                                                                    "0 !important",
                                                             }}
-                                                            renderInput={(
-                                                                params
-                                                            ) => (
-                                                                <TextField
-                                                                    {...params}
-                                                                    label="Approval*"
-                                                                    fullWidth
-                                                                />
-                                                            )}
-                                                        />
-                                                    </TableCell>
-                                                    <TableCell
-                                                        sx={{
-                                                            padding:
-                                                                "0 !important",
-                                                        }}
-                                                    >
-                                                        <IconButton
-                                                            onClick={() =>
-                                                                handleRemoveApprovalRow(
-                                                                    index
-                                                                )
-                                                            }
-                                                            className="remove"
-                                                            color="inherit"
                                                         >
-                                                            <DeleteIcon />
-                                                        </IconButton>
-                                                    </TableCell>
-                                                </TableRow>
-                                            );
-                                        })}
-                                    </TableBody>
-                                </Table>
-                            </TableContainer>
+                                                            <IconButton
+                                                                onClick={() =>
+                                                                    handleRemoveApprovalRow(
+                                                                        index
+                                                                    )
+                                                                }
+                                                                className="remove"
+                                                                color="inherit"
+                                                            >
+                                                                <DeleteIcon />
+                                                            </IconButton>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                );
+                                            })}
+                                        </TableBody>
+                                    </Table>
+                                </TableContainer>
                             </>
                         )}
                         {!editEnable && (

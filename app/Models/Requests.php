@@ -32,6 +32,10 @@ class Requests extends Model
     {
         return $this->belongsTo(Profile::class, 'process_by', 'user_id');
     }
+    public function processed_by()
+    {
+        return $this->belongsTo(Profile::class, 'process_by', 'user_id');
+    }
 
     public function company()
     {

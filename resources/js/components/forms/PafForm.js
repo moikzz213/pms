@@ -115,6 +115,7 @@ const PafForm = ({ logged }) => {
     const vatLabel = 5;
     const [customVAT, setCustomVAT] = useState(5);
     const [discountTitle, setDiscountTitle] = useState("Discount");
+    const [defaultMath, setDefaultMath] = useState("-"); 
     const [dateValue, setDateValue] = useState(new Date().toLocaleDateString());
     const [preparedBy, setPreparedBy] = useState({ name: "", user_id: "" });
     const [supplierList, setSuppliers] = useState([]);
@@ -394,7 +395,7 @@ const PafForm = ({ logged }) => {
     const handleCurrencyRate = (e, rate, totalAmnt, discount) => {
         let value = 1;
         let newRate = 1;
-
+        let totalVat = vat;
         if (e) {
             value = e.target.value;
             newRate = value;
@@ -405,7 +406,20 @@ const PafForm = ({ logged }) => {
 
         let amount = parseFloat(totalamount);
         if (totalAmnt) {
-            let totAmount = totalAmnt - discount;
+            let totAmount = 0;
+            let multiplication = defaultMath;
+            if(multiplication == "-"){
+                totAmount = totalAmnt - discount;
+            }else if(multiplication == "*"){ 
+                totAmount = totalAmnt * discount;
+                totalVat = (netAmountz * parseFloat(customVAT))/100;
+                totAmount = parseFloat(totAmount) + totalVat; 
+            }else if(multiplication == "/"){
+                totAmount = totalAmnt / discount;
+            }else if(multiplication == "+"){
+                totAmount = parseFloat(totalAmnt) + parseFloat(discount);
+            }
+              
             amount = parseFloat(totAmount);
         }
 
@@ -446,8 +460,7 @@ const PafForm = ({ logged }) => {
         dataAssign[0].amount_in_words = amountWords + withCents; 
 
         setObjData(dataAssign);
-        setNetAmount(newNetAmount.toFixed(2));
-
+        setNetAmount(newNetAmount.toFixed(2)); 
      
     };
 
@@ -640,23 +653,34 @@ const PafForm = ({ logged }) => {
             netAmountz = Math.round(netAmountz * 100) / 100;
         }
         let totalAmnt = netAmountz.toFixed(2);
-        setTotalamount(totalAmnt);
+        setTotalamount(totalAmnt);  
 
-        setVat(totalVat.toFixed(2));
-
-        netAmountz = netAmountz - curDiscount;
+        let multiplication = defaultMath;
+        if(multiplication == "-"){
+            netAmountz = netAmountz - curDiscount;
+        }else if(multiplication == "*"){ 
+            netAmountz = parseFloat(netAmountz) * parseFloat(curDiscount); 
+            totalVat = (netAmountz * parseFloat(customVAT))/100;
+            netAmountz = parseFloat(netAmountz) + totalVat; 
+        }else if(multiplication == "/"){
+            netAmountz = netAmountz / curDiscount;
+        }else if(multiplication == "+"){
+            netAmountz = parseFloat(netAmountz) + parseFloat(curDiscount);
+        }
         netAmountz = Math.round(netAmountz * 100) / 100;
 
         if (netAmountz < 0) {
             netAmountz = 0;
         }
 
-        setNetAmount(netAmountz.toFixed(2));  
+        setVat(totalVat.toFixed(2));
+        setNetAmount(netAmountz.toFixed(2));   
 
         setTableRows(tempRows);
         let dataAssign = Object.assign([], objData);
-
-        if (currency !== "aed") {
+        
+        if (currency !== "aed" && currency !== "AED") {
+            
             handleCurrencyRate(
                 null,
                 objData[0].currency_rate,
@@ -683,8 +707,9 @@ const PafForm = ({ logged }) => {
         dataAssign[0].total_amount = totalAmnt;
         dataAssign[0].total_vat = totalVat;
         
-        
+        console.log(netAmountz);
         let cents = netAmountz.toString().split(".");
+        console.log(cents);
         let amountWords = number2words(cents[0]);
         let withCents = "";
        
@@ -714,6 +739,11 @@ const PafForm = ({ logged }) => {
     const handleDiscountTitle = (e) => {
         setDiscountTitle(e.target.value);
     }
+
+    const handleMath = (e) =>{ 
+        setDefaultMath(e.target.value);
+    }
+
     const handleRemoveRow = (index) => {
         let rows = tableRows;
         rows.splice(index, 1);
@@ -1687,6 +1717,16 @@ const PafForm = ({ logged }) => {
                                                 margin="dense"
                                                 onChange={(e) =>
                                                     handleDiscountTitle( e )
+                                                }
+                                            />
+                                            <TextField
+                                                label="SIGN" 
+                                                size="small"
+                                                value={defaultMath}
+                                                variant="outlined"
+                                                margin="dense" 
+                                                onChange={(e) =>
+                                                    handleMath( e )
                                                 }
                                             />
                                         </Grid>

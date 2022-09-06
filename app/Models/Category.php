@@ -2,11 +2,23 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\Supplier;
+use App\Models\Local_purchase_order_item;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Category extends Model
 {
     use HasFactory;
     protected $guarded = [];
+
+    public function supplier()
+    {
+        return $this->belongsToMany(Supplier::class);
+    }
+
+    public function items()
+    {
+        return $this->belongsToMany(Local_purchase_order_item::class);
+    }
 }

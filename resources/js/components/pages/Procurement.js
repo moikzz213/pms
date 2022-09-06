@@ -42,6 +42,11 @@ const Procurement = ({ logged }) => {
         message: "",
     });
 
+    const { vertical, horizontal } = {
+        vertical: "bottom",
+        horizontal: "center",
+    };
+
     const handleClose = (event, reason) => {
         if (reason === "clickaway") {
             return;
@@ -65,7 +70,9 @@ const Procurement = ({ logged }) => {
     const [lastPage, setlastPage] = useState(0);
     const [totalPage, settotalPage] = useState(0);
     const [toPage, settoPage] = useState(0);
+    const [isadmin, setIsadmin] = useState(false);
     const [fromPage, setfromPage] = useState(0);
+    const [isSearch, setIsSearch ]= useState(false);
     const arrowPage = (n) => {
         let p = page + n;
         if (p > 0 && p <= lastPage) {
@@ -141,7 +148,8 @@ const Procurement = ({ logged }) => {
                 prf_no: o.prf_no,
                 requested_by: o.profile ? o.profile.name : "",
                 company: o.company ? o.company.title : "",
-                process_by: o.process_by ? o.process_by.name : "",
+                //process_by: o.process_by ? o.process_by.name : "",
+                process_by: o.process_by,
                 urgency: o.urgency,
                 created_at: new Date(o.created_at).toLocaleDateString(),
             };
@@ -168,13 +176,15 @@ const Procurement = ({ logged }) => {
     }
 
     const handleAssign = (e, row) => {
-        let selected = e.target.value;
-
+        setOpen(true);
         let newMessage = {
             title: "info",
             message: "Please wait...",
         };
+
         setSeverity(newMessage);
+
+        let selected = e.target.value;  
 
         let data = { id: row.id, process_by: selected, user_id: logged.id };
         API.post("/v/request/procurement/assigned", data)
@@ -187,7 +197,9 @@ const Procurement = ({ logged }) => {
                     };
 
                     setSeverity(newMessage);
-                }, 1500);
+                    
+                    fetchRequests();
+                }, 500);
             })
             .catch((error) => {
                 newMessage = {
@@ -297,10 +309,13 @@ const Procurement = ({ logged }) => {
             czUser = "&user_id=" + cUser;
         }
         let defaultQueryString = czID + czStatus + czProcess + czUser;
+        if(!isSearch){
         fetchRequests(defaultQueryString);
+        }
         return () => {
             setRequestsData([]);
-        };
+        }; 
+     
     }, [page]);
 
     useEffect(() => {
@@ -318,6 +333,12 @@ const Procurement = ({ logged }) => {
                 let mergeData = [...fetchItems, ...unSigned];
 
                 setProcessBy(mergeData);
+
+                let vcheckAdmin = false;
+                if(logged.id == 1 || logged.id == 344){
+                    vcheckAdmin = true;
+                }
+                setIsadmin(vcheckAdmin); 
             }
         });
 
@@ -351,10 +372,17 @@ const Procurement = ({ logged }) => {
     };
 
     const handleSearch = (e) => {
-        if (e.target.value.length > 3) {
-            axiosFunction("/v/request/search/" + e.target.value);
+        
+        if (e.target.value.length > 3) { 
+            setIsSearch(true);
+            setPage(1);
+            queryParams.set("page", 1);  
+            history.replaceState(null, null, "?" + queryParams.toString()); 
+            axiosFunction("/v/request/proc-search/" + e.target.value);
+            
         } else if (e.target.value.length == 0) {
-            axiosFunction("/v/request/search/-");
+            setIsSearch(false);
+            axiosFunction("/v/request/proc-search/-");
         }
     };
 
@@ -367,7 +395,8 @@ const Procurement = ({ logged }) => {
                 <Box sx={{ display: "flex", width: "100%" }}>
                     <Snackbar
                         open={open}
-                        autoHideDuration={4000}
+                        autoHideDuration={5000}
+                        anchorOrigin={{ vertical, horizontal }}
                         onClose={handleClose}
                     >
                         <Alert
@@ -534,17 +563,18 @@ const Procurement = ({ logged }) => {
                                     >
                                         {columns.map((column) => {
                                             const value = row[column.id];
-
+                                            const prby = column.id;
+                                          
                                             return (
                                                 <TableCell
                                                     key={column.id}
                                                     align={column.align}
-                                                    onClick={() =>
-                                                        viewDetails(row, value)
-                                                    }
+                                                  
                                                 >
-                                                    {value ? (
-                                                        <span className={value}>
+                                                    {value && prby !== 'process_by'  ? (
+                                                        <span   onClick={() =>
+                                                            viewDetails(row, value)
+                                                        } className={value}>
                                                             {column.format &&
                                                             typeof value ===
                                                                 "number"
@@ -556,17 +586,16 @@ const Procurement = ({ logged }) => {
                                                     ) : (
                                                         <TextField
                                                             disabled={
+                                                                !isadmin  && ( 
                                                                 row.status ==
-                                                                "cancelled"
-                                                                    ? true
-                                                                    : false
+                                                                "cancelled" || 
+                                                                     row.status ==
+                                                                    "closed" )
                                                             }
                                                             select
                                                             size="small"
                                                             label="Assign To"
-                                                            value={
-                                                                processBy.user_id
-                                                            }
+                                                            value={ processBy.user_id ? processBy.user_id : value ? value.id : processBy.user_id  }
                                                             onChange={(e) =>
                                                                 handleAssign(
                                                                     e,
@@ -628,8 +657,7 @@ const Procurement = ({ logged }) => {
                         }
                         hidePrevButton
                         hideNextButton
-                        color="secondary"
-                        size="medium"
+                        color="secondary" 
                         variant="outlined"
                         shape="rounded"
                         size="small"

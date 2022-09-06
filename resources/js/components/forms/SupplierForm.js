@@ -1,29 +1,42 @@
-import React, { useState } from "react";
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Paper from "@mui/material/Paper";
 import Box from "@mui/material/Box";
 import Grid from "@mui/material/Grid";
 import LoadingButton from "@mui/lab/LoadingButton";
 import TextField from "@mui/material/TextField";
-import Snackbar from '@mui/material/Snackbar';
-import MuiAlert from '@mui/material/Alert';
-import { set } from "date-fns";
-
+import Snackbar from "@mui/material/Snackbar";
+import MuiAlert from "@mui/material/Alert";
+import API from "../../services/api.js";
+import Autocomplete from "@mui/material/Autocomplete";
 const Alert = React.forwardRef(function Alert(props, ref) {
-  return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+    return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
-export default function SupplierForm({logged}) {
+
+function mapFilterData(array, selected) {
+    let supp = array.map((sup) => {
+        if (sup.id == selected) {
+            return sup;
+        }
+    });
+
+    supp = supp.filter((el) => {
+        return el != null;
+    });
+
+    return supp[0];
+} 
+export default function SupplierForm({ logged }) {
     let controller;
     const [open, setOpen] = useState(false);
     const [severity, setSeverity] = useState({
         title: "",
-        message : ""
+        message: "",
     });
 
-    
     // Route Redirect
-    const navigate = useNavigate(); 
+    const navigate = useNavigate();
 
     const [objData, setObjData] = useState([
         {
@@ -34,22 +47,22 @@ export default function SupplierForm({logged}) {
             contact_no: "",
             tax_no: "",
             email: "",
-        }
+        },
     ]);
-    
-    controller = "/v/suppliers/new";  
+
+    controller = "/v/suppliers/new"; 
 
     const [fieldState, setFieldState] = useState(true);
-    const [loading, setLoading] = useState(false); 
-   
+    const [loading, setLoading] = useState(false);
+    const [category, setCategories] = useState([]);
+    const [selectedCategory, setSelectedCategory] = useState([]);
     const handleData = (e, type) => {
         let value = e.target.value;
-      
+
         let objAssign = Object.assign([], objData);
 
         let data = objAssign.map((o, i) => {
-            
-            if (type == "company") { 
+            if (type == "company") {
                 o.title = value;
             } else if (type == "person") {
                 o.contact_person = value;
@@ -61,7 +74,7 @@ export default function SupplierForm({logged}) {
                 o.tax_no = value;
             } else if (type == "email") {
                 o.email = value;
-            }else if (type == "code") {
+            } else if (type == "code") {
                 o.code = value;
             }
             if (
@@ -79,61 +92,92 @@ export default function SupplierForm({logged}) {
             }
             return o;
         });
-        
-        setObjData(data); 
-    }; 
+
+        setObjData(data);
+    };
+
+    const handleCategories = (event, val) => { 
+  
+        let selected = val;  
+ 
+        let fff = [];
+        selected.map((o, i) => {
+            fff[i] = o.id;
+        });
+      
+        setSelectedCategory(fff);
+         
+    };
+
+    useEffect(() => {
+        API.get("/v/categories/fetch-non-paginate").then((response) => {
+            let fetchItems = response.data.item;
+            fetchItems = Object.assign([], fetchItems);
+
+            setCategories(fetchItems);
+        });
+    }, []);
 
     const handleClose = (event, reason) => {
-        if (reason === 'clickaway') {
-          return;
+        if (reason === "clickaway") {
+            return;
         }
-    
+
         setOpen(false);
-      };
+    };
 
     const submitForm = () => {
         setLoading(true);
         let newMessage = {
             title: "info",
-            message : "Please wait..."
-        }
-        setSeverity(newMessage)
-        let data = { data: objData, user_id : logged.id }; 
-        
-        axios.post(controller, data).then((response) => {
-            setOpen(true);
-            setTimeout(() => {
-                newMessage = {
-                    title: "success",
-                    message : "Data has been successfully added/updated!"
-                }
-                setLoading(false);
-                setSeverity(newMessage); 
-                 
-            }, 500);
+            message: "Please wait...",
+        };
+        setSeverity(newMessage);
+        let data = { data: objData, user_id: logged.id, category: selectedCategory };
 
-            setTimeout(() => {
-                 // Route to Edit by id
-                 navigate("/d/settings/suppliers/id/"+response.data.id);
-            }, 1000);
-            
-        }).catch((error)=>{
-            newMessage = {
-                title: "error",
-                message : "Kindly refresh the page."
-            }
-            setSeverity(newMessage)
-            setLoading(false);
-        });
+        axios
+            .post(controller, data)
+            .then((response) => {
+                setOpen(true);
+                setTimeout(() => {
+                    newMessage = {
+                        title: "success",
+                        message: "Data has been successfully added/updated!",
+                    };
+                    setLoading(false);
+                    setSeverity(newMessage);
+                }, 500);
+
+                setTimeout(() => {
+                    // Route to Edit by id
+                    navigate("/d/settings/suppliers/id/" + response.data.id);
+                }, 1000);
+            })
+            .catch((error) => {
+                newMessage = {
+                    title: "error",
+                    message: "Kindly refresh the page.",
+                };
+                setSeverity(newMessage);
+                setLoading(false);
+            });
     };
     return (
         <Paper sx={{ px: 3, py: 3 }}>
             <Box sx={{ flexGrow: 1 }}>
-            <Snackbar open={open} autoHideDuration={4000} onClose={handleClose}>
-                <Alert onClose={handleClose} severity={severity.title} sx={{ width: '100%' }}>
-                {severity.message}
-                </Alert>
-            </Snackbar>
+                <Snackbar
+                    open={open}
+                    autoHideDuration={4000}
+                    onClose={handleClose}
+                >
+                    <Alert
+                        onClose={handleClose}
+                        severity={severity.title}
+                        sx={{ width: "100%" }}
+                    >
+                        {severity.message}
+                    </Alert>
+                </Snackbar>
                 <Box
                     component="form"
                     sx={{
@@ -149,9 +193,7 @@ export default function SupplierForm({logged}) {
                                 Company Name *
                             </Grid>
                             <Grid item xs={12} md={4}>
-                              
                                 <TextField
-                                    
                                     label=""
                                     onChange={(e) => handleData(e, "company")}
                                     size="small"
@@ -162,9 +204,7 @@ export default function SupplierForm({logged}) {
                                 Code *
                             </Grid>
                             <Grid item xs={12} md={4}>
-                              
                                 <TextField
-                                    
                                     label=""
                                     onChange={(e) => handleData(e, "code")}
                                     size="small"
@@ -177,7 +217,6 @@ export default function SupplierForm({logged}) {
                             <Grid item xs={12} md={4}>
                                 <TextField
                                     label=""
-                                     
                                     size="small"
                                     onChange={(e) => handleData(e, "person")}
                                     variant="outlined"
@@ -190,7 +229,6 @@ export default function SupplierForm({logged}) {
                             <Grid item xs={12} md={4}>
                                 <TextField
                                     label=""
-                                   
                                     onChange={(e) => handleData(e, "address")}
                                     size="small"
                                     variant="outlined"
@@ -202,8 +240,10 @@ export default function SupplierForm({logged}) {
                             <Grid item xs={12} md={4}>
                                 <TextField
                                     label=""
-                                    size="small" 
-                                    onChange={(e) => handleData(e, "contact_no")}
+                                    size="small"
+                                    onChange={(e) =>
+                                        handleData(e, "contact_no")
+                                    }
                                     variant="outlined"
                                 />
                             </Grid>
@@ -215,7 +255,6 @@ export default function SupplierForm({logged}) {
                                 <TextField
                                     label=""
                                     size="small"
-                                   
                                     onChange={(e) => handleData(e, "tax_no")}
                                     variant="outlined"
                                 />
@@ -227,9 +266,37 @@ export default function SupplierForm({logged}) {
                                 <TextField
                                     label=""
                                     size="small"
-                                     
                                     onChange={(e) => handleData(e, "email")}
                                     variant="outlined"
+                                />
+                            </Grid>
+                            <Grid item xs={12} md={2}>
+                                Category
+                            </Grid>
+                            <Grid item xs={12} md={4}>
+                                <Autocomplete
+                                    disablePortal
+                                    fullWidth
+                                    multiple
+                                    options={category}
+                                    disableClearable
+                                    getOptionLabel={(data) => data.title || ""}
+                                    size="small"
+                                    onChange={(e, value) => handleCategories(e, value)}
+                                    renderOption={(props, option) => {
+                                        return (
+                                            <li {...props} key={option.id}>
+                                                {option.title}
+                                            </li>
+                                        );
+                                    }}
+                                    renderInput={(params) => (
+                                        <TextField
+                                            {...params}
+                                            label="Category*"
+                                            fullWidth
+                                        />
+                                    )}
                                 />
                             </Grid>
 

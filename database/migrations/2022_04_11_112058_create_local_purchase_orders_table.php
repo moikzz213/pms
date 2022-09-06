@@ -28,6 +28,7 @@ class CreateLocalPurchaseOrdersTable extends Migration
             $table->unsignedBigInteger('location_id')->nullable();
             $table->unsignedBigInteger('department_id')->nullable();
             $table->string('status', 30);
+            $table->string('reasons', 250)->nullable();
             $table->text('remarks_general')->nullable();
             $table->text('remarks_optional')->nullable();
             $table->text('remarks_finance')->nullable();

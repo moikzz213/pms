@@ -378,21 +378,20 @@ class UserController extends Controller
         $id = ''; 
         $password = Str::random(8);
         $newData = array( 
-            "password" =>  Hash::make($password)     
-        ); 
-        
+            "password" =>  Hash::make($password)
+        );
       
         DB::beginTransaction();
         // do all your updates here
         try { 
-            $data = User::where('id', '=', $request->id)->first(); 
+            $data = User::where('id', '=', $request->id)->first();
              
-            $data->update($newData);   
+            $data->update($newData);
            
-            $rabbitArray = array("password" => $password, "email" => $data['email'], "subject" => "Procurement - Reset Password");  
+            $rabbitArray = array("password" => $password, "email" => $data['email'], "subject" => "Procurement - Reset Password");
             
             UserResetPassword::dispatch($rabbitArray); 
-            $msg = "New Password has been sent to the User's Email"; 
+            $msg = "New Password has been sent to the User's Email";
             DB::commit();
             
         } catch (\Exception $e) {

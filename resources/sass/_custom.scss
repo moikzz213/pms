@@ -31,7 +31,8 @@ table tr:hover button.remove{ display: inline-flex;}
 table tr:hover button.savebtn{ display: inline-flex;}
 table.normal-table td, table.normal-table th {vertical-align: top; border: 0.1px solid rgb(174, 173, 173); text-align: left; font-size:12px; padding: 2px 5px; }
 table.normal-table{ width: 100%;}
-.logo{ min-width: 200px; max-width: 350px;}
+.logo{ min-width: 200px; max-width: 300px;}
+.small-logo{ max-width:100px;}
 .paf-logo{ min-width: 120px; max-width: 150px;}
 .request-desc table{ width: 100%; border-spacing: 0;}
 .request-desc table td{ border: 1px solid #cecece; padding:2px 5px; margin: 0;}
@@ -62,7 +63,7 @@ table.normal-table{ width: 100%;}
 
 pre { margin: 0;}
 .approval-name, .amount-words input, .amount-words{ text-transform: capitalize !important;}
-.remarks-bottom{ max-height: 95px;}
+.remarks-bottom{ max-height: 105px;}
  
 @media print{
   
@@ -82,7 +83,7 @@ pre { margin: 0;}
       .paf-table{ margin-top: 10px !important}
     .payment-container{ max-height: 102px !important;}
    .MuiGrid-container, .MuiGrid-item, div, table{ padding-bottom: 5px !important; padding-top: 0 !important; margin-top:-2px !important; margin-bottom:0 !important;}
-   .budget-area{ margin-bottom: 0 !important; border-bottom: 1px solid #000 !important;}
+   .budget-area{ margin-bottom: 10px !important;}
    table{ width: 100% !important;}
     .delivery-term{ min-height: 92px !important; max-height: 93px !important;}
     body {
@@ -127,6 +128,6 @@ pre { margin: 0;}
     .request-desc .inner-request{ max-width:93%;}
     html,body,main, div{ background-color: #fff !important;}
     .MuiButtonBase-root{ padding:0 5px 5px 0 !important;}
-    .remarks-bottom{ max-height: 70px;}
+    .remarks-bottom{ max-height: 110px;}
 } 
  
