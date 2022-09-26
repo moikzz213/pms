@@ -191,12 +191,22 @@ class RequestController extends Controller
     public function search($id,$search){ 
         if($id == 261 || $id == 82 || $id == 19 || $id == 258 || $id == 304){
             $where = ['user_id' => '261','user_id' => '82','user_id' => '19','user_id' => '258','user_id' => '304'];
+            $itOnly = true;
         }else{
             $where = ['user_id' => $id];
+            $itOnly = false;
         }
         if($search !== '-'){
             
-            $data = Requests::where($where)->where(function ($q) use ($search){
+           $data = Requests::where(function ($q) use ($itOnly,$id){
+                if($itOnly){
+                $q->where('user_id',"=",$id) 
+                    ->orWhere('user_id',"=", 261)->orWhere('user_id',"=", 82)
+                    ->orWhere('user_id',"=", 19)->orWhere('user_id',"=", 304)->orWhere('user_id',"=", 258);
+                }else{
+                    $q->where('user_id',"=",$id);
+                }
+            })->where(function ($q) use ($search){
                 $q->where("subject", "LIKE", "%".$search."%")->orWhere("prf_no", "LIKE", "%".$search."%")->orWhere("status", "LIKE", "%".$search."%");
             })->orWhereHas('profile', function ($q) use ($search){
                 $q->where("name", "LIKE", "%".$search."%");  

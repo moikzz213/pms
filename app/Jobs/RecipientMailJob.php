@@ -39,6 +39,11 @@ class RecipientMailJob implements ShouldQueue
         $subject =  $publisherData['subject'];
         $email =  explode(",", $publisherData['email']);
 
+        if(count($email) > 1){ 
+        }else{
+        $email =  explode(";", $publisherData['email']);
+        }
+        
         $getEmails =  (object) ['email' => $email];
 
         $data = array("message" => $message, 'subject' => $subject);

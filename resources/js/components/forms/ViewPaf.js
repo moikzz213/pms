@@ -141,8 +141,7 @@ const ViewPaf = ({ id, logged }) => {
         setApprovals([]);
         setItems([]);
         API.get("/v/payment-approval-form/fetch/" + id).then((response) => {
-            let fetchItems = response.data.item;
-            console.log(fetchItems.company);
+            let fetchItems = response.data.item; 
             setItems(fetchItems);
             setCurrency(fetchItems.currency);
             setCurrencyRate(fetchItems.currency_rate);

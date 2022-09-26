@@ -392,7 +392,7 @@ const PafForm = ({ logged }) => {
         setTableRows(tempRows);
     };
 
-    const handleCurrencyRate = (e, rate, totalAmnt, discount) => {
+    const handleCurrencyRate = (e, rate=null, totalAmnt=null, curDiscount=null) => {
         let value = 1;
         let newRate = 1;
         let totalVat = vat;
@@ -403,26 +403,40 @@ const PafForm = ({ logged }) => {
             value = rate;
             newRate = rate;
         }
-
-        let amount = parseFloat(totalamount);
+        
+        let totAmount = 0; 
+        let ztotal = 0;
+        let amount = 0;
         if (totalAmnt) {
-            let totAmount = 0;
-            let multiplication = defaultMath;
-            if(multiplication == "-"){
-                totAmount = totalAmnt - discount;
-            }else if(multiplication == "*"){ 
-                totAmount = totalAmnt * discount;
-                totalVat = (netAmountz * parseFloat(customVAT))/100;
-                totAmount = parseFloat(totAmount) + totalVat; 
-            }else if(multiplication == "/"){
-                totAmount = totalAmnt / discount;
-            }else if(multiplication == "+"){
-                totAmount = parseFloat(totalAmnt) + parseFloat(discount);
-            }
-              
-            amount = parseFloat(totAmount);
+            ztotal = totalAmnt; 
+        }else{
+            ztotal = parseFloat(totalamount);
         }
-
+        let zdiscount = 0;
+        if(curDiscount){
+            zdiscount = curDiscount;
+        }else{
+            zdiscount = discount;
+        }
+        
+        
+        let multiplication = defaultMath;
+        if(multiplication == "-"){
+            totAmount = ztotal - zdiscount;
+        }else if(multiplication == "*"){ 
+            totAmount = parseFloat(ztotal) * parseFloat(zdiscount);
+            totalVat = customVAT > 0 ? (totAmount * parseFloat(customVAT))/100 : 0.00; 
+            totAmount = parseFloat(totAmount) + totalVat;  
+             
+        }else if(multiplication == "/"){
+            totAmount = ztotal / zdiscount;
+        }else if(multiplication == "+"){
+            totAmount = parseFloat(ztotal) + parseFloat(zdiscount);
+        }
+          
+      
+        amount = parseFloat(totAmount);
+        
         let newNetAmount = 0;
 
         if (!value && value <= 0) {
@@ -433,6 +447,9 @@ const PafForm = ({ logged }) => {
         Math.round(newNetAmount * 100) / 100;
 
         let dataAssign = Object.assign([], objData);
+        dataAssign[0].total_vat = totalVat;
+        dataAssign[0].discount = zdiscount; 
+        dataAssign[0].total_amount = ztotal;
         dataAssign[0].currency_rate = newRate;
         dataAssign[0].net_amount = newNetAmount;
         let netAmountz = newNetAmount.toFixed(2);
@@ -679,7 +696,7 @@ const PafForm = ({ logged }) => {
         setTableRows(tempRows);
         let dataAssign = Object.assign([], objData);
         
-        if (currency !== "aed" && currency !== "AED") {
+        if (currency !== "aed" || currency !== "AED") {
             
             handleCurrencyRate(
                 null,
@@ -698,42 +715,40 @@ const PafForm = ({ logged }) => {
                 setFieldState(false);
             }
             return o;
-        }); 
-
+        });  
+       
         setValidate(validatedData);
+        if (currency == "aed" || currency == "AED") {
+            dataAssign[0].discount = curDiscount; 
 
-        dataAssign[0].discount = curDiscount; 
-
-        dataAssign[0].total_amount = totalAmnt;
-        dataAssign[0].total_vat = totalVat;
-        
-        console.log(netAmountz);
-        let cents = netAmountz.toString().split(".");
-        console.log(cents);
-        let amountWords = number2words(cents[0]);
-        let withCents = "";
-       
-        if(cents.length > 1){
-           let addZero = "";
-            if(cents[1].length == 1){
-                addZero = cents[1]+"0";
-            }else{
-                  addZero = String(cents[1]);
-                if(addZero.charAt(0) === '0'){
-                    
-                    addZero.substring(1);
-                }
-                
-            }
+            dataAssign[0].total_amount = totalAmnt;
+            dataAssign[0].total_vat = totalVat;  
+           
+            let cents = netAmountz.toString().split(".");
             
-          
-            withCents = number2words(Number(addZero));
-             
-            withCents = " And "+withCents;
-        }
-        dataAssign[0].amount_in_words = amountWords + withCents; 
+            let amountWords = number2words(cents[0]);
+            let withCents = "";
+        
+            if(cents.length > 1){
+            let addZero = "";
+                if(cents[1].length == 1){
+                    addZero = cents[1]+"0";
+                }else{
+                    addZero = String(cents[1]);
+                    if(addZero.charAt(0) === '0'){
+                        
+                        addZero.substring(1);
+                    } 
+                } 
+            
+                withCents = number2words(Number(addZero));
+                
+                withCents = " And "+withCents;
+            }
+            dataAssign[0].amount_in_words = amountWords + withCents; 
+            setObjData(dataAssign);
+        } 
        
-        setObjData(dataAssign);
     }; 
 
     const handleDiscountTitle = (e) => {

@@ -143,9 +143,9 @@ const Request = ({logged}) => {
         }
         
         let defaultQueryString =  czStatus;
-        if(!isSearch){
+        //if(!isSearch){
         fetchRequests(defaultQueryString);
-        }
+       // }
         return () => {
             setListRequests([]);
           };
