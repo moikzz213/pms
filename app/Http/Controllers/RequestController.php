@@ -127,18 +127,55 @@ class RequestController extends Controller
         $user = $token->tokenable;
        //|| $user->id == 258 || $user->id == 261
         if($user->id == 304 ){
+            // leslie - 304
             // jeff - 258
             // jerico - 261
             // arnel - 82
             // abe - 19
             $id = $user->id;
             $data = Requests::where('user_id', "=",$id)->orWhere('user_id',"=", 258)->orWhere('user_id',"=", 261)->orWhere('user_id',"=", 82)->orWhere('user_id',"=", 19)->with("company","location","process_by", "profile")->orderBy("updated_at", "desc")->take(10)->get();
-            $pending =  Requests::where(['user_id' => $id])->where("status", "=", "pending")->get(); 
-            $onhold =  Requests::where(['user_id' => $id])->where("status", "=", "onhold")->get(); 
-            $processed = Requests::where(['user_id' => $id])->where("status", "=", "onprocess")->get(); 
-            $newRequest =  Requests::where('user_id', "=", $id)->whereDate( "created_at" , Carbon::today())->get(); 
-            $closed =  Requests::where(['user_id' => $id, "status" => "closed"])->get(); 
-            $totalRequest = Requests::where(['user_id' => $id])->orWhere('user_id',"=", 258)->orWhere('user_id',"=", 261)->orWhere('user_id',"=", 82)->orWhere('user_id',"=", 19)->where("status", "!=", "cancelled")->get(); 
+            $pending =  Requests::where(function($q) use ($id){
+                $q->where('user_id' ,"=", $id) 
+                ->orWhere('user_id' ,"=", 258)
+                ->orWhere('user_id' ,"=", 261)
+                ->orWhere('user_id' ,"=", 82)
+                ->orWhere('user_id' ,"=", 19);
+            })->where("status", "=", "pending")->get(); 
+            $onhold =  Requests::where(function($q) use ($id){
+                $q->where('user_id' ,"=", $id) 
+                ->orWhere('user_id' ,"=", 258)
+                ->orWhere('user_id' ,"=", 261)
+                ->orWhere('user_id' ,"=", 82)
+                ->orWhere('user_id' ,"=", 19);
+            })->where("status", "=", "onhold")->get(); 
+            $processed = Requests::where(function($q) use ($id){
+                $q->where('user_id' ,"=", $id) 
+                ->orWhere('user_id' ,"=", 258)
+                ->orWhere('user_id' ,"=", 261)
+                ->orWhere('user_id' ,"=", 82)
+                ->orWhere('user_id' ,"=", 19);
+            })->where("status", "=", "onprocess")->get(); 
+            $newRequest =  Requests::where(function($q) use ($id){
+                $q->where('user_id' ,"=", $id) 
+                ->orWhere('user_id' ,"=", 258)
+                ->orWhere('user_id' ,"=", 261)
+                ->orWhere('user_id' ,"=", 82)
+                ->orWhere('user_id' ,"=", 19);
+            })->whereDate( "created_at" , Carbon::today())->get(); 
+            $closed =  Requests::where(function($q) use ($id){
+                $q->where('user_id' ,"=", $id) 
+                ->orWhere('user_id' ,"=", 258)
+                ->orWhere('user_id' ,"=", 261)
+                ->orWhere('user_id' ,"=", 82)
+                ->orWhere('user_id' ,"=", 19);
+            })->where("status", "=", "closed")->get(); 
+            $totalRequest = Requests::where(function($q) use ($id){
+                $q->where('user_id' ,"=", $id) 
+                ->orWhere('user_id' ,"=", 258)
+                ->orWhere('user_id' ,"=", 261)
+                ->orWhere('user_id' ,"=", 82)
+                ->orWhere('user_id' ,"=", 19);
+            })->where("status", "!=", "cancelled")->get(); 
         }elseif($user->id == 333){
             // jeff - 258
             // jerico - 261
@@ -146,12 +183,54 @@ class RequestController extends Controller
             // abe - 19
             $id = $user->id;
             $data = Requests::where('user_id', "=",$id)->orWhere('user_id',"=", 304)->orWhere('user_id',"=", 258)->orWhere('user_id',"=", 261)->orWhere('user_id',"=", 82)->orWhere('user_id',"=", 19)->with("company","location","process_by", "profile")->orderBy("updated_at", "desc")->take(10)->get();
-            $pending =  Requests::where(['user_id' => $id])->where("status", "=", "pending")->get(); 
-            $onhold =  Requests::where(['user_id' => $id])->where("status", "=", "onhold")->get(); 
-            $processed = Requests::where(['user_id' => $id])->where("status", "=", "onprocess")->get(); 
-            $newRequest =  Requests::where('user_id', "=", $id)->whereDate( "created_at" , Carbon::today())->get(); 
-            $closed =  Requests::where(['user_id' => $id, "status" => "closed"])->get(); 
-            $totalRequest = Requests::where(['user_id' => $id])->orWhere('user_id',"=", 304)->orWhere('user_id',"=", 258)->orWhere('user_id',"=", 261)->orWhere('user_id',"=", 82)->orWhere('user_id',"=", 19)->where("status", "!=", "cancelled")->get(); 
+            $pending =  Requests::where(function($q) use ($id){
+                $q->where('user_id' ,"=", $id)
+                ->orWhere('user_id' ,"=", 304)
+                ->orWhere('user_id' ,"=", 258)
+                ->orWhere('user_id' ,"=", 261)
+                ->orWhere('user_id' ,"=", 82)
+                ->orWhere('user_id' ,"=", 19);
+            })->where("status", "=", "pending")->get(); 
+            $onhold =  Requests::where(function($q) use ($id){
+                $q->where('user_id' ,"=", $id)
+                ->orWhere('user_id' ,"=", 304)
+                ->orWhere('user_id' ,"=", 258)
+                ->orWhere('user_id' ,"=", 261)
+                ->orWhere('user_id' ,"=", 82)
+                ->orWhere('user_id' ,"=", 19);
+            })->where("status", "=", "onhold")->get(); 
+            $processed = Requests::where(function($q) use ($id){
+                $q->where('user_id' ,"=", $id)
+                ->orWhere('user_id' ,"=", 304)
+                ->orWhere('user_id' ,"=", 258)
+                ->orWhere('user_id' ,"=", 261)
+                ->orWhere('user_id' ,"=", 82)
+                ->orWhere('user_id' ,"=", 19);
+            })->where("status", "=", "onprocess")->get(); 
+            $newRequest =  Requests::where(function($q) use ($id){
+                $q->where('user_id' ,"=", $id)
+                ->orWhere('user_id' ,"=", 304)
+                ->orWhere('user_id' ,"=", 258)
+                ->orWhere('user_id' ,"=", 261)
+                ->orWhere('user_id' ,"=", 82)
+                ->orWhere('user_id' ,"=", 19);
+            })->whereDate( "created_at" , Carbon::today())->get(); 
+            $closed =  Requests::where(function($q) use ($id){
+                $q->where('user_id' ,"=", $id)
+                ->orWhere('user_id' ,"=", 304)
+                ->orWhere('user_id' ,"=", 258)
+                ->orWhere('user_id' ,"=", 261)
+                ->orWhere('user_id' ,"=", 82)
+                ->orWhere('user_id' ,"=", 19);
+            })->where("status", "=", "closed")->get(); 
+            $totalRequest = Requests::where(function($q) use ($id){
+                $q->where('user_id' ,"=", $id)
+                ->orWhere('user_id' ,"=", 304)
+                ->orWhere('user_id' ,"=", 258)
+                ->orWhere('user_id' ,"=", 261)
+                ->orWhere('user_id' ,"=", 82)
+                ->orWhere('user_id' ,"=", 19);
+            })->where("status", "!=", "cancelled")->get(); 
         }elseif($user->role == 'normal'){
             $id = $user->id;
             $data = Requests::where('user_id',"=",$id)->with("company","location","process_by", "profile")->orderBy("updated_at", "desc")->take(10)->get();

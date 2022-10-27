@@ -311,8 +311,7 @@ const Users = ({logged}) => {
                         }
                         hidePrevButton
                         hideNextButton
-                        color="secondary"
-                        size="medium"
+                        color="secondary" 
                         variant="outlined"
                         shape="rounded"
                         size="small"

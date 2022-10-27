@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import * as CryptoJS from "crypto-js";
 import Paper from "@mui/material/Paper";
 import Box from "@mui/material/Box";
@@ -94,6 +95,7 @@ const Dashboard = ({ logged }) => {
                 >
                     TODAY'S REQUESTS
                     <h2>{countNew}</h2>
+                
                 </Box>
                 <Box
                     sx={{
@@ -107,7 +109,7 @@ const Dashboard = ({ logged }) => {
                     }}
                 >
                     OPEN REQUESTS
-                    <h2>{countPending}</h2>
+                    <Link to="/d/requests?page=1&status=pending"><h2>{countPending}</h2></Link>
                 </Box>
                 <Box
                     sx={{
@@ -121,7 +123,7 @@ const Dashboard = ({ logged }) => {
                     }}
                 >
                     ONHOLD REQUESTS
-                    <h2>{countHold}</h2>
+                    <Link to="/d/requests?page=1&status=onhold"><h2>{countHold}</h2></Link>
                 </Box>
                 <Box
                     sx={{
@@ -135,7 +137,7 @@ const Dashboard = ({ logged }) => {
                     }}
                 >
                     ON PROCESS REQUESTS
-                    <h2>{countProcess}</h2>
+                    <Link to="/d/requests?page=1&status=onprocess"><h2>{countProcess}</h2></Link>
                 </Box>
                 <Box
                     sx={{
@@ -149,7 +151,7 @@ const Dashboard = ({ logged }) => {
                     }}
                 >
                     CLOSED REQUESTS
-                    <h2>{countClosed}</h2>
+                    <Link to="/d/requests?page=1&status=closed"><h2>{countClosed}</h2></Link>
                 </Box>
                 <Box
                     sx={{
@@ -163,7 +165,7 @@ const Dashboard = ({ logged }) => {
                     }}
                 >
                     TOTAL REQUESTS
-                    <h2>{countTotal}</h2>
+                    <Link to="/d/requests"><h2>{countTotal}</h2></Link>
                 </Box>
             </Box>
             <Paper sx={{ px: 3, py: 3, mt: 3 }}>
