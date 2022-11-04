@@ -114,7 +114,7 @@ Route::post('/v/request/update-status', [RequestController::class, 'updateStatus
 Route::post('/v/request/edit-data', [RequestController::class, 'editData'])->name('request.edit.data');
 Route::post('/v/request/new', [RequestController::class, 'store'])->name('request.new');
 Route::get('/v/request/fetch/{id}', [RequestController::class, 'show'])->name('request.show');
-Route::get('/v/request/fetch-all/{token}', [RequestController::class, 'fetch'])->name('request.fetch.paginate');
+Route::get('/v/request/fetch-all/{token}/{orderby}', [RequestController::class, 'fetch'])->name('request.fetch.paginate');
 Route::get('/v/request/search/{id}/{search}', [RequestController::class, 'search'])->name('request.search');
 Route::get('/v/request/proc-search/{search}', [RequestController::class, 'procSearch'])->name('procurement.request.search');
 

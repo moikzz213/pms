@@ -9,7 +9,9 @@ import TableHead from "@mui/material/TableHead";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
-
+import FormGroup from '@mui/material/FormGroup';
+import FormControlLabel from "@mui/material/FormControlLabel";
+import Checkbox from "@mui/material/Checkbox";
 import TableRow from "@mui/material/TableRow";
 import Button from "@mui/material/Button";
 import Paper from "@mui/material/Paper";
@@ -33,6 +35,7 @@ const columns = [
 ];
 
 const Request = ({logged}) => {
+   
     const navigate = useNavigate();
     const params = new Proxy(new URLSearchParams(window.location.search), {
         get: (searchParams, prop) => searchParams.get(prop),
@@ -43,12 +46,16 @@ const Request = ({logged}) => {
     if(!qpage){
         qpage = 1;
     }
+   
     const [page, setPage] = useState(parseInt(qpage));
     const [lastPage, setlastPage] = useState(0);
     const [totalPage, settotalPage] = useState(0);
     const [toPage, settoPage] = useState(0);
     const [fromPage, setfromPage] = useState(0);
-    const [isSearch, setIsSearch ]= useState(false);
+    const [isSearch, setIsSearch ]= useState(false); 
+    const [ownRequest, setOwnRequest ]= useState(0);
+    const [zorderBy, setZorderBy ]= useState([]);
+    const [vSort, setVSort ]= useState(['-','DESC']);
     const [listRequest, setListRequests] = useState([
         {
             id: null,
@@ -61,6 +68,7 @@ const Request = ({logged}) => {
             created_at: "",
         },
     ]);
+    
     const [filterSearch, setFilterSearch] = useState([
         {
             company_id: "",
@@ -69,14 +77,27 @@ const Request = ({logged}) => {
             user_id: "",
         }
     ]);
+
     function fetchRequests(ss = "") {
         let token = localStorage.getItem('auth_token');
         let pg = page;
+        let stats = '';
         if(queryParams.get('page')){
             pg = queryParams.get('page');
         }
+
+        if(queryParams.get('status')){
+            stats = queryParams.get('status');
+        }
+         
+        let sort = "-";
+        if (vSort && vSort.length > 0) {
+            sort = vSort.toString();
+        }  
+        
+        let myrequest = ownRequest;
         API
-            .get("/v/request/fetch-all/"+token+"/?page=" + pg+ss)
+            .get("/v/request/fetch-all/"+token+"/"+sort+"/?page=" + pg+ss+"&own="+myrequest+"&status="+stats)
             .then((response) => {
                 let fetchItems = response.data.item; 
                 
@@ -92,6 +113,8 @@ const Request = ({logged}) => {
                 console.log(error);
             });
     }
+
+    
 
     function dataWithRelations(data){
         let newData = [];
@@ -135,7 +158,7 @@ const Request = ({logged}) => {
         
         let cStatus = params.status;
        
-       
+        
         let czStatus = "";
         
         if (cStatus) {
@@ -162,6 +185,22 @@ const Request = ({logged}) => {
       
         // Replace current querystring with the new one.
         history.replaceState(null, null, "?"+queryParams.toString());
+    };
+
+    const OrderByField = (v) => {
+        if (vSort[1] == 'DESC') {
+            setVSort([v, 'ASC']); 
+        } else {
+            setVSort([v, 'DESC']);
+        } 
+         
+        setPage(1);
+        queryParams.set("page", 1);  
+        history.replaceState(null, null, "?" + queryParams.toString()); 
+
+        setTimeout(() => {
+            fetchRequests();
+        }, 500);
     };
 
     const handleSearch = (e) => {
@@ -237,6 +276,15 @@ const Request = ({logged}) => {
         setFilterSearch(objAssign);
     };
 
+    const searchMyRequest = (e) => {
+        
+        if (!e.target.checked) {
+            setOwnRequest(0); 
+        }else{
+            setOwnRequest(1);  
+        }
+    };
+
     const arrowPage = (n) => {
         let p = page + n;
         if (p > 0 && p <= lastPage) {
@@ -270,11 +318,14 @@ const Request = ({logged}) => {
                         p: "2px 4px",
                         display: "flex",
                         alignItems: "center",
-                        width: 400,
+                        width: 550,
                     }}
                 >
+                        <FormGroup >
+                            <FormControlLabel sx={{ m: 1, width:"150px" }} className="red" onChange={searchMyRequest} control={<Checkbox />}    label="My Request Only" /> 
+                        </FormGroup>
                       <TextField
-                            sx={{ m: 1, width:"150px" }}
+                            sx={{ m: 1, width:"200px" }}
                              
                             select
                             size="small"
@@ -292,6 +343,7 @@ const Request = ({logged}) => {
                             <option value="cancelled"> Cancelled </option>
                         </TextField> 
                     <TextField
+                    
                         size="small"
                         fullWidth
                         placeholder="Search"
@@ -325,6 +377,7 @@ const Request = ({logged}) => {
                                         key={column.id}
                                         align={column.align}
                                         style={{ minWidth: column.minWidth }}
+                                        onClick={(e) => OrderByField(column.id)}
                                     >
                                         {column.label}
                                     </TableCell>

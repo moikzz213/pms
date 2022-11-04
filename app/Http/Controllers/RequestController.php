@@ -27,12 +27,23 @@ class RequestController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function fetch(Request $request, $token)
+    public function fetch(Request $request, $token, $orderby=null)
     {  
         $token = PersonalAccessToken::findToken($token);
         $user = $token->tokenable;
         
         $id = $user->id;
+        
+        $field = 'updated_at';
+        $sort = "DESC";
+
+        if($orderby){
+            $aorderBy = explode(",", $orderby);
+            if($aorderBy[0] !== '-'){
+                $field = $aorderBy[0];
+                $sort = $aorderBy[1]; 
+            }
+        }
         
         $searchData = array();
         if(@$request['company_id']){
@@ -48,34 +59,33 @@ class RequestController extends Controller
             $searchData =  array_merge($searchData,array('user_id' => $request['user_id']));
         }
 
-        if($id == 304){
+        if($id == 304 && $request['own'] == 0){
             $data = Requests::where($searchData)->where( function($query)  use ($id){
                 $query->where('user_id',"=",$id) 
                 ->orWhere('user_id',"=", 261)->orWhere('user_id',"=", 82)
                 ->orWhere('user_id',"=", 19)->orWhere('user_id',"=", 258);
-            })->with("company","location","process_by", "profile")->orderBy("updated_at", "desc")->paginate(10); 
-        }elseif($id == 258){
+            })->with("company","location","process_by", "profile")->orderBy($field, $sort)->paginate(10); 
+        }elseif($id == 258 && $request['own'] == 0){
             $data = Requests::where($searchData)->where( function($query)  use ($id){
                 $query->where('user_id',"=",$id) 
                 ->orWhere('user_id',"=", 261)->orWhere('user_id',"=", 82)
                 ->orWhere('user_id',"=", 19)->orWhere('user_id',"=", 304);
-            })->with("company","location","process_by", "profile")->orderBy("updated_at", "desc")->paginate(10); 
-        }elseif($id == 261){
+            })->with("company","location","process_by", "profile")->orderBy($field, $sort)->paginate(10); 
+        }elseif($id == 261 && $request['own'] == 0){
             $data = Requests::where($searchData)->where( function($query)  use ($id){
                 $query->where('user_id',"=",$id) 
                 ->orWhere('user_id',"=", 258)->orWhere('user_id',"=", 82)
                 ->orWhere('user_id',"=", 19)->orWhere('user_id',"=", 304);
-            })->with("company","location","process_by", "profile")->orderBy("updated_at", "desc")->paginate(10); 
-        }elseif($id == 333 || $id == 249){
+            })->with("company","location","process_by", "profile")->orderBy($field, $sort)->paginate(10); 
+        }elseif(($id == 333 || $id == 249 ) && $request['own'] == 0){
             $data = Requests::where($searchData)->where( function($query)  use ($id){
                 $query->where('user_id',"=",$id)
                 ->orWhere('user_id',"=", 304)->orWhere('user_id',"=", 258)
                 ->orWhere('user_id',"=", 261)->orWhere('user_id',"=", 82)
                 ->orWhere('user_id',"=", 19);
-            })->with("company","location","process_by", "profile")->orderBy("updated_at", "desc")->paginate(10); 
-        }else{
-             
-            $data = Requests::where('user_id',"=",$id)->where($searchData)->with("company","location","process_by", "profile")->orderBy("updated_at", "desc")->paginate(10); 
+            })->with("company","location","process_by", "profile")->orderBy($field, $sort)->paginate(10); 
+        }else{             
+            $data = Requests::where('user_id',"=",$id)->where($searchData)->with("company","location","process_by", "profile")->orderBy($field, $sort)->paginate(10); 
         }
         return response()->json([
             'item' => $data 
@@ -176,7 +186,7 @@ class RequestController extends Controller
                 ->orWhere('user_id' ,"=", 82)
                 ->orWhere('user_id' ,"=", 19);
             })->where("status", "!=", "cancelled")->get(); 
-        }elseif($user->id == 333){
+        }elseif($user->id == 333 || $user->id == 249){
             // jeff - 258
             // jerico - 261
             // arnel - 82
