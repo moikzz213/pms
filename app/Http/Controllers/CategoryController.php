@@ -1,0 +1,154 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Category;
+use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
+
+class CategoryController extends Controller
+{
+    public function __construct()
+    {
+        $this->middleware('auth');
+    } 
+
+    public function fetchAll()
+    { 
+        $data = Category::orderBy('title', 'ASC')->get();
+        return response()->json( $data, 200 ); 
+    } 
+
+    public function fetch(Request $request, $search)
+    {
+        $field = 'title';
+        $sort = "asc";
+        $orderBy = $request['sort'];
+        $perPage = $request['shows'];
+        if($orderBy){
+            $orderBy = explode(",", $orderBy);
+          
+            $field = $orderBy[0];
+            $sort = $orderBy[1];
+        } 
+      
+        if($search && $search !== '-'){
+
+            $data = Category::where("title", "LIKE", "%".$search."%")->orderBy($field, $sort)->paginate($perPage);
+
+        }else{ 
+           
+            $data = Category::orderBy($field, $sort)->paginate($perPage);
+        } 
+        
+        return response()->json( $data, 200); 
+    } 
+ 
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function store(Request $request)
+    {
+        $success = true;
+        $responseCode = 200;
+        $data = '';
+        
+        $newData = $request['data'];
+        $newData['created_at'] = Carbon::now();
+
+        DB::beginTransaction();
+        // do all your updates here
+        try {
+            if(@$newData['id']){
+                $newData = $request['data'];
+               
+                $data = Category::where('id', '=', $newData['id'])->first();  
+                $data->update($newData);
+                $msg = "Data has been updated";
+            }else{
+                $data = DB::table("categories")->insertGetId($newData);
+                $msg = "Data has been added";
+            }
+            DB::commit();
+            
+        } catch (\Exception $e) {
+            DB::rollback();
+            $success = false;
+            $msg = "Error: Failed to add the data!";
+            $responseCode = 500;
+        }
+
+        return response()->json([
+            'success' => $success,
+            'msg' => $msg,
+            'id' => $data,
+           
+        ], $responseCode);
+    }
+     
+    public function show(Request $request)
+    {
+        $data = Category::where('id', '=', $request->id)->first(); 
+
+        return response()->json( $data , 200); 
+    } 
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Models\Category  $Category
+     * @return \Illuminate\Http\Response
+     */
+    public function update(Request $request)
+    {
+        $success = true;
+        $responseCode = 200;
+        $data = '';
+        $newData = $request->data[0]; 
+      
+        DB::beginTransaction();
+        // do all your updates here
+        try { 
+            $data = Category::where('id', '=', $request->id)->first(); 
+            
+            $data->update($newData);
+            $msg = "Data has been updated!"; 
+          
+            DB::commit();
+            
+        } catch (\Exception $e) {
+            DB::rollback(); 
+            $success = false;
+            $msg = "Error: Failed to update the data!";
+            $responseCode = 500;
+        }
+
+        return response()->json([
+            'success' => $success,
+            'msg' => $msg
+        ], $responseCode);
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  \App\Models\Category  $Category
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy(Request $request)
+    {
+        $data = Category::where('id', '=', $request->id)->first(); 
+            
+        $data->delete();
+        $msg = "Data has been deleted!"; 
+        return response()->json([
+            'success' => true,
+            'msg' =>  "Data has been deleted!"
+        ], 200);
+    }
+}
