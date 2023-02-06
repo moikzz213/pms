@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateCurrenciesTable extends Migration
+class CreateComparisonItemsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,10 +13,13 @@ class CreateCurrenciesTable extends Migration
      */
     public function up()
     {
-        Schema::create('currencies', function (Blueprint $table) {
+        Schema::create('comparison_items', function (Blueprint $table) {
             $table->id();
-            $table->string('title', 5);
-            $table->string('value', 5);
+            $table->unsignedBigInteger('comparison_id');
+            $table->string('title',200);
+            $table->text('description');
+            $table->unsignedInteger('qty')->default(1);
+            $table->string('uom', 50);
             $table->timestamps();
         });
     }
@@ -28,6 +31,6 @@ class CreateCurrenciesTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('currencies');
+        Schema::dropIfExists('comparison_items');
     }
 }

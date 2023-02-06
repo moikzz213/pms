@@ -1,7 +1,7 @@
 <template>
   <div>
     <v-app-bar color="white" dense class="elevation-0 mt-10">
-      <v-toolbar-title class="overline">Local Purchase Orders</v-toolbar-title>
+      <v-toolbar-title class="overline">Comparisons</v-toolbar-title>
     </v-app-bar>
     <v-container class="py-8" v-if="pageLoading == true">
       <v-row>
@@ -22,17 +22,13 @@
           <v-card class="px-5">
             <v-row>
               <v-col class="col-md-12 col-sm-12 d-flex">
-                <v-btn small to="/d/admin/local-purchase-orders/new" class="primary mr-3 my-auto">
+                <v-btn small to="/d/admin/comparisons/new" class="primary mr-3 my-auto">
                   <v-icon>mdi-plus</v-icon></v-btn>
                 <v-autocomplete :items="companies" @click="fetchCompany" clearable v-model="dataFilter.company_id" dense
                   outlined hide-details label="Company" class="mt-0 mr-3" item-value="id"
-                  item-text="title"></v-autocomplete>
+                  item-text="title"></v-autocomplete> 
 
-                <v-autocomplete :items="suppliers" @click="fetchSuppliers" clearable v-model="dataFilter.supplier_id"
-                  dense outlined hide-details label="Supplier" class="mt-0 mr-3" item-value="id"
-                  item-text="title"></v-autocomplete>
-
-                <v-autocomplete :items="processedBy" clearable v-model="dataFilter.process_by" dense outlined
+                <v-autocomplete :items="processedBy" @click="fetchProcTeam" clearable v-model="dataFilter.process_by" dense outlined
                   hide-details label="Processed By" class="mt-0 mr-3" item-value="id" item-text="name"></v-autocomplete>
 
                 <v-autocomplete :items="statusList" clearable v-model="dataFilter.status" dense outlined hide-details
@@ -60,21 +56,14 @@
                     <th class="text-left cursor-pointer" @click="OrderByField('status')">
                       Status
                     </th>
-                    <th class="text-left cursor-pointer" @click="OrderByField('lpo_no')">
-                      LPO NO.
-                    </th>
-                    <th class="text-left cursor-pointer" @click="OrderByField('prf_no')">
-                      PRF NO.
-                    </th>
+                   
                     <th class="text-left cursor-pointer" @click="OrderByField('company_id')">
                       Business Unit
                     </th>
                     <th class="text-left cursor-pointer" @click="OrderByField('supplier_id')">
-                      Supplier
+                      Title
                     </th>
-                    <th class="text-left cursor-pointer" @click="OrderByField('supplier_id')">
-                      Amount
-                    </th>
+                   
                     <th class="text-left cursor-pointer" @click="OrderByField('process_by')">
                       Processed By
                     </th>
@@ -85,20 +74,7 @@
                 </thead>
                 <tbody v-if="items && Object.keys(items).length > 0">
                   <tr v-for="(item, index) in items" :key="item.id">
-                    <td>{{ pageStart + index }}</td>
-                    <td :class="`${item.status} view-detail`" @click="routeLocation(item)">{{
-                      cleanStatus(item.status)
-                    }}</td>
-                    <td>{{ item.lpo_no }}</td>
-                    <td>{{ item.requests.prf_no }} <span v-if="item.prf_extension">-{{ item.prf_extension }}</span></td>
-                    <td>{{ item.company }}</td>
-                    <td>{{ item.supplier ? item.supplier.title : '' }}</td>
-                    <td>{{
-                      item.net_amount ? item.net_amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") : "0.00",
-                    }}</td>
-                    <td>{{ item.process_by ? item.process_by.name : '' }}</td>
-
-                    <td>{{ formatDateHelper(item.created_at) }}</td>
+                   
                   </tr>
                 </tbody>
               </template>
@@ -149,7 +125,7 @@ export default {
       processedBy: [],
       companies: [],
       suppliers: [],
-      filterLoaded: { comp: false, process: false, requested: false },
+      filterLoaded: { comp: false, process: false },
     };
   },
   methods: {
@@ -176,7 +152,7 @@ export default {
 
       let controller = '';
       if (this.dataFilter.search) {
-        controller = "/d/admin/local-purchase-orders/fetch/" + this.dataFilter.search + "?page=1&sort=" + sort;
+        controller = "/d/admin/comparisons/fetch/" + this.dataFilter.search + "?page=1&sort=" + sort;
 
       } else {
         let bdata = filter;
@@ -189,11 +165,9 @@ export default {
         if (bdata && bdata.process_by) {
           dataProcess = '&process_by=' + bdata.process_by;
         }
-        if (bdata && bdata.supplier_id) {
-          dataRequest = '&supplier_id=' + bdata.supplier_id;
-        }
+        
         controller =
-          "/d/admin/local-purchase-orders/fetch/-?page=" + page + "&sort=" + sort + dataComp + dataProcess + dataRequest;
+          "/d/admin/comparisons/fetch/-?page=" + page + "&sort=" + sort + dataComp + dataProcess + dataRequest;
       }
       response = await axios.get(controller);
       this.loaderOptions.status = false;
@@ -217,8 +191,8 @@ export default {
 
       let controller = '';
       if (this.dataFilter.search) {
-        this.localStorage.setItem("vlocal-purchase-order", this.dataFilter.search);
-        controller = "/d/admin/local-purchase-orders/fetch/" + this.dataFilter.search + "?page=1&sort=" + sort;
+        this.localStorage.setItem("vcomparison", this.dataFilter.search);
+        controller = "/d/admin/comparisons/fetch/" + this.dataFilter.search + "?page=1&sort=" + sort;
       } else {
         let bdata = this.dataFilter;
         let dataComp = '';
@@ -231,14 +205,12 @@ export default {
         if (bdata.process_by) {
           dataProcess = '&process_by=' + bdata.process_by;
         }
-        if (bdata.supplier_id) {
-          dataRequest = '&supplier_id=' + bdata.supplier_id;
-        }
+        
         if (bdata.status) {
           status = '&status=' + bdata.status;
         }
         controller =
-          "/d/admin/local-purchase-orders/fetch/-?page=1&sort=" + sort + dataComp + dataProcess + dataRequest + status;
+          "/d/admin/comparisons/fetch/-?page=1&sort=" + sort + dataComp + dataProcess + dataRequest + status;
       }
       response = await axios.get(controller);
 
@@ -253,11 +225,11 @@ export default {
     },
 
     onPageChange: function () {
-      this.$router.push("/d/admin/local-purchase-orders/page/" + this.page).catch((err) => { });
+      this.$router.push("/d/admin/comparisons/page/" + this.page).catch((err) => { });
     },
 
     clearSearch: function (v) {
-      this.localStorage.setItem("vlocal-purchase-order", "");
+      this.localStorage.setItem("vcomparison", "");
       this.dataFilter.search = "";
       if (this.$route.params.page) {
         this.getAllData(this.$route.params.page);
@@ -268,23 +240,26 @@ export default {
 
     routeLocation(obj) {
       this.$router.push({
-        name: "EditLpo",
+        name: "EditComparison",
         params: { id: obj.id },
       });
     },
 
     fetchCompany: async function () {
       if (!this.filterLoaded.comp) {
+        this.filterLoaded.comp = true;
         await axios
           .get("/d/admin/fetch/non-paginate/companies")
           .then((response) => {
             this.companies = Object.assign([], response.data);
           });
-        this.filterLoaded.comp = true;
+      
       }
-    },
-    fetchProcTeam: async function () {
+    }, 
 
+    fetchProcTeam: async function () {
+      if (!this.filterLoaded.process) {
+        this.filterLoaded.process = true;
       await axios
         .get("/d/admin/profile/procurements/list")
         .then((response) => {
@@ -298,26 +273,15 @@ export default {
           }
         });
 
-      this.filterLoaded.process = true;
+      
+    }
 
-    },
-
-    fetchSuppliers: async function () {
-      if (!this.filterLoaded.requested) {
-        await axios
-          .get("/d/admin/fetch/non-paginate/suppliers")
-          .then((response) => {
-           
-            this.suppliers = Object.assign([], response.data);
-          });
-        this.filterLoaded.requested = true;
-      }
-    },
+},
 
   },
   created() {
-    this.dataFilter.search = this.localStorage.getItem("vlocal-purchase-order");
-    this.fetchProcTeam().then(() => {
+    this.dataFilter.search = this.localStorage.getItem("vcomparison");
+    
       if (this.$route.params.page) {
         this.getAllData(this.$route.params.page).then(() => {
           this.pageLoading = false;
@@ -327,7 +291,7 @@ export default {
           this.pageLoading = false;
         });
       }
-    });
+    
   },
   watch: {
     $route(to, from) {

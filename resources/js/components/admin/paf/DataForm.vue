@@ -418,7 +418,7 @@
           <v-row class="mt-5 padding-0 ">
             <div class="col-6 d-flex padding-0 ">
               <img 
-                :src="`/file/${formObj.requests && formObj.requests.company.images.length > 0 ? formObj.requests.company.images[0].path : 'GAG.png'}`"
+                :src="`/file/${formObj.company && formObj.company.images.length > 0 ? formObj.company.images[0].path : 'GAG.png'}`"
                 aspect-ratio="1" style="margin-top:-20px; width:180px;">
                 <h4 class="ml-3 my-auto">{{ formObj.company ? formObj.company.title : '' }}</h4>
             </div>
@@ -545,7 +545,7 @@
  
           <v-row class="padding-0 mt-1">
             <v-col class="padding-0">
-              <table border="1" cellspacing="0" cellpadding="2" class="pb-0">
+              <table border="1" cellspacing="0" cellpadding="0" class="pb-0">
                 <tr>
                   <td width="20%" class="px-2">AMOUNT IN WORDS</td>
                   <td class="px-2 text-capitalize">{{ formObj.amount_in_words }}</td>
@@ -561,12 +561,12 @@
                 <tr>
                   <td class="px-2">PRF's/LPO'S</td>
                   <td class="px-2"> 
-                    <div v-if="formObj.lpos && formObj.lpos.length > 0">
+                    <div class="my-0 py-0" v-if="formObj.lpos && formObj.lpos.length > 0">
                       <span v-for="srNum in formObj.lpos" :key="srNum.id">
                         {{ srNum.lpo_no }}
                       </span>
                     </div>
-                    <div v-else-if="formObj.prfs && formObj.prfs.length > 0">
+                    <div class="my-0 py-0" v-else-if="formObj.prfs && formObj.prfs.length > 0">
                       <span v-for="srNum in formObj.prfs" :key="srNum.id">
                         {{ srNum.prf_no }}
                       </span>
@@ -1189,16 +1189,21 @@ export default {
     },
   },
   created() {
-
+     
     if (this.pagetitle == 'edit') {
       this.formEditable = false;
       this.pageLoading = false;
     } else {
       this.formObj.requestor = this.auth.profile ? this.auth.profile.name : '';
-
+      
       this.fetchLPO().then(() => {
         this.fetchPRF().then(() => {
           this.fetchCurrency();
+
+          if(this.$route.params && this.$route.params.request_id){
+            this.formObj.relation = 'prf';
+            this.ObjPrf = this.$route.params.request_id;
+          }
           this.pageLoading = false;
         });
       });

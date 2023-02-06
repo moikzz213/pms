@@ -48,6 +48,10 @@ import Settings from "../components/admin/Settings";
  
 import Reports from "../components/admin/reports/data";
 let adminOnly = ["admin", "procurement"];
+
+import Comparisons from "../components/admin/comparison/List";
+import EditComparison from "../components/admin/comparison/EditData";
+import NewComparison from "../components/admin/comparison/NewData";
  
 let auth = store.state.authUser;
  
@@ -132,9 +136,7 @@ export const routes = [
         component: Reports,
         name: "Reports",
         beforeEnter: (to, from, next) => {
-             auth.userObject.status == 'active'
-                ? next()
-                : next({ name: "ForbiddenPage" });
+            validateAccess("reports") ? next() : next({ name: "ForbiddenPage" });
         }
     },
     /**
@@ -146,9 +148,7 @@ export const routes = [
         component: Lpo,
         name: "lpo",
         beforeEnter: (to, from, next) => {
-             auth.userObject.status == 'active'
-                ? next()
-                : next({ name: "ForbiddenPage" });
+            validateAccess("lpo") ? next() : next({ name: "ForbiddenPage" });
         }
     },
     {
@@ -156,20 +156,24 @@ export const routes = [
         component: Lpo,
         name: "page-lpo",
         beforeEnter: (to, from, next) => {
-             auth.userObject.status == 'active'
-                ? next()
-                : next({ name: "ForbiddenPage" });
+            validateAccess("lpo") ? next() : next({ name: "ForbiddenPage" });
         }
     },
     {
         path: "/d/admin/local-purchase-orders/new",
         component: NewLpo,
-        name: "NewLpo"
+        name: "NewLpo",
+        beforeEnter: (to, from, next) => {
+            validateAccess("lpo") ? next() : next({ name: "ForbiddenPage" });
+        }
     },
     {
         path: "/d/admin/local-purchase-orders/edit/:id",
         component: EditLpo,
-        name: "EditLpo"
+        name: "EditLpo",
+        beforeEnter: (to, from, next) => {
+            validateAccess("lpo") ? next() : next({ name: "ForbiddenPage" });
+        }
     },
 
 
@@ -180,11 +184,9 @@ export const routes = [
     {
         path: "/d/admin/payment-approval-forms",
         component: Paf,
-        name: "lpo",
+        name: "paf",
         beforeEnter: (to, from, next) => {
-             auth.userObject.status == 'active'
-                ? next()
-                : next({ name: "ForbiddenPage" });
+            validateAccess("paf") ? next() : next({ name: "ForbiddenPage" });
         }
     },
     {
@@ -192,20 +194,61 @@ export const routes = [
         component: Paf,
         name: "page-paf",
         beforeEnter: (to, from, next) => {
-             auth.userObject.status == 'active'
-                ? next()
-                : next({ name: "ForbiddenPage" });
+            validateAccess("paf") ? next() : next({ name: "ForbiddenPage" });
         }
     },
     {
         path: "/d/admin/payment-approval-forms/new",
         component: NewPaf,
-        name: "NewPaf"
+        name: "NewPaf",
+        beforeEnter: (to, from, next) => {
+            validateAccess("paf") ? next() : next({ name: "ForbiddenPage" });
+        }
     },
     {
         path: "/d/admin/payment-approval-forms/edit/:id",
         component: EditPaf,
-        name: "EditPaf"
+        name: "EditPaf",
+        beforeEnter: (to, from, next) => {
+            validateAccess("paf") ? next() : next({ name: "ForbiddenPage" });
+        }
+    }, 
+
+    /**
+     * Comparisons
+     */
+
+    {
+        path: "/d/admin/comparisons",
+        component: Comparisons,
+        name: "comparisons",
+        beforeEnter: (to, from, next) => {
+            validateAccess("comparisons") ? next() : next({ name: "ForbiddenPage" });
+        }
+    },
+    {
+        path: "/d/admin/comparisons/page/:page",
+        component: Comparisons,
+        name: "page-comparisons",
+        beforeEnter: (to, from, next) => {
+            validateAccess("comparisons") ? next() : next({ name: "ForbiddenPage" });
+        }
+    },
+    {
+        path: "/d/admin/comparisons/new",
+        component: NewComparison,
+        name: "NewComparison",
+        beforeEnter: (to, from, next) => {
+            validateAccess("comparisons") ? next() : next({ name: "ForbiddenPage" });
+        }
+    },
+    {
+        path: "/d/admin/comparisons/edit/:id",
+        component: EditComparison,
+        name: "EditComparison",
+        beforeEnter: (to, from, next) => {
+            validateAccess("comparisons") ? next() : next({ name: "ForbiddenPage" });
+        }
     },
 
     /**
@@ -252,9 +295,7 @@ export const routes = [
         component: ProcRequests,
         name: "procurement-team",
         beforeEnter: (to, from, next) => {
-             auth.userObject.status == 'active'
-                ? next()
-                : next({ name: "ForbiddenPage" });
+            validateAccess("procurement-team") ? next() : next({ name: "ForbiddenPage" });
         }
     },
     {
@@ -262,16 +303,17 @@ export const routes = [
         component: ProcRequests,
         name: "page-procurement-team",
         beforeEnter: (to, from, next) => {
-             auth.userObject.status == 'active'
-                ? next()
-                : next({ name: "ForbiddenPage" });
+            validateAccess("procurement-team") ? next() : next({ name: "ForbiddenPage" });
         }
     },
    
     {
         path: "/d/admin/procurement-team/edit/:id",
         component: ViewRequest,
-        name: "viewRequest"
+        name: "viewRequest",
+        beforeEnter: (to, from, next) => {
+            validateAccess("procurement-team") ? next() : next({ name: "ForbiddenPage" });
+        }
     },
     
     
@@ -284,9 +326,7 @@ export const routes = [
         component: Suppliers,
         name: "Suppliers",
         beforeEnter: (to, from, next) => {
-             auth.userObject.status == 'active'
-                ? next()
-                : next({ name: "ForbiddenPage" });
+            validateAccess("suppliers") ? next() : next({ name: "ForbiddenPage" });
         }
     },
     {
@@ -294,20 +334,24 @@ export const routes = [
         component: Suppliers,
         name: "page-suppliers",
         beforeEnter: (to, from, next) => {
-             auth.userObject.status == 'active'
-                ? next()
-                : next({ name: "ForbiddenPage" });
+            validateAccess("suppliers") ? next() : next({ name: "ForbiddenPage" });
         }
     },
     {
         path: "/d/admin/suppliers/new",
         component: NewSupplier,
-        name: "NewSupplier"
+        name: "NewSupplier",
+        beforeEnter: (to, from, next) => {
+            validateAccess("suppliers") ? next() : next({ name: "ForbiddenPage" });
+        }
     },
     {
         path: "/d/admin/suppliers/edit/:id",
         component: EditSupplier,
-        name: "EditSupplier"
+        name: "EditSupplier",
+        beforeEnter: (to, from, next) => {
+            validateAccess("suppliers") ? next() : next({ name: "ForbiddenPage" });
+        }
     },
 
     /**
@@ -319,9 +363,7 @@ export const routes = [
         component: Companies,
         name: "Companies",
         beforeEnter: (to, from, next) => {
-             auth.userObject.status == 'active'
-                ? next()
-                : next({ name: "ForbiddenPage" });
+            validateAccess("lpo") ? next() : next({ name: "ForbiddenPage" });
         }
     },
     {
@@ -329,20 +371,24 @@ export const routes = [
         component: Companies,
         name: "page-companies",
         beforeEnter: (to, from, next) => {
-             auth.userObject.status == 'active'
-                ? next()
-                : next({ name: "ForbiddenPage" });
+            validateAccess("lpo") ? next() : next({ name: "ForbiddenPage" });
         }
     },
     {
         path: "/d/admin/companies/new",
         component: NewCompany,
-        name: "NewCompany"
+        name: "NewCompany",
+        beforeEnter: (to, from, next) => {
+            validateAccess("lpo") ? next() : next({ name: "ForbiddenPage" });
+        }
     },
     {
         path: "/d/admin/companies/edit/:id",
         component: EditCompany,
-        name: "EditCompany"
+        name: "EditCompany",
+        beforeEnter: (to, from, next) => {
+            validateAccess("lpo") ? next() : next({ name: "ForbiddenPage" });
+        }
     },
     /**
      * Departments
@@ -353,9 +399,7 @@ export const routes = [
         component: Departments,
         name: "Departments",
         beforeEnter: (to, from, next) => {
-             auth.userObject.status == 'active'
-                ? next()
-                : next({ name: "ForbiddenPage" });
+            validateAccess("lpo") ? next() : next({ name: "ForbiddenPage" });
         }
     },
     {
@@ -363,20 +407,24 @@ export const routes = [
         component: Departments,
         name: "page-departments",
         beforeEnter: (to, from, next) => {
-             auth.userObject.status == 'active'
-                ? next()
-                : next({ name: "ForbiddenPage" });
+            validateAccess("lpo") ? next() : next({ name: "ForbiddenPage" });
         }
     },
     {
         path: "/d/admin/departments/new",
         component: NewDepartment,
-        name: "NewDepartment"
+        name: "NewDepartment",
+        beforeEnter: (to, from, next) => {
+            validateAccess("lpo") ? next() : next({ name: "ForbiddenPage" });
+        }
     },
     {
         path: "/d/admin/departments/edit/:id",
         component: EditDepartment,
-        name: "EditDepartment"
+        name: "EditDepartment",
+        beforeEnter: (to, from, next) => {
+            validateAccess("lpo") ? next() : next({ name: "ForbiddenPage" });
+        }
     },
     /**
      * Locations
@@ -387,9 +435,7 @@ export const routes = [
         component: Locations,
         name: "Locations",
         beforeEnter: (to, from, next) => {
-             auth.userObject.status == 'active'
-                ? next()
-                : next({ name: "ForbiddenPage" });
+            validateAccess("lpo") ? next() : next({ name: "ForbiddenPage" });
         }
     },
     {
@@ -397,20 +443,24 @@ export const routes = [
         component: Locations,
         name: "page-locations",
         beforeEnter: (to, from, next) => {
-             auth.userObject.status == 'active'
-                ? next()
-                : next({ name: "ForbiddenPage" });
+            validateAccess("lpo") ? next() : next({ name: "ForbiddenPage" });
         }
     },
     {
         path: "/d/admin/locations/new",
         component: NewLocation,
-        name: "NewLocation"
+        name: "NewLocation",
+        beforeEnter: (to, from, next) => {
+            validateAccess("lpo") ? next() : next({ name: "ForbiddenPage" });
+        }
     },
     {
         path: "/d/admin/locations/edit/:id",
         component: EditLocation,
-        name: "EditLocation"
+        name: "EditLocation",
+        beforeEnter: (to, from, next) => {
+            validateAccess("lpo") ? next() : next({ name: "ForbiddenPage" });
+        }
     },
    
     /**
@@ -422,9 +472,7 @@ export const routes = [
         component: Categories,
         name: "Categories",
         beforeEnter: (to, from, next) => {
-             auth.userObject.status == 'active'
-                ? next()
-                : next({ name: "ForbiddenPage" });
+            validateAccess("lpo") ? next() : next({ name: "ForbiddenPage" });
         }
     },
     {
@@ -432,20 +480,24 @@ export const routes = [
         component: Categories,
         name: "page-categories",
         beforeEnter: (to, from, next) => {
-             auth.userObject.status == 'active'
-                ? next()
-                : next({ name: "ForbiddenPage" });
+            validateAccess("lpo") ? next() : next({ name: "ForbiddenPage" });
         }
     },
     {
         path: "/d/admin/categories/new",
         component: NewCategory,
-        name: "NewCategory"
+        name: "NewCategory",
+        beforeEnter: (to, from, next) => {
+            validateAccess("lpo") ? next() : next({ name: "ForbiddenPage" });
+        }
     },
     {
         path: "/d/admin/categories/edit/:id",
         component: EditCategory,
-        name: "EditCategory"
+        name: "EditCategory",
+        beforeEnter: (to, from, next) => {
+            validateAccess("lpo") ? next() : next({ name: "ForbiddenPage" });
+        }
     },
 
     // Imports
@@ -466,11 +518,7 @@ export const routes = [
         beforeEnter: (to, from, next) => {
             validateAccess("users") ? next() : next({ name: "ForbiddenPage" });
         },
-    },
-    
-     
-
- 
+    }, 
 
     {
         path: "/d/moderators",
@@ -483,7 +531,5 @@ export const routes = [
             }  
             window.location.href = "/d/admin/" + slug;
         },
-    },
-
-  
+    }, 
 ]; 

@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Company;
 use App\Models\Requests;
 use App\Models\Supplier;
+use App\Models\Comparison;
 use App\Models\Local_purchase_order;
 use App\Models\Payment_approval_form;
 use Illuminate\Database\Eloquent\Model;
@@ -19,6 +20,11 @@ class Log extends Model
     public function request()
     {
         return $this->morphedByMany(Requests::class, 'loggable');
+    }
+
+    public function comparison()
+    {
+        return $this->morphedByMany(Comparison::class, 'loggable');
     }
 
     public function company()

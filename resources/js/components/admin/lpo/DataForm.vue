@@ -1240,7 +1240,7 @@ export default {
     },
   },
   created() {
-    console.log(this.approvers);
+   
     if (this.pagetitle == 'edit') {
       this.formEditable = false;
 
@@ -1249,6 +1249,11 @@ export default {
       this.fetchPRF().then(() => {
         this.fetchCategories().then(() => {
           this.fetchCurrency();
+
+          if(this.$route.params && this.$route.params.request_id){
+           
+            this.ObjPrf = this.$route.params.request_id;
+          }
           this.pageLoading = false;
         });
       });

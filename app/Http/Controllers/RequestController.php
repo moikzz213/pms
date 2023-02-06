@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use Swift_Mailer;
+//use Swift_Mailer;
 use App\Models\Requests;
 use App\Models\Local_purchase_order;
-#use Swift_SmtpTransport;
+//use Swift_SmtpTransport;
 use App\Jobs\CancelRequest;
 use App\Jobs\RecipientMailJob;
 use Illuminate\Support\Str;
@@ -477,7 +477,7 @@ class RequestController extends Controller
                 $msg = "Request has been updated!";  
             }else{
                 $msg = "New request has been created!";  
-                    //procurementgroup@gagroup.net
+                    //jacob@gagroup.net
                     $emails = 'jacob@gagroup.net';
                     $details = array("prf_no" => $prfNo, 'data' => $post['details'], 'user_id' => $userId);
                     $rabbitArray = array("details" => $details, "email" => $emails, "subject" => "New Request");
@@ -514,7 +514,7 @@ Project requests: Will take at least 2 months.";
                         RequestToProcurement::dispatchAfterResponse($rabbitArray);
                     }
                     if($have_recipient){
-                      //  RecipientMailJob::dispatchAfterResponse($recipients_data);
+                        RecipientMailJob::dispatchAfterResponse($recipients_data);
                     }
                 }  catch (Exception $e) {
                     $msg = 'Request has been '.$request['type'] .' But Email notification has not been sent!';
@@ -562,7 +562,7 @@ Project requests: Will take at least 2 months.";
 
         }elseif($request['type'] == 'cancelled'){ 
             
-             $emails = 'procurementgroup@gagroup.net';
+             $emails = 'jacob@gagroup.net';
              $rabbitArray = array("details" => $data, "email" => $emails, "subject" => "Request Cancelled");
              
              if($data){
@@ -572,7 +572,7 @@ Project requests: Will take at least 2 months.";
                     // $transport->setPassword('G4@Sf4V52zY46$4T6du');
                     // $mailer = new Swift_Mailer($transport);
                     // $mailer->getTransport()->start();
-                    //CancelRequest::dispatch($rabbitArray);
+                    CancelRequest::dispatch($rabbitArray);
                 }  catch (Exception $e) {
                     $msg = 'Request has been '.$request['type'] .' But Email notification has not been sent!';
                 }
@@ -614,7 +614,7 @@ Project requests: Will take at least 2 months.";
                     // $transport->setPassword('G4@Sf4V52zY46$4T6du');
                     // $mailer = new Swift_Mailer($transport);
                     // $mailer->getTransport()->start();
-                    // RequestAssignToProcurement::dispatch($rabbitArray);
+                    RequestAssignToProcurement::dispatch($rabbitArray);
                 }
             }  catch (Exception $e) {
                 $msg = "Request has been assigned! But Email notification has not been sent!"; 
@@ -693,7 +693,7 @@ Project requests: Will take at least 2 months.";
             }
 
            $rabbitArray = array("details" => $newArray, 'email' => 'jacob@gagroup.net');
-          // ReminderNotification::dispatch($rabbitArray);
+           ReminderNotification::dispatch($rabbitArray);
         }
       
         return;

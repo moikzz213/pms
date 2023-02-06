@@ -132,8 +132,8 @@
                               Only <strong>ON PROCESS</strong> status can create LPO/PAF
                             </div>
                             <div v-else-if="formObj.status == 'onprocess'">
-                              <v-btn class="secondary" :loading="loadingSubmit" small>CREATE LPO</v-btn>
-                              <v-btn class="primary mx-2" :loading="loadingSubmit" small>CREATE PAF</v-btn>
+                              <v-btn class="secondary" :loading="loadingSubmit" small @click="routeLocation('NewLpo', formObj.id)">CREATE LPO</v-btn>
+                              <v-btn class="primary mx-2" :loading="loadingSubmit" small @click="routeLocation('NewPaf', formObj.id)">CREATE PAF</v-btn>
                             </div>
                             <div v-else-if="formObj.status == 'cancelled' || formObj.status == 'closed'">
                               <div>Once the request has been cancelled/closed it will no longer be updated.</div>
@@ -142,7 +142,7 @@
                           </v-col>
                           <v-col col="12" md="6" v-if="auth.role == 'admin' || formObj.status !== 'cancelled' && formObj.status !== 'closed'">
                             <div>
-                                <v-btn v-if="formObj.status != 'cancelled'" @click="changeStatus('cancelled')" class="error mx-2" :loading="loadingSubmit" small>CANCEL</v-btn>
+                                <!-- <v-btn v-if="formObj.status != 'cancelled'" @click="changeStatus('cancelled')" class="error mx-2" :loading="loadingSubmit" small>CANCEL</v-btn> -->
                                 <v-btn v-if="formObj.status != 'onhold'" @click="changeStatus('onhold')" class="secondary  mx-2" :loading="loadingSubmit" small>ONHOLD</v-btn>
                                 <v-btn v-if="formObj.status != 'onprocess'" @click="changeStatus('onprocess')" class="info  mx-2" :loading="loadingSubmit" small>ON PROCESS</v-btn>
                                 <v-btn v-if="formObj.status != 'closed'" @click="changeStatus('closed')" class="success  mx-2" :loading="loadingSubmit" small>CLOSED</v-btn>
@@ -267,6 +267,14 @@ export default {
     },
   },
   methods: {
+    routeLocation(page, id) {
+    
+      this.$router.push({
+        name: page,
+        params: {request_id: id}
+      });
+    },
+
     funcEditForm: function (v) {
       this.isEditEnable = v;
       this.formEditable = v;
@@ -313,8 +321,7 @@ export default {
 
 
   },
-  created() {
-    console.log(this.auth);
+  created() { 
     this.pageLoading = false;
   },
 };

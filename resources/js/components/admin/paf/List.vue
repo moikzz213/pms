@@ -189,7 +189,7 @@ export default {
       }
       response = await axios.get(controller);
       this.loaderOptions.status = false;
-      console.log(response.data);
+       
       if (response.data) {
         this.items = Object.assign([], response.data.data);
         this.page = response.data.current_page;

@@ -157,7 +157,7 @@
                                 clearable hide-details></v-text-field>
                                 <div v-else>Normal Requests will take atleast 14 working days.</div>
                                 <div v-if="formObj.status && formObj.status == 'onprocess'">
-                                  Note: Contact the Procurement Team who is processing this request to change the status to ON HOLD for you to edit the description.
+                                  Note: Contact the Procurement Team who is processing this request to change the status to ON HOLD for you to edit.
                                 </div>
                             </v-col>
                           </v-row>

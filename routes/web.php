@@ -10,6 +10,7 @@ use App\Http\Controllers\RequestController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\ComparisonController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\LocalPurchaseOrderController;
 use App\Http\Controllers\PaymentApprovalFormController;
@@ -112,8 +113,10 @@ Route::post('/admin/request/update-status', [RequestController::class, 'updateSt
 Route::post('/admin/requests/save', [RequestController::class, 'store'])->name('request.new');                                              // updated
 Route::get('/admin/request/fetch-single/{id}', [RequestController::class, 'show'])->name('request.show');                                   // updated
 
-// Route::get('/v/request/search/{id}/{search}', [RequestController::class, 'search'])->name('request.search'); 
-// Route::post('/v/request/filter/search', [RequestController::class, 'requestorFilterStatus'])->name('request.filter.requestor.search');
+// Comparisons
+Route::get('/admin/comparisons/fetch/{search}',  [ComparisonController::class, 'fetch'])->name('comparisons.paginate.fetch');        // updated      
+Route::post('/admin/comparisons/save', [ComparisonController::class, 'store'])->name('comparisons.new');                                    
+Route::get('/admin/comparisons/fetch-single/{id}', [ComparisonController::class, 'show'])->name('comparisons.show');                
 
 Route::get('/requests/dashboard', [RequestController::class, 'dashboard'])->name('request.dashboard'); // updated - not complete
 Route::get('/admin/request/fetch-onprocess/pendings', [RequestController::class, 'fetchAllOnProcess'])->name('request.fetch.fetch-pending'); // updated 
