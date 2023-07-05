@@ -19,7 +19,7 @@ class SupplierController extends Controller
     } 
 
     public function saveData(Request $request)
-    {
+    { 
 
         $user_id = auth()->id();
         $data = NULL;

@@ -42,7 +42,7 @@ class CancelRequest implements ShouldQueue
         $details = $publisherData['details'];
         $employeeEmail = $publisherData['email'];   
         $subject =  $publisherData['subject'];
-        $user = $details['user_id'];
+        $user = $publisherData['cancelledBy'];
 
         $profile = Profile::where('user_id', '=', $user)->with('company', 'department')->first(); 
         $details['profile'] = $profile;

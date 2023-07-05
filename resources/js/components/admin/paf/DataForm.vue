@@ -85,8 +85,8 @@
                                 <v-col class="my-auto col-8 col-md-8 col-sm-8 py-1">
                                   <ValidationProvider v-slot="{ errors }" rules="required" name="Supplier">
                                     <v-autocomplete :items="supplierList" @click="fetchSuppliers" multiple return-object
-                                      v-model="ObjSupplier" item-value="id" item-text="title" outlined dense
-                                      hide-details label="Supplier*" :error-messages="errors">
+                                      v-model="ObjSupplier" item-value="id" item-text="title" outlined dense hide-details
+                                      label="Supplier*" :error-messages="errors">
                                     </v-autocomplete>
                                   </ValidationProvider>
 
@@ -98,7 +98,8 @@
                             <v-col class="col-6 pr-10">
                               <v-row>
                                 <v-col class="my-auto col-4 col-md-4 col-sm-4 py-1"> {{
-                                  formObj.relation == 'prf' ? 'PRF NO.' : 'LPO NO.' }} </v-col>
+                                  formObj.relation == 'prf' ? 'PRF NO.' : 'LPO NO.'
+                                }} </v-col>
                                 <v-col class="my-auto col-8 col-md-8 col-sm-8 py-1">
                                   <ValidationProvider v-if="formObj.relation == 'prf'" v-slot="{ errors }"
                                     rules="required" name="PRF">
@@ -177,9 +178,9 @@
                                       <th>LOCATION</th>
                                       <th>SUPPLIER*</th>
                                       <th>SUPPLIER INVOICE#</th>
-                                      <th>DESCRIPTION</th>
+                                      <th width="200">DESCRIPTION</th>
                                       <th>S/N*</th>
-                                      <th>INVOICE DATE</th>
+                                      <th width="50">INVOICE DATE</th>
                                       <th>QTY</th>
                                       <th>UNIT PRICE</th>
                                       <th>TOTAL AMOUNT</th>
@@ -204,9 +205,9 @@
                                       </td>
                                       <td>
 
-                                      <v-autocomplete item-value="id" item-text="title" :items="ObjSupplier"
+                                        <v-autocomplete item-value="id" item-text="title" :items="ObjSupplier"
                                           v-model="item.supplier_id" outlined dense label="Supplier*"
-                                          hide-details></v-autocomplete> 
+                                          hide-details></v-autocomplete>
                                       </td>
                                       <td>
                                         <v-text-field v-model="item.supplier_invoice_num" outlined dense label="INV.NO."
@@ -223,8 +224,8 @@
                                           hide-details></v-text-field>
                                       </td>
                                       <td width="50">
-                                        <v-text-field type="date" v-model="item.invoice_date" outlined dense
-                                          label="DATE" hide-details></v-text-field>
+                                        <v-text-field class="table-date" type="date" v-model="item.invoice_date" outlined
+                                          dense label="DATE" hide-details></v-text-field>
                                       </td>
                                       <td>
                                         <v-text-field type="number" @change="onChangeItem(index)" v-model="item.qty"
@@ -243,7 +244,7 @@
                                           dense hide-details></v-text-field>
                                       </td>
                                       <td class="text-center">
-                                        {{ isNaN(item.total_amount) ? '' : item.total_amount  }}
+                                        {{ isNaN(item.total_amount) ? '' : item.total_amount }}
                                       </td>
                                       <td>
                                         <div class="row-delete" @click="removeItem(index, 'item')"><v-icon color="red"
@@ -253,12 +254,12 @@
                                   </tbody>
                                 </template>
                               </v-simple-table>
-                            </v-col> 
+                            </v-col>
                           </v-row>
                           <v-row>
                             <v-col class="col-12 col-md-8">
-                              <v-textarea rows="8" class="col-11" v-model="formObj.remarks_general" outlined
-                                hide-details label="Remarks"></v-textarea>
+                              <v-textarea rows="8" class="col-11" v-model="formObj.remarks_general" outlined hide-details
+                                label="Remarks"></v-textarea>
                             </v-col>
                             <v-col class="col-12 col-md-4">
                               <div class="d-flex mb-4">
@@ -272,8 +273,8 @@
                                     hide-details dense disabled label="Total"></v-text-field></v-col>
 
                                 <v-col class="col-4 py-1">
-                                  <v-text-field v-model="formObj.discount_title" outlined hide-details dense
-                                    label="Title" class="mb-2"></v-text-field>
+                                  <v-text-field v-model="formObj.discount_title" outlined hide-details dense label="Title"
+                                    class="mb-2"></v-text-field>
                                   <v-text-field v-model="calcSign" class="mt-1" outlined hide-details dense
                                     label="SIGN"></v-text-field>
                                 </v-col>
@@ -281,11 +282,12 @@
                                     v-model="formObj.discount" outlined hide-details dense></v-text-field></v-col>
 
                                 <v-col class="col-4 py-1 my-auto">Total VAT</v-col>
-                                <v-col class="col-8 py-1"><v-text-field v-model="formObj.total_vat" type="number"
-                                    outlined hide-details @change="onChangeAmountVat" dense></v-text-field></v-col>
+                                <v-col class="col-8 py-1"><v-text-field v-model="formObj.total_vat" type="number" outlined
+                                    hide-details @change="onChangeAmountVat" dense></v-text-field></v-col>
 
-                                <v-col class="col-4 py-1 my-auto text-uppercase"
-                                  v-if="formObj.currency != 'aed'">{{ formObj.currency }} TO AED</v-col>
+                                <v-col class="col-4 py-1 my-auto text-uppercase" v-if="formObj.currency != 'aed'">{{
+                                  formObj.currency
+                                }} TO AED</v-col>
                                 <v-col class="col-8 py-1" v-if="formObj.currency != 'aed'">
                                   <v-text-field type="number" v-model="formObj.currency_rate" outlined
                                     @change="onChangeCurrencyRate" hide-details dense></v-text-field></v-col>
@@ -294,20 +296,19 @@
                                   <v-text-field v-model="formObj.netamount_title" outlined hide-details dense
                                     placeholder="Auto"></v-text-field>
                                 </v-col>
-                                <v-col class="col-8 py-1"><v-text-field v-model="formObj.net_amount" outlined
-                                    hide-details dense disabled placeholder="Auto"></v-text-field></v-col>
+                                <v-col class="col-8 py-1"><v-text-field v-model="formObj.net_amount" outlined hide-details
+                                    dense disabled placeholder="Auto"></v-text-field></v-col>
 
 
                                 <v-col class="col-4 py-1" v-if="formObj.is_advance_payment">
                                   <v-text-field v-model="formObj.special_title_label_1" outlined hide-details dense
-                                    label="Title" class="mb-2"></v-text-field> 
+                                    label="Title" class="mb-2"></v-text-field>
                                 </v-col>
                                 <v-col class="col-8 py-1" v-if="formObj.is_advance_payment">
-                                  <v-text-field type="number" @change="onAdvancePayment"  
-                                  v-model="advanceAmountPayment"
-                                      outlined hide-details dense></v-text-field> 
+                                  <v-text-field type="number" @change="onAdvancePayment" v-model="advanceAmountPayment"
+                                    outlined hide-details dense></v-text-field>
 
-                                     <div class="hidden" hidden> {{ formObj.special_title_value_1 }}</div>
+                                  <div class="hidden" hidden> {{ formObj.special_title_value_1 }}</div>
                                 </v-col>
                               </v-row>
                             </v-col>
@@ -345,7 +346,7 @@
                                   </thead>
                                   <tbody>
                                     <tr v-for="(item, index) in approvers" :key="item.id" class="mt-2">
-                                      <td>{{ index+ 1 }}</td>
+                                      <td>{{ index + 1 }}</td>
                                       <td>
                                         <div v-if="index == 0">
                                           Prepared By
@@ -364,15 +365,15 @@
                                         </div>
                                         <ValidationProvider v-else v-slot="{ errors }" rules="required" name="Approver">
                                           <v-autocomplete :error-messages="errors" @click="fetchActiverUsers"
-                                            :items="approverList" v-model="item.user_id" item-value="id"
+                                            :items="approverList" v-model="item.user_id" item-value="user_id"
                                             item-text="name" outlined dense label="Approval*"
                                             hide-details></v-autocomplete>
                                         </ValidationProvider>
                                       </td>
 
                                       <td>
-                                        <div class="row-delete" @click="removeItem(index, 'approver')"><v-icon
-                                            color="red" v-if="approvers.length > 1">mdi-trash-can</v-icon> </div>
+                                        <div v-if="index > 0" class="row-delete" @click="removeItem(index, 'approver')">
+                                          <v-icon color="red" v-if="approvers.length > 1">mdi-trash-can</v-icon> </div>
                                       </td>
                                     </tr>
                                   </tbody>
@@ -398,8 +399,8 @@
         </v-card-text>
       </v-card>
 
-            <!-- Viewing / Printing Mode -->
-      <v-card flat width="1200" class="mx-auto pb-5 paf-table paf-page" v-else>
+      <!-- Viewing / Printing Mode -->
+      <v-card flat style="width:100%;" class="mx-auto pb-5 paf-table paf-page" v-else>
         <v-card-title class="no-print bordered">
           <strong class="text-uppercase">STATUS: {{ formObj.status }}</strong>
 
@@ -410,29 +411,34 @@
           <v-btn x-small color="info" class="mx-2" @click="changeStatus('onprocess')"
             v-if="formObj.status != 'onprocess'">ONPROCESS</v-btn>
           <v-btn x-small color="success" class="mx-2" @click="changeStatus('closed')"
-            v-if="formObj.status != 'closed'  && formObj.status != 'cancelled'">CLOSED</v-btn>
-          <v-btn x-small color="primary" class="mx-2" v-if="formObj.status != 'closed' && formObj.status != 'cancelled' " @click="funcEditForm(true)">EDIT PAF</v-btn>
+            v-if="formObj.status != 'closed' && formObj.status != 'cancelled'">CLOSED</v-btn>
+          <v-btn x-small color="primary" class="mx-2" v-if="formObj.status != 'closed' && formObj.status != 'cancelled'"
+            @click="funcEditForm(true)">EDIT
+            PAF</v-btn>
+          <v-col class="col-12 col-md-12 ma-0 px-0 pt-1 pb-0" v-if="formObj.status == 'cancelled'">
+            <v-divider></v-divider>
+            <small>REASON: {{ formObj.reasons }}</small></v-col>
         </v-card-title>
 
         <v-card-text class="padding-0">
           <v-row class="mt-5 padding-0 ">
             <div class="col-6 d-flex padding-0 ">
-              <img 
+              <img
                 :src="`/file/${formObj.company && formObj.company.images.length > 0 ? formObj.company.images[0].path : 'GAG.png'}`"
                 aspect-ratio="1" style="margin-top:-20px; width:180px;">
-                <h4 class="ml-3 my-auto">{{ formObj.company ? formObj.company.title : '' }}</h4>
+              <h4 class="ml-3 my-auto">{{ formObj.company ? formObj.company.title : '' }}</h4>
             </div>
             <v-spacer></v-spacer>
-            <div class="col-4 padding-0 mt-auto mb-2"> 
+            <div class="col-4 padding-0 mt-auto mb-2">
               <h4 class="text-right">PAYMENT APPROVAL FORM (PAF)</h4>
               <table border="1" cellspacing="0" cellpadding="0" class="pb-0">
                 <tr>
                   <td width="50%" class="pl-2">PAF NO.</td>
-                  <td  class="pl-2">{{ formObj.paf_no }}</td>
+                  <td class="pl-2">{{ formObj.paf_no }}</td>
                 </tr>
                 <tr>
-                  <td  class="pl-2">VOUCHER DATE</td>
-                  <td  class="pl-2">{{ formatDateHelper(formObj.created_at) }}</td>
+                  <td class="pl-2">VOUCHER DATE</td>
+                  <td class="pl-2">{{ formatDateHelper(formObj.created_at) }}</td>
                 </tr>
               </table>
             </div>
@@ -448,12 +454,15 @@
                 </tr>
                 <tr>
                   <th class="text-left pl-2">PURCHASE LIMIT</th>
-                  <th class="text-left pl-2">{{ formObj.purchase_limit && formObj.purchase_limit > 0 ? formObj.purchase_limit : '' }}</th>
+                  <th class="text-left pl-2">{{
+                    formObj.purchase_limit && formObj.purchase_limit > 0 ?
+                    formObj.purchase_limit : ''
+                  }}</th>
                 </tr>
                 <tr>
                   <th class="text-left pl-2">DOCUMENT NO. (FOR ACCOUNTS)</th>
-                  <th class="text-left pl-2">{{ formObj.document_no_1}}</th>
-                </tr> 
+                  <th class="text-left pl-2">{{ formObj.document_no_1 }}</th>
+                </tr>
               </table>
             </v-col>
             <v-col class="col-6 table-50 padding-0">
@@ -468,12 +477,15 @@
                 </tr>
                 <tr>
                   <th class="text-left pl-2">CASH/CARD LIMIT</th>
-                  <th class="text-left pl-2">{{ formObj.cash_card_limit && formObj.cash_card_limit > 0 ? formObj.cash_card_limit : '' }}</th>
+                  <th class="text-left pl-2">{{
+                    formObj.cash_card_limit && formObj.cash_card_limit > 0 ?
+                    formObj.cash_card_limit : ''
+                  }}</th>
                 </tr>
                 <tr>
                   <th class="text-left pl-2">DOCUMENT NO (FOR ACCOUNTS)</th>
                   <th class="text-left pl-2">{{ formObj.document_no_2 }}</th>
-                </tr> 
+                </tr>
               </table>
             </v-col>
           </v-row>
@@ -483,66 +495,166 @@
                 <thead>
                   <tr>
                     <th width="5%">SR #</th>
-                    <th width="10%">SUPPLIER<br/>NAME</th>
+                    <th width="10%">SUPPLIER<br />NAME</th>
                     <th width="10%">LOCATION</th>
-                    <th width="10%">SUPPLIER <br/>INV.NO.</th> 
+                    <th width="10%">SUPPLIER <br />INV.NO.</th>
                     <th width="15%">DESCRIPTION</th>
-                    <th width="10%">INVOICE <br/>DATE</th>
-                    <th width="5%">QTY</th> 
-                    <th width="10%">UNIT <br/>PRICE</th>
-                    <th width="10%">TOTAL <br/>AMOUNT</th>
+                    <th width="10%">INVOICE <br />DATE</th>
+                    <th width="5%">QTY</th>
+                    <th width="10%">UNIT <br />PRICE</th>
+                    <th width="10%">TOTAL <br />AMOUNT</th>
                     <th width="5%">VAT {{ formObj.vat_custom }}%</th>
-                    <th width="10%" class="text-uppercase">TOTAL <br/>AMOUNT ({{ formObj.currency }})</th>
+                    <th width="10%" class="text-uppercase">TOTAL <br />AMOUNT ({{ formObj.currency }})</th>
                   </tr>
                 </thead>
                 <tbody v-if="formObj.paf_items">
                   <tr v-for="(item, index) in formObj.paf_items" :key="item.id">
-                    <td class="text-center">{{ index+ 1 }}</td>
-                    <td class="text-center" v-if="index == 0" :rowspan="formObj.supplier_count > 1 ? '' : formObj.paf_items.length">{{ item.supplier ? item.supplier.title: '' }}</td>
-                    <td class="text-center" v-else-if="formObj.supplier_count > 1" >{{ item.supplier ? item.supplier.title: '' }}</td>
+                    <td class="text-center">{{ index + 1 }}</td>
+                    <td class="text-center" v-if="index == 0"
+                      :rowspan="formObj.supplier_count > 1 ? '' : formObj.paf_items.length">{{
+                        item.supplier ?
+                        item.supplier.title : ''
+                      }}</td>
+                    <td class="text-center" v-else-if="formObj.supplier_count > 1">{{
+                      item.supplier ?
+                      item.supplier.title : ''
+                    }}</td>
                     <td class="text-center">{{ item.location }} </td>
                     <td class="text-center">{{ item.supplier_invoice_num }} </td>
-                    <td class="text-left"><pre>{{ item.description ? item.description.trim() : '' }}</pre></td>
+                    <td class="text-left">
+                      <pre>{{ item.description ? item.description.trim() : '' }}</pre>
+                    </td>
                     <td class="text-center">{{ item.invoice_date ? formatDateHelper(item.invoice_date) : '' }}</td>
                     <td class="text-center">{{ item.qty }}</td>
                     <td class="text-center">{{ item.unit_price }}</td>
-                    <td class="text-right">{{ Number(item.amount).toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }}</td>
+                    <td class="text-right">{{
+                      Number(item.amount).toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g,
+                        ",")
+                    }}</td>
                     <td class="text-center">{{ item.vat == 0.00 || item.vat == 0 ? '' : item.vat }}</td>
                     <td class="text-right">
                       {{
                         Number(item.total_amount).toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                       }}
                     </td>
-                  </tr> 
-                  <tr>
-                      <td colspan="6" rowspan="5"><pre>{{ formObj.remarks_general }}</pre></td>
-                      <th class="text-right pr-2" colspan="2">SUB TOTAL</th>
-                      <td class="text-right">{{ Number(viewSubTotal).toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }}</td>
-                      <td class="text-right"></td>
-                      <td class="text-right">{{ Number(formObj.total_amount).toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }}</td>
                   </tr>
                   <tr>
-                    <th class="text-right pr-2" colspan="2">{{formObj.discount_title}}</th>
-                      <td colspan="2" rowspan="4"></td> 
-                      <td class="text-right">{{ Number(formObj.discount).toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }}</td> 
+                    <td colspan="6" class="pa-0" style="padding-top:0 !important;">
+                      <table cellspacing="0" cellpadding="0" class="pa-0 ma-0">
+                        <tr rowspan="6">
+                          <td>
+                            <pre>{{ formObj.remarks_general }}</pre>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td colspan="2" class="ma-0 pa-0">
+                      <table cellspacing="0" cellpadding="0" class="pa-0 ma-0">
+                        <tr>
+                          <th class="text-right pr-2" style="border-bottom: 1px solid #000;" colspan="2">SUB TOTAL</th>
+
+                        </tr>
+                        <tr>
+                          <th class="text-right pr-2" style="border-bottom: 1px solid #000;" colspan="2">{{
+                            formObj.discount_title
+                          }}</th>
+
+                        </tr>
+                        <tr>
+                          <th class="text-right pr-2" style="border-bottom: 1px solid #000;" colspan="2">TOTAL VAT ({{
+                            formObj.vat_custom
+                          }}%)</th>
+
+                        </tr>
+                        <tr v-if="formObj.currency != 'aed'">
+                          <th class="text-right pr-2 text-uppercase" style="border-bottom: 1px solid #000;" colspan="2">
+                            {{ formObj.currency }} TO AED</th>
+
+
+                        </tr>
+                        <tr>
+                          <th class="text-right pr-2 text-uppercase" style="border-bottom: 1px solid #000;" colspan="2">
+                            {{ formObj.netamount_title }} (AED)</th>
+
+                        </tr>
+                        <tr v-if="formObj.is_advance_payment">
+                          <th class="text-right pr-2" style="border-bottom: 1px solid #000;" colspan="2">{{
+                            formObj.special_title_label_1
+                          }}</th>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="ma-0 pa-0">
+                      <table cellspacing="0" cellpadding="0" class="pa-0 ma-0">
+                        <tr>
+                          <td class="text-right" style="border-bottom: 1px solid #000;">
+                            {{
+                              Number(viewSubTotal).toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                            }}
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="ma-0 pa-0">
+
+                      <table cellspacing="0" cellpadding="0" class="pa-0 ma-0">
+                        <tr>
+                          <td class="text-right" style="border-bottom: 1px solid #000;">
+                            &nbsp;
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="ma-0 pa-0">
+                      <table cellspacing="0" cellpadding="0" class="pa-0 ma-0">
+                        <tr>
+
+                          <td class="text-right" style="border-bottom: 1px solid #000;">{{
+                            Number(formObj.total_amount).toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                          }}
+                          </td>
+                        </tr>
+                        <tr>
+
+                          <td class="text-right" style="border-bottom: 1px solid #000;">{{
+                            Number(formObj.discount).toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                          }}</td>
+                        </tr>
+                        <tr>
+
+                          <td class="text-right" style="border-bottom: 1px solid #000;">{{
+                            Number(formObj.total_vat).toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                          }}
+                          </td>
+                        </tr>
+                        <tr v-if="formObj.currency != 'aed'">
+
+                          <td class="text-right" style="border-bottom: 1px solid #000;">{{ formObj.currency_rate }}</td>
+
+                        </tr>
+                        <tr>
+
+                          <td class="text-right" style="border-bottom: 1px solid #000;">{{
+                            Number(formObj.net_amount).toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                          }}
+                          </td>
+                        </tr>
+                        <tr v-if="formObj.is_advance_payment">
+
+                          <td class="text-right" style="border-bottom: 1px solid #000;">{{
+                            Number(formObj.special_title_value_1).toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g,
+                              ",")
+                          }}</td>
+                        </tr>
+                      </table>
+                    </td>
                   </tr>
-                  <tr>
-                    <th class="text-right pr-2" colspan="2">TOTAL VAT ({{ formObj.vat_custom }}%)</th> 
-                    <td class="text-right">{{ Number(formObj.total_vat).toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }}</td> 
-                  </tr>
-                  <tr>
-                    <th class="text-right pr-2 text-uppercase" colspan="2">{{ formObj.netamount_title}} ({{ formObj.currency }})</th> 
-                    <td class="text-right">{{ Number(formObj.net_amount).toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }}</td> 
-                  </tr>
-                  <tr v-if="formObj.is_advance_payment">
-                    <th class="text-right pr-2" colspan="2">{{ formObj.special_title_label_1 }}</th> 
-                    <td class="text-right">{{ Number(formObj.special_title_value_1).toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }}</td> 
-                  </tr>
+
                 </tbody>
               </table>
             </v-col>
-          </v-row> 
- 
+          </v-row>
+
           <v-row class="padding-0 mt-1">
             <v-col class="padding-0">
               <table border="1" cellspacing="0" cellpadding="0" class="pb-0">
@@ -560,7 +672,7 @@
                 </tr>
                 <tr>
                   <td class="px-2">PRF's/LPO'S</td>
-                  <td class="px-2"> 
+                  <td class="px-2">
                     <div class="my-0 py-0" v-if="formObj.lpos && formObj.lpos.length > 0">
                       <span v-for="srNum in formObj.lpos" :key="srNum.id">
                         {{ srNum.lpo_no }}
@@ -578,24 +690,25 @@
           </v-row>
 
           <!--  -->
-          <v-row class="padding-0 mt-1">
+          <v-row class="padding-0 mt-1 ">
             <v-col class="col-12 padding-0 justify-center d-flex">
-              <div class="mr-5"><v-icon small class="pr-1">mdi-checkbox-blank-outline</v-icon>Budgeted according to policy</div>
+              <div class="mr-5"><v-icon small class="pr-1">mdi-checkbox-blank-outline</v-icon>Budgeted according to
+                policy</div>
               <div><v-icon small class="pr-1">mdi-checkbox-blank-outline</v-icon>Not Budgeted </div>
             </v-col>
           </v-row>
           <!--  -->
-          <v-row class="padding-0 mt-1">
-            <v-col class="padding-0">
+          <v-row class="padding-0 mt-1 mx-0">
+            <v-col class="padding-0 mx-0 px-0">
               <v-row>
-                <v-col class="col-2" v-for="approval in formObj.paf_approvals" :key="approval.id">
-                  <div style=" height:70px;  border:1px solid #000;"></div>
+                <div style="width:152px; margin:0 0 0 10px;" v-for="approval in formObj.paf_approvals" :key="approval.id">
+                  <div style="min-height:70px; max-height:70px; border:1px solid #000;"></div>
                   <div class="text-center mt-2">
-                    <div class="text-capitalize">{{ approval.approval_type.replace("_", " ") }}</div>
-                    <div class="text-capitalize">{{ approval.users ? approval.users.profile.name : '' }}</div>
-                    {{ approval.users ? approval.users.profile.designation : '' }}
+                    <h4 class="text-capitalize py-0 my-0">{{ approval.approval_type.replace("_", " ") }}</h4>
+                    <h4 class="text-capitalize py-0 my-0">{{ approval.users ? approval.users.profile.name : '' }}</h4>
+                    <h4 class="py-0 my-0">{{ approval.users ? approval.users.profile.designation : '' }}</h4>
                   </div>
-                </v-col>
+                </div>
               </v-row>
             </v-col>
           </v-row>
@@ -682,18 +795,15 @@ export default {
       editRedirect: this.redirectedit,
       cardTitle: this.headertitle,
       reasons: null,
-
-      supplierList: [],
       currencyList: [],
-      approverList: [],
       prfList: [],
       LpoList: [],
       isLPOPRF: [{ id: 'prf', title: "PRF" }, { id: 'lpo', title: 'LPO' }],
       viewSubTotal: 0,
       supplier: {},
-       
-      calcSign: "-", 
-      formObj: { 
+
+      calcSign: "-",
+      formObj: {
         is_advance_payment: 0,
         special_title_label_1: null,
         special_title_value_1: null,
@@ -712,14 +822,14 @@ export default {
         currency: 'aed',
         vat_custom: 5,
       },
-      advanceAmountPayment:0,
+      advanceAmountPayment: 0,
       ObjPrf: [],
       ObjLPO: [],
       ObjSupplier: [],
       ObjItemId: [],
       relationIDs: [],
       ObjShipping: '',
-      ObjContactPerson: '', 
+      ObjContactPerson: '',
       defaultVat: 5,
 
       // ui  
@@ -738,7 +848,7 @@ export default {
       paymentTerms: [{ id: 1, text: 'Credit' }, { id: 2, text: 'Payment upon delivery' }, { id: 3, text: 'Advance' }],
       paymentMode: [{ id: 1, text: 'Cheque/Bank Transfers' }, { id: 2, text: 'Credit Card' }, { id: 3, text: 'Cash' }],
       filterLoaded: { supplier: false, approver: false, dept: false, editPage: false },
-      num:"zero one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen".split(" "),
+      num: "zero one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen".split(" "),
       tens: "twenty thirty forty fifty sixty seventy eighty ninety".split(" "),
     };
   },
@@ -752,35 +862,44 @@ export default {
           this.ObjPrf = val.item.prfs;
           this.ObjLPO = val.item.lpos;
 
-          if(val.item.relation == 'prf'){
+          if (val.item.relation == 'prf') {
             this.ObjItemId = val.item.prfs;
-          }else{
+          } else {
             this.ObjItemId = val.item.lpos;
           }
 
           let selectedSuppliers = [];
-          val.item.paf_items.map((o,i) => {
+          val.item.paf_items.map((o, i) => {
             selectedSuppliers[i] = o.supplier;
           });
           this.ObjSupplier = selectedSuppliers;
-          
 
-          this.tableForm = val.item.paf_items; 
+
+          this.tableForm = val.item.paf_items;
           this.tableForm.map((o, i) => {
-            this.viewSubTotal  += o.qty * o.unit_price;
-          }); 
-        
-          if(this.formObj.is_advance_payment){
+            this.viewSubTotal += Number(o.qty) * parseFloat(o.unit_price);
+          });
+
+          if (this.formObj.is_advance_payment) {
             this.advanceAmountPayment = this.formObj.special_title_value_1;
           }
-          this.approvers = val.item.paf_approvals; 
-          
+          this.approvers = val.item.paf_approvals;
+
         }
 
         this.loading = false;
       },
       deep: true,
     },
+  },
+  computed: {
+    approverList() {
+      return this.$store.state.profiles.profileList;
+    },
+    supplierList() {
+      return this.$store.state.suppliers.supplierList;
+    },
+
   },
   methods: {
     selectedTypes: function () {
@@ -814,8 +933,8 @@ export default {
         totalVat += parseFloat(o.vat);
         totalAmount += parseFloat(o.total_amount);
       });
-    
-      if(!isNaN(totalAmount)){
+
+      if (!isNaN(totalAmount)) {
         let nTotal = parseFloat(totalAmount);
         this.formObj.total_amount = nTotal.toFixed(2);
         this.formObj.total_vat = totalVat.toFixed(2);
@@ -855,55 +974,55 @@ export default {
       let calcCurrencyRate = parseFloat(this.formObj.currency_rate) * netAmount;
 
       this.formObj.net_amount = calcCurrencyRate < 0 ? 0.00 : parseFloat(calcCurrencyRate).toFixed(2);
-      
+
 
       let valAmount = this.formObj.net_amount;
-     
-      if(this.formObj.is_advance_payment){
+
+      if (this.formObj.is_advance_payment) {
         valAmount = this.formObj.special_title_value_1;
-      } 
-      if(valAmount && !isNaN(valAmount)){ 
+      }
+      if (valAmount && !isNaN(valAmount)) {
         this.amountToWords(valAmount);
       }
     },
 
-    onAdvancePayment: function () { 
-      
+    onAdvancePayment: function () {
+
 
       let advancePaymentTotal = 0;
-     
-        advancePaymentTotal =  parseFloat(this.advanceAmountPayment);
-      
-      this.formObj.special_title_value_1 = advancePaymentTotal > 0 ? advancePaymentTotal.toFixed(2) : advancePaymentTotal;  
-      
-      this.amountToWords(this.formObj.special_title_value_1);
-    }, 
 
-    amountToWords: function(amount){
-      let cents = amount.toString().split("."); 
+      advancePaymentTotal = parseFloat(this.advanceAmountPayment);
+
+      this.formObj.special_title_value_1 = advancePaymentTotal > 0 ? advancePaymentTotal.toFixed(2) : advancePaymentTotal;
+
+      this.amountToWords(this.formObj.special_title_value_1);
+    },
+
+    amountToWords: function (amount) {
+      let cents = amount.toString().split(".");
       let withCents = '';
       let amountWords = this.number2words(cents[0]);
-        if(cents.length > 1){
-          let addZero = "";
-            if(cents[1].length == 1){
-                addZero = cents[1]+"0";
-            }else{
-                addZero = String(cents[1]);
-                if(addZero.charAt(0) === '0'){ 
-                    addZero.substring(1);
-                } 
-            } 
-        
-            withCents = this.number2words(Number(addZero)); 
-           
-            if(withCents !== 'zero'){
-              withCents = " And "+withCents;
-            }else{
-              withCents = '';
-            }
+      if (cents.length > 1) {
+        let addZero = "";
+        if (cents[1].length == 1) {
+          addZero = cents[1] + "0";
+        } else {
+          addZero = String(cents[1]);
+          if (addZero.charAt(0) === '0') {
+            addZero.substring(1);
+          }
         }
-        
-        this.formObj.amount_in_words = this.capitalizeWords(amountWords + withCents);
+
+        withCents = this.number2words(Number(addZero));
+
+        if (withCents !== 'zero') {
+          withCents = " And " + withCents;
+        } else {
+          withCents = '';
+        }
+      }
+
+      this.formObj.amount_in_words = this.capitalizeWords(amountWords + withCents);
     },
 
     capitalizeWords: function (str) {
@@ -945,13 +1064,13 @@ export default {
       }
     },
 
-    number2words: function (n){
-        if (n < 20) return this.num[n];
-        var digit = n%10;
-        if (n < 100) return this.tens[~~(n/10)-2] + (digit? " " + this.num[digit]: " ");
-        if (n < 1000) return this.num[~~(n/100)] +" hundred " + (n%100 == 0? " ": this.number2words(n%100));
-        if (n < 1000000) return this.number2words(~~(n/1000)) +" thousand " + (n%1000 == 0? " ": this.number2words(n%1000));
-        return this.number2words(~~(n/1000000)) + " million " + (n%1000000 != 0? " " + this.number2words(n%1000000): "");
+    number2words: function (n) {
+      if (n < 20) return this.num[n];
+      var digit = n % 10;
+      if (n < 100) return this.tens[~~(n / 10) - 2] + (digit ? " " + this.num[digit] : " ");
+      if (n < 1000) return this.num[~~(n / 100)] + " hundred " + (n % 100 == 0 ? " " : this.number2words(n % 100));
+      if (n < 1000000) return this.number2words(~~(n / 1000)) + " thousand " + (n % 1000 == 0 ? " " : this.number2words(n % 1000));
+      return this.number2words(~~(n / 1000000)) + " million " + (n % 1000000 != 0 ? " " + this.number2words(n % 1000000) : "");
     },
 
     removeItem: function (index, type) {
@@ -972,11 +1091,11 @@ export default {
     funcEditForm: function (v) {
       this.formEditable = v;
 
-      if(v){
+      if (v) {
         if (!this.filterLoaded.editPage) {
           this.pageLoading = true;
           this.filterLoaded.editPage = true;
-            this.fetchLPO().then(() => {
+          this.fetchLPO().then(() => {
             this.fetchPRF().then(() => {
               this.fetchCurrency();
               this.pageLoading = false;
@@ -1029,7 +1148,7 @@ export default {
     },
 
     submit: function () {
-
+      this.viewSubTotal = 0;
       this.loadingSubmit = true;
 
       this.sbOptions = {
@@ -1038,10 +1157,10 @@ export default {
         text: "Submitting...",
       };
       let formItems = this.tableForm.map((o, i) => {
-        delete o["id"]; 
+        delete o["id"];
         delete o["created_at"];
-        delete o["updated_at"]; 
-        delete o["supplier"]; 
+        delete o["updated_at"];
+        delete o["supplier"];
         return o;
       });
 
@@ -1051,24 +1170,24 @@ export default {
         delete o["created_at"];
         delete o["updated_at"];
         delete o["orders"];
-        delete o["users"]; 
+        delete o["users"];
         return o;
       });
       this.formObj.supplier_count = this.ObjSupplier.length;
       let mainData = this.formObj;
-      delete mainData["requestor"]; 
-        
+      delete mainData["requestor"];
+
 
       let dataForm = {
         data: mainData,
         items: formItems,
         approvers: formApprover,
         relations: this.relationIDs
-      }; 
-      
+      };
+
       if (this.formObj.id) {
         let postID = this.formObj.id;
-        
+
         let bdata = this.formObj;
         delete bdata["created_at"];
         delete bdata["updated_at"];
@@ -1080,13 +1199,13 @@ export default {
         delete bdata["paf_approvals"];
         delete bdata["paf_items"];
         delete bdata["id"];
-        delete bdata["process_by"]; 
-        delete bdata["requestor"]; 
+        delete bdata["process_by"];
+        delete bdata["requestor"];
         delete bdata["images"];
         delete bdata["company"];
-        delete bdata["lpos"]; 
+        delete bdata["lpos"];
         delete bdata["prfs"];
-        delete bdata["reasons"];  
+        delete bdata["reasons"];
         dataForm = {
           data: bdata,
           id: postID,
@@ -1136,19 +1255,19 @@ export default {
         this.ObjItemId = this.ObjLPO;
         this.formObj.company_id = this.ObjLPO[0].company_id;
 
-        this.ObjLPO.map((o,i) => {
+        this.ObjLPO.map((o, i) => {
           relIDs.push(o.id);
         });
       } else {
         this.ObjItemId = this.ObjPrf;
         this.formObj.company_id = this.ObjPrf[0].company_id;
-        this.ObjPrf.map((o,i) => {
+        this.ObjPrf.map((o, i) => {
           relIDs.push(o.id);
         });
-      
+
       }
       this.relationIDs = relIDs;
-     
+
     },
 
     fetchPRF: async function () {
@@ -1170,58 +1289,78 @@ export default {
     },
 
     fetchSuppliers: async function () {
-      if (!this.filterLoaded.supplier) {
-        this.filterLoaded.supplier = true;
-        await axios.get('/d/admin/fetch/non-paginate/suppliers').then((response) => {
-          this.supplierList = response.data;
-        });
+      if (this.supplierList.length == 0) {
+        this.$store.dispatch("fetchSupplierList");
       }
     },
 
     fetchActiverUsers: async function () {
-      if (!this.filterLoaded.approver) {
-        this.filterLoaded.approver = true;
-        await axios.get('/d/profile/procurements/profile_users').then((response) => {
-          this.approverList = response.data;
-        });
-
+      if (this.approverList.length == 0) {
+        this.$store.dispatch("fetchProfileList");
       }
     },
   },
   created() {
-     
+
     if (this.pagetitle == 'edit') {
       this.formEditable = false;
       this.pageLoading = false;
     } else {
       this.formObj.requestor = this.auth.profile ? this.auth.profile.name : '';
-      
+
       this.fetchLPO().then(() => {
         this.fetchPRF().then(() => {
           this.fetchCurrency();
 
-          if(this.$route.params && this.$route.params.request_id){
+          if (this.$route.params && this.$route.params.request_id) {
             this.formObj.relation = 'prf';
             this.ObjPrf = this.$route.params.request_id;
           }
           this.pageLoading = false;
         });
       });
-    }  
+    }
 
   },
 };
 </script> 
 <style>
- 
-.overflow-table table{ width: 1130px !important;}
+.table-date input {
+  width: 75px !important;
+}
+</style>
+<style scoped>
+.theme--light.v-card>.v-card__subtitle,
+.theme--light.v-card>.v-card__text,
+th,
+td,
+div,
+h2,
+h3,
+h4,
+h5,
+h6,
+pre {
+  color: #000 !important
+}
+
+.overflow-table table {
+  width: 1130px !important;
+}
+
 .paf-editable-page th,
 .paf-editable-page td {
   padding-left: 5px !important;
   padding-right: 5px !important;
 }
-table th, table thead th { font-size:11px !important;}
-table td,.small {
+
+table th,
+table thead th {
+  font-size: 11px !important;
+}
+
+table td,
+.small {
   font-size: 10px !important;
 }
 

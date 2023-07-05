@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-app-bar color="white" dense class="elevation-0 mt-10">
+    <v-app-bar color="white" dense class="elevation-0 mt-10 no-print">
       <v-toolbar-title class="overline">Local Purchase Orders</v-toolbar-title>
     </v-app-bar>
     <v-container class="py-8" v-if="pageLoading == true">
@@ -18,22 +18,20 @@
         <v-col cols="12" class="py-0">
 
         </v-col>
-        <v-col class="col-md-12 mt-1 col-sm-12">
+        <v-col class="col-md-12 mt-1 col-sm-12 no-print">
           <v-card class="px-5">
             <v-row>
               <v-col class="col-md-12 col-sm-12 d-flex">
                 <v-btn small to="/d/admin/local-purchase-orders/new" class="primary mr-3 my-auto">
                   <v-icon>mdi-plus</v-icon></v-btn>
-                <v-autocomplete :items="companies" @click="fetchCompany" clearable v-model="dataFilter.company_id" dense
-                  outlined hide-details label="Company" class="mt-0 mr-3" item-value="id"
-                  item-text="title"></v-autocomplete>
+                <v-autocomplete :items="companies" clearable v-model="dataFilter.company_id" dense outlined hide-details
+                  label="Company" class="mt-0 mr-3" item-value="id" item-text="title"></v-autocomplete>
 
-                <v-autocomplete :items="suppliers" @click="fetchSuppliers" clearable v-model="dataFilter.supplier_id"
-                  dense outlined hide-details label="Supplier" class="mt-0 mr-3" item-value="id"
-                  item-text="title"></v-autocomplete>
+                <v-autocomplete :items="suppliers" clearable v-model="dataFilter.supplier_id" dense outlined hide-details
+                  label="Supplier" class="mt-0 mr-3" item-value="id" item-text="title"></v-autocomplete>
 
-                <v-autocomplete :items="processedBy" clearable v-model="dataFilter.process_by" dense outlined
-                  hide-details label="Processed By" class="mt-0 mr-3" item-value="id" item-text="name"></v-autocomplete>
+                <v-autocomplete :items="procteam" clearable v-model="dataFilter.process_by" dense outlined hide-details
+                  label="Processed By" class="mt-0 mr-3" item-value="id" item-text="profile.name"></v-autocomplete>
 
                 <v-autocomplete :items="statusList" clearable v-model="dataFilter.status" dense outlined hide-details
                   label="Status" class="mt-0  mr-3"></v-autocomplete>
@@ -95,7 +93,7 @@
                     <td>{{ item.supplier ? item.supplier.title : '' }}</td>
                     <td>{{
                       item.net_amount ? item.net_amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") : "0.00",
-                    }}</td>
+                                          }}</td>
                     <td>{{ item.process_by ? item.process_by.name : '' }}</td>
 
                     <td>{{ formatDateHelper(item.created_at) }}</td>
@@ -103,13 +101,13 @@
                 </tbody>
               </template>
             </v-simple-table>
-            <div v-if="items && Object.keys(items).length == 0" class="text-center caption text-capitalize py-3">
+            <div v-if="items && Object.keys(items).length == 0" class="text-center caption text-capitalize py-3 no-print">
               Result Not Found
             </div>
           </v-card>
-          <div class="d-flex">
-            <div class="col-3 pt-7">Total: {{ totalData }}</div>
-            <div class="col-6">
+          <div class="d-flex no-print">
+            <div class="col-3 pt-7 no-print">Total: {{ totalData }}</div>
+            <div class="col-6 no-print">
               <v-pagination v-if="pageCount > 1" class="mt-3" v-model="page" :length="pageCount" @input="onPageChange"
                 :total-visible="8" :items-per-page="showPerPage"></v-pagination>
             </div>
@@ -117,8 +115,8 @@
         </v-col>
       </v-row>
     </v-container>
-    <dialog-loader :loader-options="loaderOptions"></dialog-loader>
-    <snack-bar :snackbar-options="sbOptions"></snack-bar>
+    <dialog-loader :loader-options="loaderOptions" class="no-print"></dialog-loader>
+    <snack-bar :snackbar-options="sbOptions" class="no-print"></snack-bar>
   </div>
 </template>
 
@@ -134,7 +132,7 @@ export default {
       origPageCount: 0,
       loaderOptions: {},
       sbOptions: {},
-      statusList: [ 'onprocess', 'onhold', 'cancelled', 'closed'],
+      statusList: ['onprocess', 'onhold', 'cancelled', 'closed'],
       companyList: {},
       processList: {},
       requestedList: {},
@@ -147,13 +145,24 @@ export default {
       orderByCount: 0,
       pageStart: 1,
       processedBy: [],
-      companies: [],
-      suppliers: [],
+
+
       filterLoaded: { comp: false, process: false, requested: false },
     };
   },
-  methods: {
+  computed: {
+    companies() {
+      return this.$store.state.companies.companyList;
+    },
+    suppliers() {
+      return this.$store.state.suppliers.supplierList;
+    },
+    procteam() {
+      return this.$store.state.procteam.procTeam;
+    }
+  },
 
+  methods: {
 
     OrderByField: function (v) {
       this.loaderOptions = {
@@ -176,13 +185,14 @@ export default {
 
       let controller = '';
       if (this.dataFilter.search) {
-        controller = "/d/admin/local-purchase-orders/fetch/" + this.dataFilter.search + "?page=1&sort=" + sort;
+        controller = "/d/admin/local-purchase-orders/fetch/" + this.dataFilter.search + "?page=" + page + "&sort=" + sort;
 
       } else {
         let bdata = filter;
         let dataComp = '';
         let dataProcess = '';
         let dataRequest = '';
+        let status = '';
         if (bdata && bdata.company_id) {
           dataComp = '&company_id=' + bdata.company_id;
         }
@@ -192,8 +202,11 @@ export default {
         if (bdata && bdata.supplier_id) {
           dataRequest = '&supplier_id=' + bdata.supplier_id;
         }
+        if (bdata && bdata.status) {
+          status = '&status=' + bdata.status;
+        }
         controller =
-          "/d/admin/local-purchase-orders/fetch/-?page=" + page + "&sort=" + sort + dataComp + dataProcess + dataRequest;
+          "/d/admin/local-purchase-orders/fetch/-?page=" + page + "&sort=" + sort + dataComp + dataProcess + dataRequest + status;
       }
       response = await axios.get(controller);
       this.loaderOptions.status = false;
@@ -217,6 +230,7 @@ export default {
 
       let controller = '';
       if (this.dataFilter.search) {
+        this.dataFilter.search = this.dataFilter.search.replace(/\\/g, "");
         this.localStorage.setItem("vlocal-purchase-order", this.dataFilter.search);
         controller = "/d/admin/local-purchase-orders/fetch/" + this.dataFilter.search + "?page=1&sort=" + sort;
       } else {
@@ -274,59 +288,40 @@ export default {
     },
 
     fetchCompany: async function () {
-      if (!this.filterLoaded.comp) {
-        await axios
-          .get("/d/admin/fetch/non-paginate/companies")
-          .then((response) => {
-            this.companies = Object.assign([], response.data);
-          });
-        this.filterLoaded.comp = true;
+      if (this.companies.length == 0) {
+        this.$store.dispatch("fetchCompanyList");
       }
     },
+
     fetchProcTeam: async function () {
-
-      await axios
-        .get("/d/admin/profile/procurements/list")
-        .then((response) => {
-          let nData = Object.assign([], response.data);
-          if (nData && nData.length > 0) {
-            let getProfile = [];
-            nData.map((o, i) => {
-              getProfile[i] = o.profile;
-            });
-            this.processedBy = getProfile;
-          }
-        });
-
-      this.filterLoaded.process = true;
-
+      if (this.procteam.length == 0) {
+        this.$store.dispatch("fetchProcTeam");
+      }
     },
 
     fetchSuppliers: async function () {
-      if (!this.filterLoaded.requested) {
-        await axios
-          .get("/d/admin/fetch/non-paginate/suppliers")
-          .then((response) => {
-           
-            this.suppliers = Object.assign([], response.data);
-          });
-        this.filterLoaded.requested = true;
+      if (this.suppliers.length == 0) {
+        this.$store.dispatch("fetchSupplierList");
       }
     },
 
   },
   created() {
     this.dataFilter.search = this.localStorage.getItem("vlocal-purchase-order");
-    this.fetchProcTeam().then(() => {
-      if (this.$route.params.page) {
-        this.getAllData(this.$route.params.page).then(() => {
-          this.pageLoading = false;
+    this.fetchCompany().then(() => {
+      this.fetchSuppliers().then(() => {
+        this.fetchProcTeam().then(() => {
+          if (this.$route.params.page) {
+            this.getAllData(this.$route.params.page).then(() => {
+              this.pageLoading = false;
+            });
+          } else {
+            this.getAllData(this.page).then(() => {
+              this.pageLoading = false;
+            });
+          }
         });
-      } else {
-        this.getAllData(this.page).then(() => {
-          this.pageLoading = false;
-        });
-      }
+      });
     });
   },
   watch: {

@@ -90,7 +90,7 @@
                                   {{ formObj.created_at ? formatDateHelper(formObj.created_at) : formatDateHelper() }}
                                 </v-col>
 
-                                <v-col class="my-auto col-4 col-md-4 col-sm-4"> SUPPLIER REFERENCE# </v-col>
+                                <v-col class="my-auto col-4 col-md-4 col-sm-4"> SUPPLIER REF# </v-col>
                                 <v-col class="my-auto col-8 col-md-8 col-sm-8">
                                   <v-text-field v-model="formObj.supplier_ref_num" outlined dense hide-details
                                     label="REFERENCE NO."></v-text-field>
@@ -333,7 +333,7 @@
                                   <ValidationProvider v-slot="{ errors }" rules="required" name="Contact Person">
                                     <v-autocomplete :error-messages="errors" @click="fetchActiverUsers"
                                       @change="selectedContactPerson" return-object :items="approverList"
-                                      v-model="ObjContactPerson" item-value="id" item-text="name" label="Contact Person"
+                                      v-model="ObjContactPerson" item-value="user_id" item-text="name" label="Contact Person"
                                       dense outlined hide-details></v-autocomplete>
                                   </ValidationProvider>
                                 </v-col>
@@ -400,14 +400,14 @@
                                         </div>
                                         <ValidationProvider v-else v-slot="{ errors }" rules="required" name="Approver">
                                           <v-autocomplete :error-messages="errors" @click="fetchActiverUsers"
-                                            :items="approverList" v-model="item.user_id" item-value="id"
+                                            :items="approverList" v-model="item.user_id" item-value="user_id"
                                             item-text="name" outlined dense label="Approval*"
                                             hide-details></v-autocomplete>
                                         </ValidationProvider>
                                       </td>
 
                                       <td>
-                                        <div class="row-delete" @click="removeItem(index, 'approver')"><v-icon
+                                        <div v-if="index > 0" class="row-delete" @click="removeItem(index, 'approver')"><v-icon
                                             color="red" v-if="approvers.length > 1">mdi-trash-can</v-icon> </div>
                                       </td>
                                     </tr>
@@ -448,6 +448,9 @@
           <v-btn x-small color="success" class="mx-2" @click="changeStatus('closed')"
             v-if="formObj.status != 'closed'  && formObj.status != 'cancelled'">CLOSED</v-btn>
           <v-btn x-small color="primary" class="mx-2" v-if="formObj.status != 'closed' && formObj.status != 'cancelled' " @click="funcEditForm(true)">EDIT LPO</v-btn>
+        <v-col class="col-12 col-md-12 ma-0 px-0 pt-1 pb-0" v-if="formObj.status == 'cancelled'">
+          <v-divider></v-divider>
+          <small>REASON: {{ formObj.reasons }}</small></v-col>
         </v-card-title>
 
         <v-card-text class="padding-0">
@@ -461,7 +464,7 @@
               <h1 class="mb-3">{{ formObj.company }}</h1>
               <h2>LOCAL PURCHASE ORDER (LPO)</h2>
             </div>
-            <v-col class="col-6 table-50 padding-0">
+            <v-col class="col-6  table-50 padding-0">
               <table border="1" cellspacing="0" cellpadding="0" class="pb-0">
                 <tr>
                   <th class="text-left pl-2">TO</th>
@@ -621,7 +624,7 @@
                     <h4 class="mb-1">PAYMENT MODE</h4>
                     <div v-for="(pt, idx) in paymentMode" :key="idx">
                       <v-icon color="primary">
-                        {{ pt.id == formObj.payment_terms ? 'mdi-checkbox-marked' : 'mdi-checkbox-blank-outline' }}
+                        {{ pt.id == formObj.payment_mode ? 'mdi-checkbox-marked' : 'mdi-checkbox-blank-outline' }}
                       </v-icon>
                       {{ pt.text }}
                     </div>
@@ -720,16 +723,16 @@
             </v-col>
           </v-row>
           <v-row class="padding-0 mt-1">
-            <v-col class="padding-0">
+            <v-col class="padding-0 ml-1">
               <v-row>
-                <v-col class="col-2" v-for="approval in formObj.lpo_approvals" :key="approval.id">
+                <div style="width:15.5%; margin:0 0 0 10px;" v-for="approval in formObj.lpo_approvals" :key="approval.id">
                   <div style=" height:70px;  border:1px solid #000;"></div>
                   <div class="text-center mt-2">
-                    <div class="text-capitalize">{{ approval.approval_type.replace("_", " ") }}</div>
-                    <div class="text-capitalize">{{ approval.users ? approval.users.profile.name : '' }}</div>
-                    {{ approval.users ? approval.users.profile.designation : '' }}
+                    <h4 class="text-capitalize py-0 my-0">{{ approval.approval_type.replace("_", " ") }}</h4>
+                    <h4 class="text-capitalize py-0 my-0">{{ approval.users ? approval.users.profile.name : '' }}</h4>
+                    <h4 class="py-0 my-0">{{ approval.users ? approval.users.profile.designation : '' }}</h4>
                   </div>
-                </v-col>
+                </div>
               </v-row>
             </v-col>
           </v-row>
@@ -815,13 +818,9 @@ export default {
       URLadd: this.newurl,
       editRedirect: this.redirectedit,
       cardTitle: this.headertitle,
-      reasons: null,
-      companyList: [],
-      supplierList: [],
-      currencyList: [],
-      departmentList: [],
-      categoryList: [],
-      approverList: [],
+      reasons: null, 
+      currencyList: [], 
+      categoryList: [], 
       prfList: [],
       supplier: {},
       totalAmountLabel: 0.00,
@@ -896,6 +895,21 @@ export default {
         this.loading = false;
       },
       deep: true,
+    },
+  },
+  computed: {
+    companyList() {
+      return this.$store.state.companies.companyList;
+    },
+
+    approverList() {
+      return this.$store.state.profiles.profileList;
+    },
+    supplierList() {
+      return this.$store.state.suppliers.supplierList;
+    },
+    departmentList() {
+      return this.$store.state.departments.departmentList;
     },
   },
   methods: {
@@ -1089,6 +1103,8 @@ export default {
         code: this.ObjCodes
       };
 
+      this.formObj.discount = this.ObjDiscount;
+
       if (this.formObj.id) {
         let postID = this.formObj.id;
         this.formObj.contact_person = this.formObj.contact_person.id;
@@ -1203,25 +1219,18 @@ export default {
       })
     },
     fetchCompanies: async function () {
-      await axios.get('/d/admin/fetch/non-paginate/companies').then((response) => {
-        this.companyList = response.data;
-      })
+      if(this.companyList.length == 0){
+        this.$store.dispatch("fetchCompanyList"); 
+      }
     },
     fetchSuppliers: async function () {
-      if (!this.filterLoaded.supplier) {
-        this.filterLoaded.supplier = true;
-        await axios.get('/d/admin/fetch/non-paginate/suppliers').then((response) => {
-          this.supplierList = response.data;
-        });
+      if(this.supplierList.length == 0){
+        this.$store.dispatch("fetchSupplierList"); 
       }
     },
     fetchDepartment: async function () {
-      if (!this.filterLoaded.dept) {
-        this.filterLoaded.dept = true;
-
-        await axios.get('/d/admin/fetch/non-paginate/departments').then((response) => {
-          this.departmentList = response.data;
-        });
+      if(this.departmentList.length == 0){
+        this.$store.dispatch("fetchDepartmentList"); 
       }
     },
     fetchCategories: async function () {
@@ -1230,12 +1239,8 @@ export default {
       });
     },
     fetchActiverUsers: async function () {
-      if (!this.filterLoaded.approver) {
-        this.filterLoaded.approver = true;
-        await axios.get('/d/profile/procurements/profile_users').then((response) => {
-          this.approverList = response.data;
-        });
-
+      if(this.approverList.length == 0){
+        this.$store.dispatch("fetchProfileList"); 
       }
     },
   },
@@ -1248,12 +1253,10 @@ export default {
     this.fetchCompanies().then(() => {
       this.fetchPRF().then(() => {
         this.fetchCategories().then(() => {
-          this.fetchCurrency();
-
-          if(this.$route.params && this.$route.params.request_id){
-           
-            this.ObjPrf = this.$route.params.request_id;
-          }
+          this.fetchCurrency(); 
+          // if(this.$route.params && this.$route.params.request_id){ 
+          //   this.ObjPrf = this.$route.params.request_id;
+          // }
           this.pageLoading = false;
         });
       });
@@ -1262,7 +1265,8 @@ export default {
   },
 };
 </script> 
-<style>
+<style scoped>
+  .theme--light.v-card>.v-card__subtitle, .theme--light.v-card>.v-card__text, th,td,div,h2,h3,h4,h5,h6,pre { color: #000 !important}
 .row-delete {
   display: none;
 }

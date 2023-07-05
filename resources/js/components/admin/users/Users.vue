@@ -205,10 +205,12 @@ export default {
         status: true,
         text: "Please wait...",
       };
+    
       if (this.search) {
+        this.search = this.search.replace(/\\/g, "");
         this.localStorage.setItem("vusers", this.search); 
       }  
-
+     
       if (
         (this.search && this.search.length > 2)  
       ) {
@@ -218,8 +220,7 @@ export default {
         await axios.get(
           "/d/admin/users/fetch-all/" +  
             this.search +"/?page=1" + shows
-        ).then((res) => {
-           
+        ).then((res) => { 
             this.items = res.data.data; 
             this.page = res.data.current_page;
             this.pageCount = res.data.last_page;
@@ -238,7 +239,7 @@ export default {
       }
     },
 
-     onPageChange: function () {
+    onPageChange: function () {
       this.$router
         .push(
           "/d/admin/users/page/" + this.page

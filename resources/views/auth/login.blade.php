@@ -25,7 +25,7 @@
                         <div class="d-flex justify-space-between align-center my-3">
                             @if (Route::has('password.request'))
                                 <a href="{{ route('password.request') }}">{{ __('Reset Password') }}</a>
-                            @endif
+                            @endif 
                         </div>
                     </v-form>
                 </v-card-text>

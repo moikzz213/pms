@@ -155,6 +155,15 @@ export default {
         if (val != oldVal) {
           this.dataObj = Object.assign({}, val); 
           this.category = this.dataObj.category;
+          if(this.dataObj.category && this.dataObj.category.length > 0) {
+            let cat = [];
+            this.dataObj.category.map((o,i) => {
+              cat[i] = o.id;
+            });
+
+            this.category = cat;
+          }
+           
         }
         this.loading = false;
       },
@@ -172,7 +181,7 @@ export default {
         status: true,
         text: "Please wait...",
       }; 
- 
+      
       let dataForm = { data: this.dataObj, category: this.category  };
 
       if (this.dataObj.id) {
@@ -212,13 +221,13 @@ export default {
           }
         })
         .catch((err) => {
-          let errMsg = "Error saving data";
-
+          
           this.sbOptions = {
             status: true,
             type: "error",
-            text: errMsg,
+            text: err.response.data.message,
           };
+          this.loaderOptions.status = false;
           this.loading = false;
         });
     },

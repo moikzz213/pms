@@ -6,8 +6,7 @@ let getters = {
 };
 const actions = {
     async fetchCompanyList({ commit }) {
-        const response = await axios.get("/d/admin/fetch/non-paginate/companies");
-        console.log("setCompanyList", response.data);
+        const response = await axios.get("/d/admin/fetch/non-paginate/companies");  
         commit("setCompanyList", response.data);
     },
 };

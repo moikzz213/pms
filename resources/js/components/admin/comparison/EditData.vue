@@ -2,12 +2,11 @@
   <div>
     <data-form
       :objectdata="objectData"
-      :newurl="'/d/admin/requests/save'"
+      :newurl="'/d/admin/comparisons/save'"
       :pagetitle="'edit'"  
-      :redirectname="'requests'"
-      :redirectedit="'EditRequest'"
-      :redirectnew="'NewRequest'"
-      :headertitle="'Request Status'"
+      :redirectname="'comparisons'"
+      :redirectedit="'EditComparison'" 
+      :headertitle="'Comparison'"
       @saved="savedResponse"
     ></data-form>
   </div>
@@ -26,7 +25,7 @@ export default {
   methods: {
     getData() {
       axios
-        .get("/d/admin/request/fetch-single/" + this.$route.params.id)
+        .get("/d/admin/comparisons/fetch-single/" + this.$route.params.id)
         .then((response) => {
           this.objectData = Object.assign({}, response.data);
         })

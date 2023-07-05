@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Supplier;
 use App\Models\ComparisonItem;
 use App\Models\FeedbackDiscount;
 use Illuminate\Database\Eloquent\Model;
@@ -20,5 +21,10 @@ class Feedback extends Model
     public function discount()
     {
         return $this->belongsTo(FeedbackDiscount::class);
+    }
+
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class);
     }
 }

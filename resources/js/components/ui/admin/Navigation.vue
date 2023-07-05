@@ -87,12 +87,12 @@ export default {
       drawer: true,
       menu: false,
       moderatorNav: [
-      // {
-      //     title: "Comparisons",
-      //     icon: "mdi-book-open-variant",
-      //     location: "/d/admin/comparisons",
-      //     slug: "comparisons",
-      //   },
+      {
+          title: "Comparisons",
+          icon: "mdi-book-open-variant",
+          location: "/d/admin/comparisons",
+          slug: "comparisons",
+        },
         {
           title: "Procurement",
           icon: "mdi-book-open-variant",

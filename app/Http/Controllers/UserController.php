@@ -46,7 +46,8 @@ class UserController extends Controller
         } 
       
         if($search && $search !== '-'){ 
-            $data = User::where('id', '!=', 1)->whereHas('profile', function($q) use($search){
+          
+            $data = User::where('id', '!=', 1)->where('email',"LIKE", "%".$search."%")->orWhereHas('profile', function($q) use($search){
                 $q->where("name", "LIKE", "%".$search."%");
             })->with('profile.company', 'profile.department')->orderBy('email', $sort)->paginate($perPage);
 
@@ -71,10 +72,14 @@ class UserController extends Controller
     // For Reports - Status Counts
     public function fetchProcurement(Request $request)
     { 
-        $year = $request['year'];
-        $data = User::where('role', '=', "procurement")->whereHas('requests', function($query) use ($year) {
+         $year = $request['year'];
+        $data = User::where('role', '=', "procurement")->with('requests', function($query) use ($year) {
             $query->whereYear('created_at', $year);
-        })->with('profile', 'lpos', 'pafs')->get();
+        })->with('profile')->with('lpos', function($query) use ($year) {
+            $query->whereYear('created_at', $year);
+        })->with('pafs', function($query) use ($year) {
+            $query->whereYear('created_at', $year);
+        })->get();
         $newData = array();
         if($data){
             foreach($data AS $k => $v){
@@ -194,11 +199,11 @@ class UserController extends Controller
                 $type = 'update';
                 $msg = "User has been updated";
             }else{
-                $newData = array('password' => Hash::make($request['nUser']->email));
+                $newData = array('password' => Hash::make($request['nUser']['email']));
                 $newData = array_merge($newData, $request['nUser']);
-                $data       = User::create($userData);
+                $data       = User::create($newData);
 
-                $userID = array('user_id' => $user['id']);
+                $userID = array('user_id' => $data['id']);
                 $profile = array_merge($request['nProfile'], $userID);
                 
                 $data->profile()->insert($profile);        

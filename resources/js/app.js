@@ -130,7 +130,7 @@ const helpers_plugin = {
                     break;  
                 case 'onhold':
                     status = 'onHold';
-                    break;  
+                    break;   
                 default: 
                 status = 'Open';
                     break;
@@ -219,6 +219,7 @@ Vue.component(
 );
 
 Vue.component("avatar", require("./components/ui/Avatar.vue").default);
+ 
 /**
  * Next, we will create a fresh Vue application instance and attach it to
  * the page. Then, you may begin adding components to this application

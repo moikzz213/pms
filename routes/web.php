@@ -8,6 +8,7 @@ use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RequestController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\ComparisonController;
@@ -35,7 +36,9 @@ Auth::routes([
 Route::get('/', function () {
     return redirect('/d/admin/dashboard');
 });
-
+Route::get('/home', function () {
+    return redirect('/d/admin/dashboard');
+});
 /**
  * Dashboard Routes
  */
@@ -46,6 +49,7 @@ Route::group(['prefix'=>'d','as'=>'dashboard', 'middleware' => 'auth'], function
     Route::get('/admin/{page}/{action}', function () { return view('layouts.moderator'); });  
     Route::get('/admin/{page}/page/{id}', function () { return view('layouts.moderator'); });  
     Route::get('/admin/{page}/edit/{id}', function () { return view('layouts.moderator'); });  
+    Route::get('/admin/{page}/quotations/{id}', function () { return view('layouts.moderator'); });  
 });
 Route::group([ 'prefix'=>'d','as'=>'dashboard','middleware' => 'auth'], function(){
 // Companies
@@ -110,13 +114,20 @@ Route::get('/admin/profile/procurements/list', [UserController::class, 'profile_
 // Request
 Route::get('/admin/request/fetch/{search}/{status}/{orderBy}', [RequestController::class, 'fetch'])->name('request.paginate.fetch');        // updated
 Route::post('/admin/request/update-status', [RequestController::class, 'updateStatus'])->name('request.update.status');                     // updated
-Route::post('/admin/requests/save', [RequestController::class, 'store'])->name('request.new');                                              // updated
+Route::post('/admin/requests/save', [RequestController::class, 'store'])->name('request.new');                
+Route::post('/admin/request/detach-image', [RequestController::class, 'requestDetachImage'])->name('request.remove.image');                                  // updated
 Route::get('/admin/request/fetch-single/{id}', [RequestController::class, 'show'])->name('request.show');                                   // updated
 
 // Comparisons
 Route::get('/admin/comparisons/fetch/{search}',  [ComparisonController::class, 'fetch'])->name('comparisons.paginate.fetch');        // updated      
-Route::post('/admin/comparisons/save', [ComparisonController::class, 'store'])->name('comparisons.new');                                    
-Route::get('/admin/comparisons/fetch-single/{id}', [ComparisonController::class, 'show'])->name('comparisons.show');                
+Route::post('/admin/comparisons/save', [ComparisonController::class, 'store'])->name('comparisons.new');                          // updated 
+Route::post('/admin/comparisons/sending-reminder', [ComparisonController::class, 'reminder'])->name('comparisons.reminder');                          // updated 
+Route::get('/admin/comparisons/fetch-single/{id}', [ComparisonController::class, 'show'])->name('comparisons.show');             // updated    
+Route::get('/admin/comparisons/viewing/{id}', [ComparisonController::class, 'showComparisons'])->name('comparisons.show');  // updated 
+Route::post('/admin/comparison/quotation-save', [ComparisonController::class, 'quotationSave'])->name('comparisons.quotation.save');      // updated 
+Route::post('/admin/comparison/update-status', [ComparisonController::class, 'updateStatus'])->name('comparison.update.status'); // updated
+Route::post('/admin/comparison/detach-image', [ComparisonController::class, 'detachImage'])->name('detach.image');     
+Route::post('/admin/comparisons/upload-images', [ComparisonController::class, 'uploadImages'])->name('comparisons.upload.images');      // updated 
 
 Route::get('/requests/dashboard', [RequestController::class, 'dashboard'])->name('request.dashboard'); // updated - not complete
 Route::get('/admin/request/fetch-onprocess/pendings', [RequestController::class, 'fetchAllOnProcess'])->name('request.fetch.fetch-pending'); // updated 
@@ -164,3 +175,8 @@ Route::post('/admin/report/monthly/counts', [UserController::class, 'fetchProcur
 // CRONJOB
 Route::get('/job/notification/procurement',  [RequestController::class, 'cronJobReminderNotification'])->name('cron.job.notification');
 Route::get('/file/{path}',  [RequestController::class, 'showFile'])->name('file.show');
+Route::get('/suppliers/add-quotation',  function () { return view('layouts.home'); });  
+
+Route::get('/supplier/quotation/fetch-single', [FeedbackController::class, 'show'])->name('quotation.supplier.show');  
+Route::post('/supplier/quotation/save', [FeedbackController::class, 'store'])->name('quotation.supplier.new');  
+Route::get('/file/quotations/{path}',  [FeedbackController::class, 'showFile'])->name('file.show');

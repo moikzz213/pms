@@ -35,11 +35,11 @@
                 @include('components.loader')
             </div>
             <div v-if="isLoading == false">
-                <navigation-main></navigation-main>
+                {{-- <navigation-main></navigation-main> --}}
                 <v-main class="pt-0">
-                    <navigation-left></navigation-left>
+                    {{-- <navigation-left></navigation-left> --}}
                         <router-view></router-view>
-                    <navigation-right></navigation-right>
+                    {{-- <navigation-right></navigation-right> --}}
                 </v-main>
                 <!-- <div>
                 <footer>

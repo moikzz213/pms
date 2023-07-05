@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Log;
 use App\Models\Image;
+use App\Models\RequestItem;
 use App\Models\Payment_approval_form;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -16,6 +17,11 @@ class Requests extends Model
     public function logs()
     {
         return $this->morphToMany(Log::class, 'loggable');
+    }
+
+    public function items()
+    {
+        return $this->hasMany(RequestItem::class, 'request_id');
     }
 
     public function user()

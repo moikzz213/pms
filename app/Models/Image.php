@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Models\Requests;
+use App\Models\Comparison;
+use App\Models\FeedbackDiscount;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
@@ -24,6 +26,19 @@ class Image extends Model
         );
     }
 
+    public function comparisons()
+    { 
+        return $this->morphedByMany(
+            Comparison::class,
+            'imageable',
+            'imageables',
+            'image_id',
+            'imageable_id',
+            'id',
+            'comparison_id',
+        );
+    }
+
     public function pafs()
     { 
         return $this->morphedByMany(
@@ -34,6 +49,19 @@ class Image extends Model
             'imageable_id',
             'id',
             'payment_approval_form_id',
+        );
+    }
+
+    public function quotations()
+    { 
+        return $this->morphedByMany(
+            FeedbackDiscount::class,
+            'imageable',
+            'imageables',
+            'image_id',
+            'imageable_id',
+            'id',
+            'feedback_discount_id',
         );
     }
 }

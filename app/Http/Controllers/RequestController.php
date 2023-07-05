@@ -4,19 +4,20 @@ namespace App\Http\Controllers;
 
 //use Swift_Mailer;
 use App\Models\Requests;
-use App\Models\Local_purchase_order;
-//use Swift_SmtpTransport;
 use App\Jobs\CancelRequest;
-use App\Jobs\RecipientMailJob;
+//use Swift_SmtpTransport;
+use App\Models\RequestItem;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use App\Jobs\RecipientMailJob;
 use Illuminate\Support\Carbon;
 use App\Jobs\ReminderNotification;
 use App\Jobs\RequestToProcurement;
-use App\Jobs\RequestAssignToProcurement;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use App\Models\Local_purchase_order;
 use Illuminate\Support\Facades\Storage;
+use App\Jobs\RequestAssignToProcurement;
 use Intervention\Image\Facades\Image as Img;
 
 class RequestController extends Controller
@@ -26,6 +27,12 @@ class RequestController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+
+     public function __construct()
+     {
+         $this->middleware('auth');
+     } 
+     
     public function fetch($search=null, $status=null, $orderBy=null)
     {  
         $loggedUser = auth()->user();
@@ -113,6 +120,17 @@ class RequestController extends Controller
        
         return response()->json($data, 200); 
     } 
+    
+       public function requestDetachImage(Request $request){
+        $data = Requests::where('id', $request['id'])->first();
+        
+        $data->images()->detach($request['image_id']);
+
+        return response()->json([
+            'success' => true,
+            'msg' => 'Attachment has been removed', 
+        ], 200);
+    }
 
     public function requests_procurements(Request $request,$search=null)
     {   
@@ -133,7 +151,7 @@ class RequestController extends Controller
           
                 $data = Requests::where(function ($q) use ($search){
                     $q->where("subject", "LIKE", "%".$search."%")->orWhere("prf_no", "LIKE", "%".$search."%")->orWhere("details", "LIKE", "%".$search."%");
-                })->with("company","location","process_by", "profile")->orderBy($field, $sort)->paginate(10);
+                })->with("company","location","process_by", "profile", 'items')->orderBy($field, $sort)->paginate(10);
             
         }else{
             if(@$request['company_id']){
@@ -153,7 +171,7 @@ class RequestController extends Controller
                 $searchData =  array_merge($searchData,array('user_id' => $request['user_id']));
             }
            
-            $data = Requests::where($searchData)->with("company","location","process_by", "profile")->orderBy($field, $sort)->paginate(10);
+            $data = Requests::where($searchData)->with("company","location","process_by", "profile", 'items')->orderBy($field, $sort)->paginate(10);
         }
      
         
@@ -340,10 +358,19 @@ class RequestController extends Controller
         if(@$request['requestObj']){
             $post = json_decode($request['requestObj']);
             $post = (array) $post;
+
+            $ObjToArrayData = array();
+            if($post['items']){
+                foreach($post['items'] AS $k => $v){
+                    $ObjToArrayData[] = array('description' => $v->description, 'qty' => $v->qty, 'uom' => $v->uom);
+                }
+                $post['items'] = $ObjToArrayData;
+            }
         }else{
             $post = $request['data'];
+            $post['items'] = $request['items'];
         }
-       
+        
         $loggedUser = auth()->user();
         $userId = $loggedUser->id;
         if(!$post){
@@ -383,7 +410,27 @@ class RequestController extends Controller
                 
                 $data = Requests::where('id', '=', $post['id'])->first();  
                 $data->update($newData);
+                $id = $request['id']; 
+
+                if($post['items']){ 
+                    $data->items()->delete();
+                    $data->items()->createMany($post['items']); 
                
+               
+                    foreach($post['items'] AS $k => $v){
+                        $locArray = array(
+                            'request_id' => $id,
+                            'description' => $v['description'],
+                            'qty' => $v['qty'],
+                            'uom' => $v['uom'], 
+                        );
+                        RequestItem::updateOrCreate([
+                            'id' => @$v['id'],
+                            'request_id' => $id,
+                        ], $locArray);
+
+                    } 
+                }
                 $status = 'updated';
                 $stats = $post['status'];
                 $id = $post['id'];
@@ -394,12 +441,14 @@ class RequestController extends Controller
                 $id = $result['id']; 
 
                 $data = Requests::where('id', '=', $id)->first();  
-
+               
                 $curYear = Carbon::now()->format('Y');
                 $prfNo = $this->pad( $id, 6 );
                 $prfNo = "PRF-".$curYear.$prfNo;
 
                 $data->update(array("prf_no" => $prfNo));
+
+                $data->items()->createMany($post['items']); 
                 $status = 'new';
                 $stats = 'pending';
             }
@@ -422,13 +471,17 @@ class RequestController extends Controller
                     $path = $slugTitle."-".$uploadDate.".".$extn;
                     $mime = $file->getClientMimeType();
 
+                    if($extn == 'pdf' || $extn == 'PDF'){
+                        $file->move($userStorageDir, $path);
+                    }else{
                     // File Optimization
                     $img = Img::make($file);
                     $img->encode($extn, 50);
 
                     // Save file to storage directory
                     $img->save($userStorageDir . '/' . $path);
-
+                    }
+                  
                     // Setup data into array
                     array_push( $fileArray, array(
                         'original_name' => $fileName,
@@ -450,7 +503,7 @@ class RequestController extends Controller
                 }
 
                 if(count($idsToSync) > 0){
-                    $data->images()->sync($idsToSync);
+                    $data->images()->attach($idsToSync);
                 } 
             }
 
@@ -498,6 +551,7 @@ Project requests: Will take at least 2 months.";
             
         } catch (\Exception $e) {
             DB::rollback(); 
+            dd($e);
             $success = false;
             $msg = "Error: Failed to add the data!";
             $responseCode = 500;
@@ -511,10 +565,10 @@ Project requests: Will take at least 2 months.";
                         // $transport->setPassword('G4@Sf4V52zY46$4T6du');
                         // $mailer = new Swift_Mailer($transport);
                         // $mailer->getTransport()->start();
-                        RequestToProcurement::dispatchAfterResponse($rabbitArray);
+                       // RequestToProcurement::dispatchAfterResponse($rabbitArray);
                     }
                     if($have_recipient){
-                        RecipientMailJob::dispatchAfterResponse($recipients_data);
+                     //   RecipientMailJob::dispatchAfterResponse($recipients_data);
                     }
                 }  catch (Exception $e) {
                     $msg = 'Request has been '.$request['type'] .' But Email notification has not been sent!';
@@ -536,7 +590,7 @@ Project requests: Will take at least 2 months.";
      */
     public function show($id)
     {
-        $data = Requests::where('id', '=', $id)->with("company","location","process_by", "profile", "images")->first(); 
+        $data = Requests::where('id', '=', $id)->with("company","location","process_by", "profile", "images", 'items')->first(); 
 
         return response()->json([
             'item' => $data 
@@ -561,9 +615,10 @@ Project requests: Will take at least 2 months.";
             $lpoUpdate->update($item); 
 
         }elseif($request['type'] == 'cancelled'){ 
-            
+            $ID = auth()->id();
+           
              $emails = 'jacob@gagroup.net';
-             $rabbitArray = array("details" => $data, "email" => $emails, "subject" => "Request Cancelled");
+             $rabbitArray = array("details" => $data, 'cancelledBy' => $ID, "email" => $emails, "subject" => "Request Cancelled");
              
              if($data){
                 try{
@@ -572,7 +627,7 @@ Project requests: Will take at least 2 months.";
                     // $transport->setPassword('G4@Sf4V52zY46$4T6du');
                     // $mailer = new Swift_Mailer($transport);
                     // $mailer->getTransport()->start();
-                    CancelRequest::dispatch($rabbitArray);
+                   // CancelRequest::dispatch($rabbitArray);
                 }  catch (Exception $e) {
                     $msg = 'Request has been '.$request['type'] .' But Email notification has not been sent!';
                 }
@@ -614,7 +669,7 @@ Project requests: Will take at least 2 months.";
                     // $transport->setPassword('G4@Sf4V52zY46$4T6du');
                     // $mailer = new Swift_Mailer($transport);
                     // $mailer->getTransport()->start();
-                    RequestAssignToProcurement::dispatch($rabbitArray);
+                 //   RequestAssignToProcurement::dispatch($rabbitArray);
                 }
             }  catch (Exception $e) {
                 $msg = "Request has been assigned! But Email notification has not been sent!"; 
@@ -669,7 +724,7 @@ Project requests: Will take at least 2 months.";
         $dataSearch = $request['data'];
        
         $data = Requests::whereBetween('created_at', [$fromDate, $toDate])->where($dataSearch) 
-        ->with("location","process_by", "profile", "company")->orderBy("created_at", "asc")->get();
+        ->with("location","process_by", "profile", "company",'items')->orderBy("created_at", "asc")->get();
 
         return response()->json($data , 200);
     }
@@ -693,7 +748,7 @@ Project requests: Will take at least 2 months.";
             }
 
            $rabbitArray = array("details" => $newArray, 'email' => 'jacob@gagroup.net');
-           ReminderNotification::dispatch($rabbitArray);
+         //  ReminderNotification::dispatch($rabbitArray);
         }
       
         return;

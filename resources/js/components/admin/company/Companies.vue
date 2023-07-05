@@ -46,6 +46,7 @@
               <template v-slot:default>
                 <thead>
                   <tr>
+                    <th class="text-left">STATUS</th>
                     <th class="text-left cursor-pointer" @click="OrderByField('title')">Title</th>
                     <th class="text-left">CODE</th>
                     <th class="text-left">ADDRESS</th>
@@ -58,6 +59,7 @@
                 </thead>
                 <tbody v-if="items && Object.keys(items).length > 0">
                   <tr v-for="(item, index) in items" :key="index">
+                    <td :class="`${item.status}`" > {{ item.status }} </td>
                     <td> {{ item.title }} </td>
                     <td> {{ item.code }} </td>
                     <td> {{ item.address }} </td>
@@ -152,6 +154,7 @@ export default {
         text: "Please wait...",
       };
       if (this.search) {
+        this.search = this.search.replace(/\\/g, "");
         this.localStorage.setItem("vcompanies", this.search);
       }
 

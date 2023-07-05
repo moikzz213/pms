@@ -240,7 +240,7 @@ export default {
       // Check if the email is changed
       let uObject = {
         status: this.usersObj.status,
-        email: this.usersObj.email, 
+        email: this.usersObj.email.toLowerCase(), 
       };
       if (this.usersObj.email == this.origEmail) {
         delete this.usersObj["email"];

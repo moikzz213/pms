@@ -78,12 +78,15 @@
                                 </thead>
                                 <tbody v-if="items && Object.keys(items).length > 0">
                                     <tr v-for="item in items" :key="item.id" :class="item.cstatus">
-                                        <template v-if="types == 'PRF'">
+                                        <template v-if="types == 'PRF'"> 
                                             <td>{{ item.prf_no }}</td>
                                             <td>{{ formatMonthOnly(item.created_at) }}</td>
                                             <td>{{ formatDateHelper(item.created_at) }}</td>
-                                            <td>{{ item.company.title }}</td>
-                                            <td>{{ item.details ? item.details.replace(/(<([^>]+)>)/gi, " / ") : '' }}</td>
+                                            <td>{{ item.company.title }}</td> 
+                                            <td>{{ item.details && item.details != '-' ? item.details.replace(/(<([^>]+)>)/gi, " / ") : 
+                                            item.items[3] ? item.items[2].description + " // "+ item.items[3].description : 
+                                            item.items[2] ? item.items[1].description + " // "+ item.items[2].description :
+                                            item.items[1] ? item.items[0].description + " // "+ item.items[1].description : item.items[0].description }}</td>
                                             <td>{{ item.process_by ? item.process_by.name : '' }}</td>
                                             <td>{{ item.profile ? item.profile.name : '' }}</td>
                                             <td>{{ item.location.title }}</td>
@@ -417,6 +420,7 @@ components: {
                     this.downloading = true;
                     response.data.map((o,i) =>{
                         let flagged = "";
+                        let newDetails = '';
                         o.due_terms = 7; 
                         let date = new Date(o.created_at); 
                         let udate = new Date(o.updated_at);
@@ -434,6 +438,12 @@ components: {
                         if (i < 50) {
                             dataItems[i] = o;
                         }
+                        if(o.items && o.items.length > 0){
+                            o.items.map((oo,ii) => {
+                                newDetails += oo.description;
+                                newDetails += " // ";
+                            });
+                        }
                         
                         if(this.types == 'PRF'){
                             allDataItems[i] = {
@@ -441,7 +451,7 @@ components: {
                                     Month: this.formatMonthOnly(o.created_at),
                                     RQSTDATE: new Date(o.created_at).toLocaleDateString(),
                                     Company: o.company ? o.company.title : "",
-                                    Description: o.details ? o.details.replace(/(<([^>]+)>)/gi, " / ") : '',
+                                    Description: o.details && o.details != '-' ? o.details.replace(/(<([^>]+)>)/gi, " / ") : newDetails,
                                     ProcessBy: o.process_by ? o.process_by.name : "",
                                     RequestedBy: o.profile.name,
                                     Location: o.location ? o.location.title : "",
@@ -500,8 +510,6 @@ components: {
                                 Item: o.description ? o.description.replace(/(<([^>]+)>)/gi, " / ") : '',
                                 Department: o.lpo
                                     ? o.lpo.department.title
-                                    : o.requests
-                                    ? o.requests.company.title
                                     : "",
                                 Qty: o.qty,
                                 UnitPrice: o.unit_price,
@@ -509,7 +517,7 @@ components: {
                                 Total: o.total_amount,
                                 Supplier: o.supplier ? o.supplier.title : "",
                                 Location: o.location,
-                                Company: o.paf.company ? o.paf.company.title : "",
+                                Company: o.requests ? o.requests.company.title : o.lpo ? o.lpo.company : '',
                                 ProcessBy: o.paf.process_by.name,
                                 Designation: o.paf.process_by.designation,
                                 Flagged: flagged,

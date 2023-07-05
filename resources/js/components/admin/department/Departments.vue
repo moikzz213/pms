@@ -192,6 +192,7 @@ export default {
         text: "Please wait...",
       };
       if (this.search) {
+        this.search = this.search.replace(/\\/g, "");
         this.localStorage.setItem("vdepartments", this.search);
       }
 

@@ -89,7 +89,7 @@ class CompanyController extends Controller
     public function fetchNonpaginate()
     { 
         
-        $data = Company::with('images')->orderBy('title', 'asc')->get();
+        $data = Company::where('status','active')->with('images')->orderBy('title', 'asc')->get();
         return response()->json($data, 200);
     }
 
@@ -102,14 +102,18 @@ class CompanyController extends Controller
     public function destroy($id)
     {
         $data = Company::where('id', $id)->first();
-
+       
         $data->logs()->create([
             'user_id' => auth()->user()->id,
-            'log_type' => 'deleted',
+            'log_type' => 'update',
             'details' => json_encode($data)
         ]);
-
-        $data->delete();
+        if($data->status == 'active'){
+            $status = 'disabled';
+        }else{
+            $status = 'active';
+        }
+        $data->update(['status' => $status]);
         return response()->json($data, 200);
     }
  

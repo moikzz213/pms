@@ -189,7 +189,7 @@ export default {
 
       let controller = '';
       if (this.dataFilter.search) {
-       
+        this.dataFilter.search = this.dataFilter.search.replace(/\\/g, "");
         this.localStorage.setItem("vrequests", this.dataFilter.search);
         controller = "/d/admin/request/fetch/" + this.dataFilter.search + "/-/" +
           sort +

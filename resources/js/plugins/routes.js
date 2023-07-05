@@ -51,7 +51,11 @@ let adminOnly = ["admin", "procurement"];
 
 import Comparisons from "../components/admin/comparison/List";
 import EditComparison from "../components/admin/comparison/EditData";
+import QuotationComparison from "../components/admin/comparison/Quotation";
 import NewComparison from "../components/admin/comparison/NewData";
+
+import Quotations from "../components/quotations/comparison/List";
+import EditQuotation from "../components/quotations/comparison/EditData";
  
 let auth = store.state.authUser;
  
@@ -250,6 +254,16 @@ export const routes = [
             validateAccess("comparisons") ? next() : next({ name: "ForbiddenPage" });
         }
     },
+
+    {
+        path: "/d/admin/comparisons/quotations/:id",
+        component: QuotationComparison,
+        name: "QuotationComparison",
+        beforeEnter: (to, from, next) => {
+            validateAccess("comparisons") ? next() : next({ name: "ForbiddenPage" });
+        }
+    },
+    
 
     /**
      * Requests
@@ -521,15 +535,18 @@ export const routes = [
     }, 
 
     {
-        path: "/d/moderators",
-        beforeEnter() {
-            let slug = "medias";
-            if (validateAccess("medias")) {
-                slug = "medias";
-            }  else if (validateAccess("users")) {
-                slug = "users";
-            }  
-            window.location.href = "/d/admin/" + slug;
+        path: "/home",
+        beforeEnter() { 
+            window.location.href = "/d/admin/dashboard";
         },
     }, 
+
+    /**
+     * SUPPLIER QUOTATION
+     */
+    {
+        path: "/suppliers/add-quotation",
+        component: EditQuotation,
+        name: "EditQuotation"        
+    },
 ]; 

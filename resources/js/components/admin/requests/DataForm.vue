@@ -18,7 +18,7 @@
             <span v-if="!btnHidden && (formObj.status=='pending' || formObj.status=='onhold' ) && !isEditEnable"> <v-btn dense  @click="funcEditForm(true)" small color="secondary"><v-icon dark small>mdi-pencil</v-icon>Edit</v-btn> 
               <v-btn v-if="formObj.status=='pending'" dense small color="red" class="white--text" @click="cancelledRequest">CANCEL REQUEST</v-btn></span> 
             <span v-else-if="!btnHidden && (formObj.status=='pending' || formObj.status=='onhold' ) && isEditEnable"> <v-btn dense  @click="funcEditForm(false)" small color="secondary">Cancel</v-btn> 
-              <v-btn dense small color="green" class="white--text" @click="submit(true)">UPDATE</v-btn></span> 
+              <v-btn dense small color="green" class="white--text" @click="processingFunction">UPDATE</v-btn></span> 
           
           </h4>
           <v-spacer></v-spacer>
@@ -112,7 +112,7 @@
                             </v-col>
                           </v-row>
                           <v-row>
-                            <v-col col="12" v-if="!formObj.prf_no">
+                            <v-col col="12"  v-if="!isViewing">
                               <vue-dropzone ref="myVueDropzone" class="open-uploader" id="customdropzone" required
                                 :options="dropzoneOptions" :useCustomSlot="preview" addRemoveLinks: true
                                 v-on:vdropzone-file-added="addedFunction" v-on:vdropzone-files-added="addedFunction"
@@ -130,27 +130,96 @@
                                 </div>
                               </vue-dropzone>
                             </v-col>
-                            <v-col class="col-12" v-else>
+                            <v-col class="col-12" v-if="formObj.prf_no">
                               <h3>Attachment(s)</h3>
                                 <ul v-if="formObj.images && formObj.images.length > 0">
-                                    <li v-for="img in formObj.images" :key="img.id"> <a :href="`/d/file/${img.path}`" target="_blank"> {{ img.title }} </a></li>
+                                    <li v-for="(img,idx) in formObj.images" :key="img.id"> 
+                                      <a :href="`/file/${img.path}`" target="_blank"> {{ img.title }} </a> 
+                                      <v-btn v-if="!isViewing" text @click="removeImage(img,idx)" class="ml-2"  small><v-icon small  color="error">mdi-close</v-icon></v-btn>
+                                    </li>
                                 </ul>
                             </v-col>
                           </v-row>
 
                           <v-row>
+                          
                             <v-col sm="12" xs="12" md="12">
                               <ValidationProvider v-slot="{ errors }" rules="required" name="Subject">
-                                <v-text-field dense v-model="formObj.subject" label="Enter Subject*" outlined required
+                                <v-text-field :disabled="isViewing" dense v-model="formObj.subject" label="Enter Subject*" outlined required
                                   clearable hide-details :error-messages="errors"></v-text-field>
-                              </ValidationProvider>
+                              </ValidationProvider>                            
                             </v-col>
-                            <v-col md="12">
-
-                              <ckeditor :editor="editor" v-model="editorData" :config="editorConfig"></ckeditor>
+                            <v-col col="12" class="col-12">
+                              <v-divider></v-divider>
+                            </v-col>
+                            <v-col col="12" class="mb-0 pb-0 col-12" v-if="tableForm">
+                              <v-btn dense color="secondary" class="mx-2 my-auto" small v-if="!isViewing"
+                                  @click="addItem('item')">ADD MORE ITEM</v-btn>
+                            </v-col>
+                            <v-col md="12" class="py-0"> 
+                              <!-- <ckeditor :editor="editor" v-model="editorData" :config="editorConfig"></ckeditor> --> 
+                              <v-simple-table>
+                                <template v-slot:default>
+                                  <thead>
+                                    <tr> 
+                                      <th width="5%">#</th>
+                                      <th width="50%">DESCRIPTION*</th>
+                                      <th width="20%">QTY*</th>
+                                      <th width="20%">UOM (Optional)</th> 
+                                      <th width="5%"></th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    <template v-if="tableForm"> 
+                                    <tr v-for="(item, index) in tableForm" :key="item.id" class="mt-2"> 
+                                      <td>{{ index+1 }}</td>
+                                      <td>
+                                        <ValidationProvider v-slot="{ errors }" rules="required" name="Description">
+                                        <v-textarea :disabled="isViewing" v-model="item.description" outlined dense rows="2"
+                                          label="DESCRIPTION*" hide-details></v-textarea>
+                                        </ValidationProvider>
+                                        </td>
+                                      <td>
+                                        <ValidationProvider v-slot="{ errors }" rules="required" name="Qty">
+                                          <v-text-field :disabled="isViewing"  :error-messages="errors"
+                                            v-model="item.qty" type="number" outlined dense label="QTY*"
+                                            hide-details></v-text-field>
+                                        </ValidationProvider>
+                                      </td>
+                                      <td><v-text-field :disabled="isViewing" v-model="item.uom" outlined dense label="UOM"
+                                          hide-details></v-text-field></td> 
+                                     
+                                      <td>
+                                        <div v-if="!isViewing" class="row-delete" @click="removeItem(index)"><v-icon color="red"
+                                            v-if="tableForm.length > 1">mdi-trash-can</v-icon> </div>
+                                      </td>
+                                    </tr>
+                                  </template>
+                                      <template v-else>
+                                        <tr>
+                                          <td>1</td>
+                                          <td class="pt-2" v-html="formObj.details" v-if="isViewing"></td> 
+                                          <td v-else>  
+                                            <ValidationProvider v-slot="{ errors }" rules="required" name="Description">
+                                              <v-textarea :disabled="isViewing" v-model="formObj.details" outlined dense rows="2"
+                                          label="DESCRIPTION*" hide-details></v-textarea>
+                                          </ValidationProvider>
+                                          </td>
+                                          <td></td>
+                                          <td></td>
+                                          <td></td>
+                                        </tr>
+                                      </template>
+                                  </tbody>
+                                </template>
+                              </v-simple-table>
+                           
                             </v-col>
                           </v-row>
                           <v-row>
+                            <v-col col="12" class="col-12">
+                              <v-divider></v-divider>
+                            </v-col>
                             <v-col col="12">
                               <v-text-field v-if="!formObj.prf_no" dense v-model="formObj.recipients"
                                 label="(Optional) Email recipient notification - add comma if multiple email." outlined
@@ -169,7 +238,7 @@
                             
                             <v-col  col="12" md="12">
                               <v-btn v-if="!formObj.prf_no" class="primary" :loading="loadingSubmit"
-                                :disabled="!valid || !acceptance || !editorData" small
+                                :disabled="!valid || !acceptance" small
                                 @click="processingFunction">Submit</v-btn>
                             </v-col>
                           </v-row>
@@ -186,13 +255,12 @@
 
     </v-container>
     <!-- actions and dialogs -->
-    <snack-bar :snackbar-options="sbOptions"></snack-bar>
+    <snack-bar :snackbar-options="sbOptions" class="no-print"></snack-bar>
 
   </div>
 </template>
-<script>
-
-import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
+<script> 
+ 
 import {
   ValidationObserver,
   ValidationProvider,
@@ -240,6 +308,7 @@ export default {
   },
   data() {
     return { 
+      isViewing: false,
       pageLoading: true,
       btnHidden: false,
       isEditEnable: false,
@@ -267,11 +336,8 @@ export default {
       sbOptions: {},
       filterObj: {},
       confOptions: {},
-      loading: this.objectdata ? true : false,
-      editor: ClassicEditor,
-      editorData: "",
-      editorConfig: {},
-      editorContent: "",
+      loading: this.objectdata ? true : false, 
+      tableForm: [{ description: '', qty: 1, uom: '' }],
 
       loadingSubmit: false,
       preview: true,
@@ -286,7 +352,7 @@ export default {
         parallelUploads: 3,
         maxFilesize: 5,
         timeout: 180000,
-        acceptedFiles: ".jpeg,.jpg,.png,.jfif",
+        acceptedFiles: ".jpeg,.jpg,.png,.jfif,.pdf",
         clickable: ".open-uploader",
         headers: {
           "x-csrf-token": document
@@ -302,7 +368,10 @@ export default {
       handler(val, oldVal) {
         if (val != oldVal) {
           this.formObj = Object.assign({}, val.item);
-          this.editorData = this.formObj.details ? this.formObj.details : "";
+         
+          this.tableForm = this.formObj.items && this.formObj.items.length > 0 ? Object.assign([], this.formObj.items) : '';
+          this.isViewing = true;
+         
         }
 
         this.loading = false;
@@ -314,7 +383,43 @@ export default {
     funcEditForm: function(v){
       this.isEditEnable = v;
       this.formEditable = v;
+      if(v){
+        this.isViewing = false;
+      }else{
+        this.isViewing = true;
+      }
     },  
+
+    addItem: function (v) { 
+        this.tableForm.push({   description: '', qty: 1, uom: '' }); 
+    },
+    removeItem: function (index, type) { 
+        let rows = this.tableForm;
+        rows.splice(index, 1)
+        this.tableForm = [...rows];
+
+        this.onChangeItem(0, true); 
+    },
+
+    removeImage: function(v, idx){
+      this.loadingSubmit = true;
+      let formData = { id: this.formObj.id , image_id: v.id };
+       
+      axios.post('/d/admin/request/detach-image', formData).then((response) =>{ 
+        const index = idx;
+        if (index > -1) { // only splice array when item is found
+          
+          this.formObj.images.splice(index, 1); // 2nd parameter means remove one item only
+        }
+        
+        this.loadingSubmit = false;
+        this.sbOptions = {
+              status: true,
+              type: "success",
+              text: response.data.msg,
+          };
+      });
+    },
     /**
      * Dropzone methods
      */
@@ -357,9 +462,10 @@ export default {
       }
     },
     sendingFunction(file, xhr, formData) {
-      this.formObj.details = this.editorData;
+      this.formObj.details = this.formObj.details ? this.formObj.details : '-';
+      this.formObj.items = this.tableForm;
       let data = this.formObj;
-      
+      console.log(data);
       formData.append("requestObj", JSON.stringify(data));
     },
     uploadSuccessFuntion(files, response) {
@@ -372,7 +478,8 @@ export default {
           };
 
       if (this.pagetitle == "edit") {
-
+          this.funcEditForm(false);
+            this.$emit("saved", true);
       }else{
           this.$refs.user_form_observer.reset();
           this.removeAllFilesFunction();  
@@ -486,9 +593,10 @@ export default {
           text: "Submitting...",
         };
       }  
-      this.formObj.details = this.editorData;
+      this.formObj.details = this.formObj.details ? this.formObj.details : '-';
       let dataForm = {
-        data: this.formObj
+        data: this.formObj,
+        items: this.tableForm
       };
 
       if (this.formObj.id) {
@@ -501,6 +609,7 @@ export default {
         dataForm = {
           data: bdata,
           id: postID,
+          items: this.tableForm
         };
       }
 
@@ -534,7 +643,7 @@ export default {
           this.sbOptions = {
             status: true,
             type: "error",
-            text: "Error saving data",
+            text: err.message,
           };
         });
     },

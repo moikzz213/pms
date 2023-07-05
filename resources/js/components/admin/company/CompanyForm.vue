@@ -82,9 +82,15 @@
                           <div class="d-flex">
                             <v-btn class="primary" :disabled="!valid" small @click="submit">Save</v-btn>
                             <v-spacer></v-spacer>
-
-                            <v-btn v-if="pagetitle == 'edit'" text color="error" small
-                              @click="deleteData()">delete</v-btn>
+                              <v-switch
+                              v-if="pagetitle == 'edit'"
+                              class="ma-0"
+                                v-model="companyStatus"
+                                :label="`${dataObj.status}`"
+                                color="green" 
+                                @change="updateStatus()"
+                              ></v-switch>
+                           
                           </div>
                         </v-card-text>
                       </v-card>
@@ -102,7 +108,6 @@
     <!-- actions and dialogs -->
     <snack-bar :snackbar-options="sbOptions"></snack-bar>
     <dialog-loader :loader-options="loaderOptions"></dialog-loader>
-    <confirmation-dialog :conf-options="confOptions" @response="confResponse"></confirmation-dialog>
   </div>
 </template>
 <script>
@@ -141,6 +146,7 @@ export default {
       confOptions: {},
       loading: false,
       selectedImage: [],
+      companyStatus: false,
     };
   },
 
@@ -149,7 +155,11 @@ export default {
       handler(val, oldVal) {
         if (val != oldVal) {
           this.dataObj = Object.assign({}, val);
-          
+          if(val.status == 'active'){
+            this.companyStatus = true;
+          }else{
+            this.companyStatus = false;
+          }
           if (this.dataObj.images && this.dataObj.images.length > 0) {
             this.selectedImage = this.dataObj.images;
           }
@@ -158,8 +168,22 @@ export default {
       },
       deep: true,
     },
+
+    companyStatus: {
+      handler(val) {
+          if(val){
+            this.dataObj.status = 'active';
+          }else{
+            this.dataObj.status = 'disabled';
+          } 
+      }, 
+    }
   },
   methods: {
+    updateStatus: function(){
+      
+       this.disabledData();
+    },
     newPost: function () {
       this.$router.push({ name: 'NewCompany' });
     },
@@ -232,17 +256,12 @@ export default {
           this.loading = false;
         });
     },
-    deleteData() {
-      this.confOptions = {
-        status: true,
-        title: "Confirm",
-        msg: "Please confirm that you want to delete this account.",
-        btnTitle: "delete",
-        action: "delete",
-      };
-    },
-    confResponse(value) {
-      if (value == true) {
+  
+    disabledData: function() {  
+      let message = 'enabled';
+      if(this.dataObj.status == 'active'){
+        message = 'disabled';
+      } 
         axios
           .get("/d/admin/company/delete/" + this.dataObj.id)
           .then((response) => {
@@ -250,12 +269,12 @@ export default {
             this.sbOptions = {
               status: true,
               type: "success",
-              text: "Data has been deleted",
+              text: "Data has been "+message,
             };
 
-            setTimeout(() => {
-              this.$router.push({ name: "Companies" });
-            }, 800);
+            // setTimeout(() => {
+            //   this.$router.push({ name: "Companies" });
+            // }, 800);
           })
           .catch((err) => {
             console.log(err.response.data);
@@ -266,8 +285,7 @@ export default {
               text: err.response.data.message,
             };
           });
-      }
-    },
+      } 
   },
   created() {
     this.pageLoading = false;

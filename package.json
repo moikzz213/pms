@@ -36,7 +36,6 @@
         "@ckeditor/ckeditor5-font": "^35.1.0",
         "@ckeditor/ckeditor5-html-embed": "^35.1.0",
         "@ckeditor/ckeditor5-paragraph": "^35.1.0",
-        "@ckeditor/ckeditor5-upload": "^35.1.0",
         "@ckeditor/ckeditor5-vue2": "^3.0.1",
         "@mdi/font": "^5.9.55",
         "cross-env": "^7.0.3",
