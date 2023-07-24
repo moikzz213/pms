@@ -52,22 +52,20 @@ class RequestController extends Controller
         if($status && $status !== '-'){
             $searchData = array('status' => $status);
         }
-      
-        if($id == 261 || $id == 82 || $id == 19 || $id == 258 || $id == 304){
-            $where = ['user_id' => '261','user_id' => '82','user_id' => '19','user_id' => '258','user_id' => '304'];
+        $itPersonnel = array(261,82,19,258,304,933,946,954,961);
+
+        if(in_array($id, $itPersonnel)){ 
             $itOnly = true;
         }else{
-            $where = ['user_id' => $id];
+     
             $itOnly = false;
         }
         
         if($search !== '-'){
             
-           $data = Requests::where(function ($q) use ($itOnly,$id){
+           $data = Requests::where(function ($q) use ($itOnly,$itPersonnel, $id){
                 if($itOnly){
-                $q->where('user_id',"=",$id) 
-                    ->orWhere('user_id',"=", 261)->orWhere('user_id',"=", 82)
-                    ->orWhere('user_id',"=", 19)->orWhere('user_id',"=", 304)->orWhere('user_id',"=", 258);
+                    $q->whereIn('user_id',$itPersonnel);
                 }else{
                     $q->where('user_id',"=",$id);
                 }
@@ -81,30 +79,21 @@ class RequestController extends Controller
         }else{
           
             if($id == 304 ){
-                $data = Requests::where($searchData)->where( function($query)  use ($id){
-                    $query->where('user_id',"=",$id) 
-                    ->orWhere('user_id',"=", 261)->orWhere('user_id',"=", 82)
-                    ->orWhere('user_id',"=", 19)->orWhere('user_id',"=", 258);
+                $data = Requests::where($searchData)->where( function($query)  use ($itPersonnel){
+                    $query->whereIn('user_id',$itPersonnel);
                 })->with("company","location","process_by", "profile")->orderBy($field, $sort)->paginate(10); 
             }elseif($id == 258 ){
-                $data = Requests::where($searchData)->where( function($query)  use ($id){
-                    $query->where('user_id',"=",$id) 
-                    ->orWhere('user_id',"=", 261)->orWhere('user_id',"=", 82)
-                    ->orWhere('user_id',"=", 19)->orWhere('user_id',"=", 304);
+                $data = Requests::where($searchData)->where( function($query)  use ($itPersonnel){
+                    $query->whereIn('user_id',$itPersonnel);
                 })->with("company","location","process_by", "profile")->orderBy($field, $sort)->paginate(10); 
             }elseif($id == 261 ){
                
-                $data = Requests::where($searchData)->where( function($query)  use ($id){
-                    $query->where('user_id',"=",$id) 
-                    ->orWhere('user_id',"=", 258)->orWhere('user_id',"=", 82)
-                    ->orWhere('user_id',"=", 19)->orWhere('user_id',"=", 304);
+                $data = Requests::where($searchData)->where( function($query)  use ($itPersonnel){
+                    $query->whereIn('user_id',$itPersonnel);
                 })->with("company","location","process_by", "profile")->orderBy($field, $sort)->paginate(10); 
             }elseif(($id == 333 || $id == 249 ) ){
-                $data = Requests::where($searchData)->where( function($query)  use ($id){
-                    $query->where('user_id',"=",$id)
-                    ->orWhere('user_id',"=", 304)->orWhere('user_id',"=", 258)
-                    ->orWhere('user_id',"=", 261)->orWhere('user_id',"=", 82)
-                    ->orWhere('user_id',"=", 19);
+                $data = Requests::where($searchData)->where( function($query)  use ($itPersonnel){
+                    $query->whereIn('user_id',$itPersonnel);
                 })->with("company","location","process_by", "profile")->orderBy($field, $sort)->paginate(10); 
             }else{             
                 $data = Requests::where('user_id',"=",$id)->where($searchData)->with("company","location","process_by", "profile")->orderBy($field, $sort)->paginate(10); 
@@ -184,112 +173,33 @@ class RequestController extends Controller
         $userID = $loggedUser->id;
         $id = $userID; 
         
-      
+        $itPersonnel = array(261,82,19,258,304,933,946,954,961);
+        $data = Requests::whereIn('user_id',$itPersonnel)->with("company","location","process_by", "profile")->orderBy("updated_at", "desc")->take(10)->get();
         if($userID == 304 ){
             // leslie - 304
             // jeff - 258
             // jerico - 261
             // arnel - 82
-            // abe - 19
-          
-            $data = Requests::where('user_id', "=",$id)->orWhere('user_id',"=", 258)->orWhere('user_id',"=", 261)->orWhere('user_id',"=", 82)->orWhere('user_id',"=", 19)->with("company","location","process_by", "profile")->orderBy("updated_at", "desc")->take(10)->get();
-            $pending =  Requests::where(function($q) use ($id){
-                $q->where('user_id' ,"=", $id) 
-                ->orWhere('user_id' ,"=", 258)
-                ->orWhere('user_id' ,"=", 261)
-                ->orWhere('user_id' ,"=", 82)
-                ->orWhere('user_id' ,"=", 19);
-            })->where("status", "=", "pending")->get(); 
-            $onhold =  Requests::where(function($q) use ($id){
-                $q->where('user_id' ,"=", $id) 
-                ->orWhere('user_id' ,"=", 258)
-                ->orWhere('user_id' ,"=", 261)
-                ->orWhere('user_id' ,"=", 82)
-                ->orWhere('user_id' ,"=", 19);
-            })->where("status", "=", "onhold")->get(); 
-            $processed = Requests::where(function($q) use ($id){
-                $q->where('user_id' ,"=", $id) 
-                ->orWhere('user_id' ,"=", 258)
-                ->orWhere('user_id' ,"=", 261)
-                ->orWhere('user_id' ,"=", 82)
-                ->orWhere('user_id' ,"=", 19);
-            })->where("status", "=", "onprocess")->get(); 
-            $newRequest =  Requests::where(function($q) use ($id){
-                $q->where('user_id' ,"=", $id) 
-                ->orWhere('user_id' ,"=", 258)
-                ->orWhere('user_id' ,"=", 261)
-                ->orWhere('user_id' ,"=", 82)
-                ->orWhere('user_id' ,"=", 19);
-            })->whereDate( "created_at" , Carbon::today())->get(); 
-            $closed =  Requests::where(function($q) use ($id){
-                $q->where('user_id' ,"=", $id) 
-                ->orWhere('user_id' ,"=", 258)
-                ->orWhere('user_id' ,"=", 261)
-                ->orWhere('user_id' ,"=", 82)
-                ->orWhere('user_id' ,"=", 19);
-            })->where("status", "=", "closed")->get(); 
-            $totalRequest = Requests::where(function($q) use ($id){
-                $q->where('user_id' ,"=", $id) 
-                ->orWhere('user_id' ,"=", 258)
-                ->orWhere('user_id' ,"=", 261)
-                ->orWhere('user_id' ,"=", 82)
-                ->orWhere('user_id' ,"=", 19);
-            })->where("status", "!=", "cancelled")->get(); 
+            // abe - 19 
+           
+            $pending =  Requests::whereIn('user_id',$itPersonnel)->where("status", "=", "pending")->get(); 
+            $onhold =  Requests::whereIn('user_id',$itPersonnel)->where("status", "=", "onhold")->get(); 
+            $processed = Requests::whereIn('user_id',$itPersonnel)->where("status", "=", "onprocess")->get(); 
+            $newRequest =  Requests::whereIn('user_id',$itPersonnel)->whereDate( "created_at" , Carbon::today())->get(); 
+            $closed =  Requests::whereIn('user_id',$itPersonnel)->where("status", "=", "closed")->get(); 
+            $totalRequest = Requests::whereIn('user_id',$itPersonnel)->where("status", "!=", "cancelled")->get(); 
         }elseif($userID == 333 || $userID == 249){
             // jeff - 258
             // jerico - 261
             // arnel - 82
             // abe - 19
          
-            $data = Requests::where('user_id', "=",$id)->orWhere('user_id',"=", 304)->orWhere('user_id',"=", 258)->orWhere('user_id',"=", 261)->orWhere('user_id',"=", 82)->orWhere('user_id',"=", 19)->with("company","location","process_by", "profile")->orderBy("updated_at", "desc")->take(10)->get();
-            $pending =  Requests::where(function($q) use ($id){
-                $q->where('user_id' ,"=", $id)
-                ->orWhere('user_id' ,"=", 304)
-                ->orWhere('user_id' ,"=", 258)
-                ->orWhere('user_id' ,"=", 261)
-                ->orWhere('user_id' ,"=", 82)
-                ->orWhere('user_id' ,"=", 19);
-            })->where("status", "=", "pending")->get(); 
-            $onhold =  Requests::where(function($q) use ($id){
-                $q->where('user_id' ,"=", $id)
-                ->orWhere('user_id' ,"=", 304)
-                ->orWhere('user_id' ,"=", 258)
-                ->orWhere('user_id' ,"=", 261)
-                ->orWhere('user_id' ,"=", 82)
-                ->orWhere('user_id' ,"=", 19);
-            })->where("status", "=", "onhold")->get(); 
-            $processed = Requests::where(function($q) use ($id){
-                $q->where('user_id' ,"=", $id)
-                ->orWhere('user_id' ,"=", 304)
-                ->orWhere('user_id' ,"=", 258)
-                ->orWhere('user_id' ,"=", 261)
-                ->orWhere('user_id' ,"=", 82)
-                ->orWhere('user_id' ,"=", 19);
-            })->where("status", "=", "onprocess")->get(); 
-            $newRequest =  Requests::where(function($q) use ($id){
-                $q->where('user_id' ,"=", $id)
-                ->orWhere('user_id' ,"=", 304)
-                ->orWhere('user_id' ,"=", 258)
-                ->orWhere('user_id' ,"=", 261)
-                ->orWhere('user_id' ,"=", 82)
-                ->orWhere('user_id' ,"=", 19);
-            })->whereDate( "created_at" , Carbon::today())->get(); 
-            $closed =  Requests::where(function($q) use ($id){
-                $q->where('user_id' ,"=", $id)
-                ->orWhere('user_id' ,"=", 304)
-                ->orWhere('user_id' ,"=", 258)
-                ->orWhere('user_id' ,"=", 261)
-                ->orWhere('user_id' ,"=", 82)
-                ->orWhere('user_id' ,"=", 19);
-            })->where("status", "=", "closed")->get(); 
-            $totalRequest = Requests::where(function($q) use ($id){
-                $q->where('user_id' ,"=", $id)
-                ->orWhere('user_id' ,"=", 304)
-                ->orWhere('user_id' ,"=", 258)
-                ->orWhere('user_id' ,"=", 261)
-                ->orWhere('user_id' ,"=", 82)
-                ->orWhere('user_id' ,"=", 19);
-            })->where("status", "!=", "cancelled")->get(); 
+            $pending =  Requests::whereIn('user_id',$itPersonnel)->where("status", "=", "pending")->get(); 
+            $onhold =  Requests::whereIn('user_id',$itPersonnel)->where("status", "=", "onhold")->get(); 
+            $processed = Requests::whereIn('user_id',$itPersonnel)->where("status", "=", "onprocess")->get(); 
+            $newRequest =  Requests::whereIn('user_id',$itPersonnel)->whereDate( "created_at" , Carbon::today())->get(); 
+            $closed =  Requests::whereIn('user_id',$itPersonnel)->where("status", "=", "closed")->get(); 
+            $totalRequest = Requests::whereIn('user_id',$itPersonnel)->where("status", "!=", "cancelled")->get(); 
         }elseif($loggedUser->role == 'normal'){
           
             $data = Requests::where('user_id',"=",$id)->with("company","location","process_by", "profile")->orderBy("updated_at", "desc")->take(10)->get();
