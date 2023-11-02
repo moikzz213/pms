@@ -18,6 +18,10 @@
         <v-divider></v-divider>
         <nav-item v-for="item in moderatorNav" :key="item.title" :nav="item" 
         v-if="authenticated_user.role == 'superadmin' || authenticated_user.role == 'admin' || authenticated_user.role == 'procurement'"></nav-item>
+        <!-- <nav-item v-for="item in adminNav" :key="item.title" :nav="item" 
+        v-if="authenticated_user.role == 'superadmin' || authenticated_user.role == 'admin' || 
+        (authenticated_user.email == 'marie.c@gagroup.net' || authenticated_user.email == 'ashfak.b@gagroup.net' 
+        || authenticated_user.email == 'jhon.c@gagroup.net' || authenticated_user.email == 'murshid.k@gagroup.net')"></nav-item> -->
 
         <v-list-item  v-on:click="logout">
           <v-list-item-action  >
@@ -86,6 +90,7 @@ export default {
       profileImagePath: window.location.origin + "/images/placeholder-user.png",
       drawer: true,
       menu: false,
+      
       moderatorNav: [
       {
           title: "Comparisons",
@@ -110,8 +115,7 @@ export default {
           icon: "mdi-book-multiple-outline",
           location: "/d/admin/payment-approval-forms",
           slug: "lpo",
-        },
-
+        }, 
         {
           title: "Settings",
           icon: "mdi-cog",
@@ -160,7 +164,6 @@ export default {
           location: "/d/admin/reports",
           slug: "reports",
         },
-
       ],
       commonNav: [
         {

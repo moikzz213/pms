@@ -28,12 +28,12 @@
 
                 <v-autocomplete :items="statusList" clearable v-model="dataFilter.status" @click:clear="clearFilter('status')" dense outlined hide-details
                   label="Status" class="mt-0  mr-3"></v-autocomplete>
-
+ 
                 <v-autocomplete :items="procteam" clearable v-model="dataFilter.process_by" @click:clear="clearFilter('process')" dense outlined
-                  hide-details label="Processed By" class="mt-0 mr-3" item-value="id" item-text="profile.name"></v-autocomplete>
-
+                  hide-details label="Processed By" class="mt-0 mr-3" item-value="id" item-text="profile.name"></v-autocomplete> 
+                
                 <v-autocomplete :items="profiles" clearable v-model="dataFilter.user_id" dense @click:clear="clearFilter('request')"
-                  outlined hide-details label="Requested By" class="mt-0 mr-3" item-value="id"
+                  outlined hide-details label="Requested By" class="mt-0 mr-3" item-value="user.id"
                   item-text="name"></v-autocomplete>
 
                 <v-text-field v-model="dataFilter.search" append-outer-icon="mdi-magnify" outlined dense
@@ -90,7 +90,7 @@
                     <td>{{ item.prf_no }}</td>
                     <td>{{ item.company ? item.company.title : '' }}</td>
                     <td>{{ item.profile ? item.profile.name : '' }}</td>
-                    <td> <v-autocomplete :items="procteam" 
+                    <td><v-autocomplete :items="procteam" 
                       v-model="item.process_by"
                         dense outlined hide-details
                         @change="assignTask(item)"
@@ -169,8 +169,8 @@ export default {
         status: true,
         text: "Please wait...",
       };
+      
       let nData = { id: v.id, process_by: v.process_by };
-      console.log(nData);
       axios.post('/d/admin/request/procurement/assigned', nData).then((response) =>{
         if(response.data.status){
                 this.sbOptions = {
@@ -216,7 +216,6 @@ export default {
         }else{
           filteredSearch = this.dataFilter;
         }
-        console.log(this.dataFilter);
         let bdata = filteredSearch;
         let dataComp = '';
         let dataProcess = '';
@@ -306,7 +305,6 @@ export default {
       this.$router.push("/d/admin/procurement-team/page/" + this.page).catch((err) => { });
     },
     clearFilter: function(v){
-      console.log(v);
       if(v == 'company'){
         this.localStorage.setItem("proccompany", ""); 
       }else if(v == 'process'){

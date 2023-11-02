@@ -126,8 +126,8 @@
                           <v-row>
                             <v-col class="col-12"> <v-divider></v-divider></v-col>
                           </v-row>
-
-                          <v-row>
+ssssss
+                          <v-row class="page-break">
                             <v-col class="col-12">
                               <div class="d-flex">
                                 <v-btn dense color="secondary" class="mx-2 my-auto" small
@@ -147,7 +147,7 @@
                             </v-col>
                           </v-row>
 
-                          <v-row>
+                          <v-row class="page-break">
                             <v-col class="col-12">
                               <v-simple-table>
                                 <template v-slot:default>
@@ -204,7 +204,7 @@
                               </v-simple-table>
                             </v-col>
                           </v-row>
-                          <v-row>
+                          <v-row class="page-break">
                             <v-col class="col-12 col-md-8">
                               <v-textarea rows="8" class="col-11" v-model="formObj.remarks_general" outlined
                                 hide-details label="Remarks"></v-textarea>
@@ -252,7 +252,7 @@
                             </v-col>
                           </v-row>
 
-                          <v-row>
+                          <v-row class="page-break">
                             <v-col class="col-4 bordered">
                               <h4>PAYMENT TERMS*</h4>
                               <ValidationProvider v-slot="{ errors }" rules="required" name="Payment Terms">
@@ -278,7 +278,7 @@
                             </v-col>
                           </v-row>
 
-                          <v-row class="py-3">
+                          <v-row class="py-3 page-break">
                             <v-col class="col-12 col-md-6 bordered">
                               <v-row class="pb-3">
                                 <v-col class="col-12">
@@ -350,7 +350,7 @@
                             </v-col>
                           </v-row>
 
-                          <v-row>
+                          <v-row class="page-break">
                             <v-col class="col-2 py-1 my-auto">REMARKS</v-col>
                             <v-col class="col-10 py-1"><v-text-field v-model="formObj.remarks_optional" outlined dense
                                 hide-details></v-text-field></v-col>
@@ -363,7 +363,7 @@
                             <v-col class="col-12"> <v-divider></v-divider> </v-col>
                           </v-row>
 
-                          <v-row>
+                          <v-row class="page-break">
                             <v-col class="col-12 d-flex">
                               <v-btn small color="secondary" class="mr-4" @click="addItem('approvers')">ADD</v-btn>
                               <h3 class="my-auto"> APPROVAL SETUP</h3>
@@ -435,7 +435,7 @@
       </v-card>
 
       <!-- Viewing / Printing Mode -->
-      <v-card flat width="1200" class="mx-auto pb-5" v-else>
+      <v-card flat maxWidth="1200" class="mx-auto pb-5" v-else>
         <v-card-title class="no-print bordered">
           <strong class="text-uppercase">STATUS: {{ formObj.status }}</strong>
 
@@ -464,7 +464,7 @@
               <h1 class="mb-3">{{ formObj.company }}</h1>
               <h2>LOCAL PURCHASE ORDER (LPO)</h2>
             </div>
-            <v-col class="col-6  table-50 padding-0">
+            <v-col class="col-6   padding-0"  >
               <table border="1" cellspacing="0" cellpadding="0" class="pb-0">
                 <tr>
                   <th class="text-left pl-2">TO</th>
@@ -492,8 +492,8 @@
                 </tr>
               </table>
             </v-col>
-            <v-col class="col-6 table-50 padding-0">
-              <table border="1" cellspacing="0" cellpadding="0" class="pb-0">
+            <v-col class="col-6  padding-0" >
+              <table border="1" cellspacing="0"   cellpadding="0" class="pb-0">
                 <tr>
                   <th class="text-left pl-2">LPO</th>
                   <th class="text-left pl-2">{{ formObj.lpo_no }}</th>
@@ -639,7 +639,7 @@
             </v-col>
           </v-row>
           <v-row class="padding-0 mt-1">
-            <v-col class="col-6 table-50 padding-0">
+            <v-col class="col-6  padding-0">
               <table border="1" cellspacing="0" cellpadding="0" class="pb-0">
                 <tr>
                   <td colspan="2" class="text-left pl-2">BILLING DETAILS:</td>
@@ -670,7 +670,7 @@
                 </tr>
               </table>
             </v-col>
-            <v-col class="col-6 table-50 padding-0">
+            <v-col class="col-6  padding-0">
               <table border="1" cellspacing="0" cellpadding="0" class="pb-0">
                 <tr>
                   <td colspan="2" class="text-left pl-2">SHIPPING DETAILS:</td>
@@ -722,13 +722,13 @@
               </table>
             </v-col>
           </v-row>
-          <v-row class="padding-0 mt-1">
+          <v-row class="padding-0 mt-1" style="width:100%;">
             <v-col class="padding-0 ml-1">
               <v-row>
                 <div style="width:15.5%; margin:0 0 0 10px;" v-for="approval in formObj.lpo_approvals" :key="approval.id">
                   <div style=" height:70px;  border:1px solid #000;"></div>
                   <div class="text-center mt-2">
-                    <h4 class="text-capitalize py-0 my-0">{{ approval.approval_type.replace("_", " ") }}</h4>
+                    <h4 class="text-capitalize py-0 my-0">{{ approval.approval_type ? approval.approval_type.replace("_", " ") : '-' }}</h4>
                     <h4 class="text-capitalize py-0 my-0">{{ approval.users ? approval.users.profile.name : '' }}</h4>
                     <h4 class="py-0 my-0">{{ approval.users ? approval.users.profile.designation : '' }}</h4>
                   </div>
@@ -1279,4 +1279,9 @@ table tr:hover .row-delete {
   padding-top: 10px;
   padding-bottom: 10px;
 }
+.page-break{ page-break-after: always; }
+
+ 
+  table{ width:99.7% !important;}
+ 
 </style>

@@ -46,8 +46,8 @@ class RequestController extends Controller
             $field = $orderBy[0];
             $sort = $orderBy[1];
         }
-        
-        $searchData = array();
+       
+        $searchData = array(); 
     
         if($status && $status !== '-'){
             $searchData = array('status' => $status);
@@ -156,6 +156,7 @@ class RequestController extends Controller
                     $searchData =  array_merge($searchData,array('process_by' => null));
                 }
             }
+           
             if(@$request['user_id']){
                 $searchData =  array_merge($searchData,array('user_id' => $request['user_id']));
             }

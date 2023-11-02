@@ -186,22 +186,20 @@ export default {
       let response = "";
       let sort = "-";
       let stats = this.dataFilter.status ? this.dataFilter.status : '-';
-
+      let vsearch = '-';
       let controller = '';
       if (this.dataFilter.search) {
-        this.dataFilter.search = this.dataFilter.search.replace(/\\/g, "");
+        this.dataFilter.search = this.dataFilter.search.replace(/\//g, "-");
+        this.dataFilter.search = this.dataFilter.search.replace(/\\/g, "-");
+        vsearch = this.dataFilter.search;
         this.localStorage.setItem("vrequests", this.dataFilter.search);
-        controller = "/d/admin/request/fetch/" + this.dataFilter.search + "/-/" +
-          sort +
-          "?page=1";
+       
+      }  
 
-      } else {
-    
-        controller =
-          "/d/admin/request/fetch/-/" + stats + "/" +
+      controller =
+          "/d/admin/request/fetch/"+ vsearch +"/" + stats + "/" +
           sort +
           "?page=1";
-      }
       response = await axios.get(controller);
 
       if (response.data) {
